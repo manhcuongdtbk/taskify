@@ -7,6 +7,9 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 
   // https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss#recommended-vs-code-settings
   "files.associations": {
@@ -14,5 +17,11 @@
   },
   "editor.quickSuggestions": {
     "strings": "on"
+  },
+
+  // https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode#using-code-actions-on-save
+  "editor.codeActionsOnSave": {
+    "source.fixAll.prettier": "explicit",
+    "source.fixAll.eslint": "explicit"
   }
 }
