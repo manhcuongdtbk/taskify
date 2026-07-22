@@ -15,7 +15,9 @@
 		// Debugger for Firefox
 		"firefox-devtools.vscode-firefox-debug",
 		// Tailwind CSS IntelliSense
-		"bradlc.vscode-tailwindcss"
+		"bradlc.vscode-tailwindcss",
+		// Error Lens
+		"usernamehw.errorlens"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
