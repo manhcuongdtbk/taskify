@@ -1,3 +1,10 @@
 {
-    "js/ts.tsdk.path": "node_modules/typescript/lib" // https://nextjs.org/docs/app/api-reference/config/typescript#ide-plugin
+  "js/ts.tsdk.path": "node_modules/typescript/lib", // https://nextjs.org/docs/app/api-reference/config/typescript#ide-plugin
+
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 }
