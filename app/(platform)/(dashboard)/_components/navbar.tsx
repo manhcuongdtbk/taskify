@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import MobileSidebar from "./mobile-sidebar";
+import ThemeToggler from "./theme-toggler";
 
 export default function Navbar() {
   return (
@@ -23,6 +24,7 @@ export default function Navbar() {
         </Button>
       </div>
       <div className="ml-auto flex items-center gap-x-2">
+        <ThemeToggler />
         <OrganizationSwitcher
           hidePersonal
           afterCreateOrganizationUrl="/organization/:id"
