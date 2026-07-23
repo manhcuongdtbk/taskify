@@ -51,6 +51,9 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
+      '@clerk/eslint-plugin':
+        specifier: ^0.2.0
+        version: 0.2.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.3
@@ -268,6 +271,13 @@ packages:
   '@clerk/backend@3.12.0':
     resolution: {integrity: sha512-AyrNvel4KcLSjQCf6wXKXtzz7VZbpIuM4lNkA3Tsfs0CAT+XKJiV3HyrJKgpGnL29K3TeWeYfzPbQvL/Gcy59g==}
     engines: {node: '>=20.9.0'}
+
+  '@clerk/eslint-plugin@0.2.0':
+    resolution: {integrity: sha512-j9o85RYTAOG8Sm++oCDYatw0XYOY4avOTj1aNFQooU+hQdjn/fVAPwPYNCMklXogguO/1bJpb+lQEdG68x75Cg==}
+    engines: {node: '>=20.9.0'}
+    hasBin: true
+    peerDependencies:
+      eslint: '>=9'
 
   '@clerk/localizations@4.13.6':
     resolution: {integrity: sha512-rtq2BYNnXUiJZlZFAStNCZ0cSVuJxN1WqLJ59ahVKNtM+grqNUDer9VRV5t2P9vQtj57oWNCztlGk+yxSuosdQ==}
@@ -4703,6 +4713,10 @@ snapshots:
     transitivePeerDependencies:
       - react
       - react-dom
+
+  '@clerk/eslint-plugin@0.2.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))':
+    dependencies:
+      eslint: 9.39.5(jiti@2.7.0)(supports-color@7.2.0)
 
   '@clerk/localizations@4.13.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
