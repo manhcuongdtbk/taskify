@@ -23,5 +23,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.prettier": "explicit",
     "source.fixAll.eslint": "explicit"
-  }
+  },
+
+  "editor.linkedEditing": true,
+  "editor.tabSize": 2
 }
