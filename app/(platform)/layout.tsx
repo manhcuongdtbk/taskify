@@ -22,7 +22,7 @@ export default function PlatformLayout({
     <ClerkProvider>
       <ThemeProvider // https://ui.shadcn.com/docs/dark-mode/next#wrap-your-root-layout
         attribute="class"
-        defaultTheme="system"
+        defaultTheme="light" // TODO: Revert to "system" and update the system to handle dark mode. More info on `ThemeProvider`: https://github.com/pacocoursey/next-themes#themeprovider
         enableSystem
         disableTransitionOnChange
       >
