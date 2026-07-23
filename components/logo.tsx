@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { calSansUI } from "@/styles/fonts";
+import { calSansUI } from "@/fonts";
 
 export default function Logo() {
   return (

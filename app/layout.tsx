@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { geistSans, geistMono } from "../styles/fonts";
+import { geistSans, geistMono } from "@/fonts";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";

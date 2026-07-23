@@ -2,7 +2,7 @@ import { Medal } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { calSansUI, poppins } from "@/styles/fonts";
+import { calSansUI, poppins } from "@/fonts";
 
 export default function MarketingPage() {
   return (
