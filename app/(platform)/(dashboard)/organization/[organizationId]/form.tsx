@@ -1,6 +1,6 @@
 "use client";
 
-import FormInput from "./form-input";
+import { FormInput } from "@/components/form/form-input";
 import FormButton from "./form-button";
 import { createBoard } from "@/actions/create-board";
 import { useAction } from "@/hooks/use-action";
@@ -24,7 +24,7 @@ export default function Form() {
   return (
     <form action={onSubmit}>
       <div className="flex flex-col space-y-2">
-        <FormInput errors={fieldErrors} />
+        <FormInput id="title" label="Board Title" errors={fieldErrors} />
       </div>
       <FormButton />
     </form>
