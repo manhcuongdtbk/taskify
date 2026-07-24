@@ -72,7 +72,7 @@ export default function NavItem({
               fill
               src={organization.imageUrl}
               alt={organization.name}
-              className="rounded-sm object-cover"
+              className="rounded-xs object-cover"
             />
           </div>
           <span className="text-sm font-medium">{organization.name}</span>

@@ -6,9 +6,9 @@ export default function OrganizationIdLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <>
       <OrganizationControl />
       {children}
-    </div>
+    </>
   );
 }
