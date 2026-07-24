@@ -1,17 +1,10 @@
+import { create } from "@/actions/create-board";
+import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
+import Board from "./board";
 
 export default async function OrganizationIdPage() {
-  async function create(formData: FormData) {
-    "use server";
-
-    const title = formData.get("title") as string;
-
-    await prisma.board.create({
-      data: {
-        title,
-      },
-    });
-  }
+  const boards = await prisma.board.findMany();
 
   return (
     <div>
@@ -23,7 +16,13 @@ export default async function OrganizationIdPage() {
           placeholder="Enter a board title"
           className="p1 border border-black"
         />
+        <Button type="submit">Submit</Button>
       </form>
+      <div className="space-y-2">
+        {boards.map((board) => (
+          <Board key={board.id} id={board.id} title={board.title} />
+        ))}
+      </div>
     </div>
   );
 }
