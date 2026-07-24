@@ -3,11 +3,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { type BaseUIRenderForwardingProps } from "@/lib/types";
 
-interface HintProps {
-  // Typed as ReactElement (not ReactNode) so it can be passed to the `render`
-  // prop of Base UI's TooltipTrigger — the Base UI equivalent of Radix's asChild.
-  children: React.ReactElement;
+interface HintProps extends BaseUIRenderForwardingProps {
   description: string;
   side?: "top" | "right" | "bottom" | "left";
   sideOffset?: number;
