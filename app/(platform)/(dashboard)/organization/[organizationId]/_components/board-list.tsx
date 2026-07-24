@@ -13,7 +13,7 @@ export default function BoardList() {
         <FormPopover sideOffset={10} side="right">
           <div
             role="button"
-            className="relative flex aspect-video h-full w-full flex-col items-center justify-center gap-y-1 rounded-sm bg-muted transition hover:opacity-75"
+            className="relative flex aspect-video h-full w-full flex-col items-center justify-center gap-y-1 rounded-xs bg-muted transition hover:opacity-75"
           >
             <p className="text-sm">Create new board</p>
             <span className="text-xs">5 remaining</span>

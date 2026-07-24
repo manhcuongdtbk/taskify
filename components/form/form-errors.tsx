@@ -19,7 +19,7 @@ export default function FormErrors({ id, errors }: FormErrorsProps) {
       {errors?.[id]?.map((error: string) => (
         <div
           key={error}
-          className="flex items-center rounded-sm border border-rose-500 bg-rose-500/10 p-2 font-medium"
+          className="flex items-center rounded-xs border border-rose-500 bg-rose-500/10 p-2 font-medium"
         >
           <XCircle className="mr-2 h-4 w-4" />
           {error}

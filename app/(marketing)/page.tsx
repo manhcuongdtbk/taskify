@@ -13,7 +13,7 @@ export default function MarketingPage() {
           calSansUI.className,
         )}
       >
-        <div className="mb-4 flex items-center rounded-full border bg-amber-100 p-4 text-amber-700 uppercase shadow-sm">
+        <div className="mb-4 flex items-center rounded-full border bg-amber-100 p-4 text-amber-700 uppercase shadow-xs">
           <Medal className="mr-2 h-6 w-5" />
           No 1 task management
         </div>
