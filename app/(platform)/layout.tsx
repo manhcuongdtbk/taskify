@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import { siteConfig } from "@/config/site";
 import { ClerkProvider } from "@/components/clerk-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: {
@@ -26,6 +27,8 @@ export default function PlatformLayout({
         enableSystem
         disableTransitionOnChange
       >
+        {/* TODO: Use shadcn ui Sonner when it's available. Currently Sonner is only available for React Aria and Radix UI shadcn ui. */}
+        <Toaster />
         {children}
       </ThemeProvider>
     </ClerkProvider>
