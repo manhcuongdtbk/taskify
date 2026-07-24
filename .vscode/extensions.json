@@ -19,7 +19,9 @@
     // Error Lens
     "usernamehw.errorlens",
     // Prisma
-    "prisma.prisma"
+    "prisma.prisma",
+    // Pretty TypeScript Errors
+    "yoavbls.pretty-ts-errors"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": []
