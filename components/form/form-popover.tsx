@@ -11,11 +11,11 @@ import { createBoard } from "@/actions/create-board";
 import { FormInput } from "./form-input";
 import { FormSubmit } from "./form-submit";
 import { Button } from "@/components/ui/button";
+import { type BaseUIRenderForwardingProps } from "@/lib/types";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 
-interface FormPopoverProps {
-  children: React.ReactElement; // NOTE: The original type is `React.ReactNode`, but it was for shadcn ui with radix ui. We're using shadcn ui with base ui so changing it to `React.ReactElement` to avoid type error when passing children to the `render` prop of `PopoverTrigger`.
+interface FormPopoverProps extends BaseUIRenderForwardingProps {
   side?: "top" | "right" | "bottom" | "left";
   align?: "start" | "center" | "end";
   sideOffset?: number;

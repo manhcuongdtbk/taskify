@@ -1,12 +1,11 @@
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { type BaseUIRenderForwardingProps } from "@/lib/types";
 
-interface HintProps {
-  children: React.ReactNode;
+interface HintProps extends BaseUIRenderForwardingProps {
   description: string;
   side?: "top" | "right" | "bottom" | "left";
   sideOffset?: number;
@@ -19,18 +18,15 @@ export function Hint({
   sideOffset = 0,
 }: HintProps) {
   return (
-    // TOOD: move TooltipProvider to the root layout? https://ui.shadcn.com/docs/components/base/tooltip#installation
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger delay={0}>{children}</TooltipTrigger>
-        <TooltipContent
-          sideOffset={sideOffset}
-          side={side}
-          className="max-w-55 text-xs wrap-break-word"
-        >
-          {description}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger delay={0} render={children} />
+      <TooltipContent
+        sideOffset={sideOffset}
+        side={side}
+        className="max-w-55 text-xs wrap-break-word"
+      >
+        {description}
+      </TooltipContent>
+    </Tooltip>
   );
 }

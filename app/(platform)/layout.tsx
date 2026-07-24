@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import { siteConfig } from "@/config/site";
 import { ClerkProvider } from "@/components/clerk-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
@@ -29,7 +30,8 @@ export default function PlatformLayout({
       >
         {/* TODO: Use shadcn ui Sonner when it's available. Currently Sonner is only available for React Aria and Radix UI shadcn ui. */}
         <Toaster />
-        {children}
+        {/* Single app-wide TooltipProvider (https://ui.shadcn.com/docs/components/base/tooltip#installation) for multiple tooltips within the app. */}
+        <TooltipProvider>{children}</TooltipProvider>
       </ThemeProvider>
     </ClerkProvider>
   );
