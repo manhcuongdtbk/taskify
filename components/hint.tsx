@@ -6,7 +6,9 @@ import {
 } from "@/components/ui/tooltip";
 
 interface HintProps {
-  children: React.ReactNode;
+  // Typed as ReactElement (not ReactNode) so it can be passed to the `render`
+  // prop of Base UI's TooltipTrigger — the Base UI equivalent of Radix's asChild.
+  children: React.ReactElement;
   description: string;
   side?: "top" | "right" | "bottom" | "left";
   sideOffset?: number;
@@ -22,7 +24,7 @@ export function Hint({
     // TOOD: move TooltipProvider to the root layout? https://ui.shadcn.com/docs/components/base/tooltip#installation
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger delay={0}>{children}</TooltipTrigger>
+        <TooltipTrigger delay={0} render={children} />
         <TooltipContent
           sideOffset={sideOffset}
           side={side}
