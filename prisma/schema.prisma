@@ -11,3 +11,9 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Board {
+  id String @id @default(uuid())
+
+  title String
+}
