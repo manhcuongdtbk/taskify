@@ -1,8 +1,28 @@
 import { FormPopover } from "@/components/form/form-popover";
 import { Hint } from "@/components/hint";
 import { HelpCircle, User2 } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function BoardList() {
+export async function BoardList() {
+  const { orgId } = await auth();
+
+  if (!orgId) {
+    redirect("/select-org");
+  }
+
+  const boards = await prisma.board.findMany({
+    where: {
+      orgId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center text-lg font-semibold text-neutral-700">
@@ -10,6 +30,17 @@ export default function BoardList() {
         Your boards
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {boards.map((board) => (
+          <Link
+            href={`/board/${board.id}`}
+            key={board.id}
+            style={{ backgroundImage: `url(${board.imageThumbUrl})` }}
+            className="group relative aspect-video h-full w-full overflow-hidden rounded-sm bg-sky-700 bg-cover bg-center bg-no-repeat p-2"
+          >
+            <div className="absolute inset-0 bg-black/30 transition group-hover:bg-black/40" />
+            <p className="relative font-semibold text-white">{board.title}</p>
+          </Link>
+        ))}
         <FormPopover sideOffset={10} side="right">
           <div
             role="button"
@@ -29,3 +60,18 @@ export default function BoardList() {
     </div>
   );
 }
+
+BoardList.Skeleton = function BoardListSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <Skeleton className="aspect-video h-full w-full p-2" />
+      <Skeleton className="aspect-video h-full w-full p-2" />
+      <Skeleton className="aspect-video h-full w-full p-2" />
+      <Skeleton className="aspect-video h-full w-full p-2" />
+      <Skeleton className="aspect-video h-full w-full p-2" />
+      <Skeleton className="aspect-video h-full w-full p-2" />
+      <Skeleton className="aspect-video h-full w-full p-2" />
+      <Skeleton className="aspect-video h-full w-full p-2" />
+    </div>
+  );
+};
