@@ -119,6 +119,13 @@
 }
 
 @layer base {
+  /* Make the background image in the board id page takes up the entire height of the page */
+  html,
+  body,
+  :root {
+    height: 100%;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
