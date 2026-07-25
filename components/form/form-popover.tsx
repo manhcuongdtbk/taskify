@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { type BaseUIRenderForwardingProps } from "@/lib/types";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { FormPicker } from "./form-picker";
 
 interface FormPopoverProps extends BaseUIRenderForwardingProps {
   side?: "top" | "right" | "bottom" | "left";
@@ -40,6 +41,7 @@ export function FormPopover({
 
   const onSubmit = (formData: FormData) => {
     const title = formData.get("title") as string;
+    const image = formData.get("image") as string;
 
     execute({ title });
   };
@@ -68,6 +70,7 @@ export function FormPopover({
         />
         <form className="space-y-4" action={onSubmit}>
           <div className="space-y-4">
+            <FormPicker id="image" errors={fieldErrors} />
             {/* TODO: Fix input value is cleared after submitting with an invalid value */}
             <FormInput
               id="title"
