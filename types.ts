@@ -1,4 +1,5 @@
 import { type ReactElement } from "react";
+import { type List, type Card } from "@/app/generated/prisma/client";
 
 /**
  * Props for a wrapper component that forwards its single child into a
@@ -20,3 +21,11 @@ import { type ReactElement } from "react";
 export interface BaseUIRenderForwardingProps {
   children: ReactElement;
 }
+
+export type ListWithCards = List & {
+  cards: Card[];
+};
+
+export type CardWithList = Card & {
+  list: List;
+};
