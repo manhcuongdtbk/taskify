@@ -3,6 +3,7 @@
   // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
 
   // List of extensions which should be recommended for users of this workspace.
+  // NOTE: identifier in VSCode Marketplace may be different from Open VSX Registry.
   "recommendations": [
     // Mise
     "hverlin.mise-vscode",
@@ -19,7 +20,7 @@
     // Error Lens
     "usernamehw.errorlens",
     // Prisma
-    "prisma.prisma",
+    "Prisma.prisma",
     // Pretty TypeScript Errors
     "yoavbls.pretty-ts-errors"
   ],
