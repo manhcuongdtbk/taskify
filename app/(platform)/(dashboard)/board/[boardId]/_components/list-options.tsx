@@ -1,5 +1,6 @@
 "use client";
 
+import { copyList } from "@/actions/copy-list";
 import { deleteList } from "@/actions/delete-list";
 import { type List } from "@/app/generated/prisma/client";
 import { FormSubmit } from "@/components/form/form-submit";
@@ -34,10 +35,26 @@ export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
     },
   });
 
+  const { execute: executeCopy } = useAction(copyList, {
+    onSuccess: (data) => {
+      toast.success(`List "${data.title}" copied`);
+      closeRef.current?.click();
+    },
+    onError: (error) => {
+      toast.error(error);
+    },
+  });
+
   const onDelete = (formData: FormData) => {
     const id = formData.get("id") as string;
     const boardId = formData.get("boardId") as string;
     executeDelete({ id, boardId });
+  };
+
+  const onCopy = (formData: FormData) => {
+    const id = formData.get("id") as string;
+    const boardId = formData.get("boardId") as string;
+    executeCopy({ id, boardId });
   };
 
   return (
@@ -71,6 +88,16 @@ export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
         >
           Add card...
         </Button>
+        <form action={onCopy}>
+          <input hidden id="id" name="id" value={data.id} />
+          <input hidden id="boardId" name="boardId" value={data.boardId} />
+          <FormSubmit
+            variant="ghost"
+            className="h-auto w-full justify-start rounded-none p-2 px-5 text-sm font-normal"
+          >
+            Copy list...
+          </FormSubmit>
+        </form>
         <Separator />
         <form action={onDelete}>
           <input hidden id="id" name="id" value={data.id} />
