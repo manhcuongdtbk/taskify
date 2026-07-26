@@ -48,7 +48,7 @@ export function ListForm() {
   };
 
   useEventListener("keydown", onKeyDown);
-  useOnClickOutside(formRef as RefObject<HTMLFormElement>, disableEditing);
+  useOnClickOutside(formRef as RefObject<ComponentRef<"form">>, disableEditing);
 
   const onSubmit = (formData: FormData) => {
     const title = formData.get("title") as string;
