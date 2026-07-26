@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { type ComponentRef, forwardRef } from "react";
 import { useFormStatus } from "react-dom";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ interface FormInputProps {
   onBlur?: () => void;
 }
 
-export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
+export const FormInput = forwardRef<ComponentRef<"input">, FormInputProps>(
   (
     {
       id,
