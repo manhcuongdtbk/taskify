@@ -11,7 +11,7 @@ import { createBoard } from "@/actions/create-board";
 import { FormInput } from "./form-input";
 import { FormSubmit } from "./form-submit";
 import { Button } from "@/components/ui/button";
-import { type BaseUIRenderForwardingProps } from "@/lib/types";
+import { type BaseUIRenderForwardingProps } from "@/types";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { FormPicker } from "./form-picker";

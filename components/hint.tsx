@@ -3,7 +3,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { type BaseUIRenderForwardingProps } from "@/lib/types";
+import { type BaseUIRenderForwardingProps } from "@/types";
 
 interface HintProps extends BaseUIRenderForwardingProps {
   description: string;
