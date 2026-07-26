@@ -29,5 +29,8 @@
   },
 
   "editor.linkedEditing": true,
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+
+  "prisma.hidePrisma6Prompts": true,
+  "prisma.scriptRunner": "pnpm"
 }
