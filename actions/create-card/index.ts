@@ -6,6 +6,8 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { CreateCard } from "./schema";
+import { createAuditLog } from "@/lib/create-audit-log";
+import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -39,6 +41,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
     card = await prisma.card.create({
       data: { title, listId, order: newOrder },
+    });
+
+    await createAuditLog({
+      entityId: card.id,
+      entityType: ENTITY_TYPE.CARD,
+      entityTitle: card.title,
+      action: ACTION.CREATE,
     });
   } catch (error) {
     return { error: "Failed to create." };
