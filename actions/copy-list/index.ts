@@ -6,6 +6,8 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { CopyList } from "./schema";
+import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
+import { createAuditLog } from "@/lib/create-audit-log";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -54,6 +56,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         },
       },
       include: { cards: true },
+    });
+
+    await createAuditLog({
+      entityId: list.id,
+      entityType: ENTITY_TYPE.LIST,
+      entityTitle: list.title,
+      action: ACTION.CREATE,
     });
   } catch (error) {
     return { error: "Failed to copy." };

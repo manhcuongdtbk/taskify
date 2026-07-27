@@ -6,6 +6,8 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { UpdateList } from "./schema";
+import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
+import { createAuditLog } from "@/lib/create-audit-log";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -24,6 +26,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     list = await prisma.list.update({
       where: { id, boardId, board: { orgId } },
       data: { title },
+    });
+
+    await createAuditLog({
+      entityId: list.id,
+      entityType: ENTITY_TYPE.LIST,
+      entityTitle: list.title,
+      action: ACTION.UPDATE,
     });
   } catch (error) {
     return { error: "Failed to update." };
