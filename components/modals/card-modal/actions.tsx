@@ -6,6 +6,7 @@ import { type CardWithList } from "@/types";
 import { Copy, Trash } from "lucide-react";
 import { useAction } from "@/hooks/use-action";
 import { copyCard } from "@/actions/copy-card";
+import { deleteCard } from "@/actions/delete-card";
 import { useParams } from "next/navigation";
 import { useCardModal } from "@/hooks/use-card-modal";
 import { toast } from "sonner";
@@ -30,6 +31,18 @@ export function Actions({ data }: ActionsProps) {
       },
     },
   );
+  const { execute: executeDeleteCard, isLoading: isLoadingDelete } = useAction(
+    deleteCard,
+    {
+      onSuccess: () => {
+        toast.success(`Card "${data.title}" deleted`);
+        cardModal.onClose();
+      },
+      onError: (error) => {
+        toast.error(error);
+      },
+    },
+  );
 
   const onCopy = () => {
     const boardId = params.boardId as string;
@@ -37,6 +50,11 @@ export function Actions({ data }: ActionsProps) {
     executeCopyCard({ id: data.id, boardId });
   };
 
+  const onDelete = () => {
+    const boardId = params.boardId as string;
+
+    executeDeleteCard({ id: data.id, boardId });
+  };
 
   return (
     <div className="mt-2 space-y-2">
@@ -51,7 +69,13 @@ export function Actions({ data }: ActionsProps) {
         <Copy className="mr-2 h-4 w-4" />
         Copy
       </Button>
-      <Button variant="secondary" className="w-full justify-start" size="sm">
+      <Button
+        variant="secondary"
+        className="w-full justify-start"
+        size="sm"
+        onClick={onDelete}
+        disabled={isLoadingDelete}
+      >
         <Trash className="mr-2 h-4 w-4" />
         Delete
       </Button>
