@@ -1,3 +1,4 @@
+// TODO: fix all prisma imports
 import { ACTION, type AuditLog } from "@/app/generated/prisma/browser";
 
 export const generateLogMessage = (log: AuditLog) => {
