@@ -5,6 +5,8 @@ import { ClerkProvider } from "@/components/clerk-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
+import { ModalProvider } from "@/components/providers/modal-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -28,10 +30,14 @@ export default function PlatformLayout({
         enableSystem
         disableTransitionOnChange
       >
-        {/* TODO: Use shadcn ui Sonner when it's available. Currently Sonner is only available for React Aria and Radix UI shadcn ui. */}
-        <Toaster />
-        {/* Single app-wide TooltipProvider (https://ui.shadcn.com/docs/components/base/tooltip#installation) for multiple tooltips within the app. */}
-        <TooltipProvider>{children}</TooltipProvider>
+        {/* TODO: QueryProvider should wrap ThemeProvider or stay as is? */}
+        <QueryProvider>
+          {/* TODO: Use shadcn ui Sonner when it's available. Currently Sonner is only available for React Aria and Radix UI shadcn ui. */}
+          <Toaster />
+          <ModalProvider />
+          {/* Single app-wide TooltipProvider (https://ui.shadcn.com/docs/components/base/tooltip#installation) for multiple tooltips within the app. */}
+          <TooltipProvider>{children}</TooltipProvider>
+        </QueryProvider>
       </ThemeProvider>
     </ClerkProvider>
   );
