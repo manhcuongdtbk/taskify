@@ -23,6 +23,9 @@ export function Header({ data }: HeaderProps) {
       // TODO: fix the eslint error
       // eslint-disable-next-line @tanstack/query/prefer-query-options
       queryClient.invalidateQueries({ queryKey: ["card", data.id] });
+      // TODO: fix the eslint error
+      // eslint-disable-next-line @tanstack/query/prefer-query-options
+      queryClient.invalidateQueries({ queryKey: ["card-logs", data.id] });
       toast.success(`Renamed to ${data.title}`);
       setTitle(data.title);
     },
