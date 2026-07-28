@@ -1,6 +1,7 @@
 "use client";
 
 import { CardModal } from "@/components/modals/card-modal";
+import { ProModal } from "@/components/modals/pro-modal";
 import { useEffect, useState } from "react";
 
 export function ModalProvider() {
@@ -19,6 +20,7 @@ export function ModalProvider() {
   return (
     <>
       <CardModal />
+      <ProModal />
     </>
   );
 }
