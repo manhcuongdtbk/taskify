@@ -18,6 +18,7 @@ import { stripe } from "@/lib/stripe";
  * - Already a Stripe customer → Customer Portal (manage/cancel/update card).
  */
 const handler = async (data: InputType): Promise<ReturnType> => {
+  // TODO: unused `data` — schema is empty today; prefix with `_` or use fields once Checkout needs input.
   const { userId, orgId } = await auth();
   const user = await currentUser();
 
@@ -52,6 +53,9 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       const stripeSession = await stripe.checkout.sessions.create({
         success_url: settingsUrl,
         cancel_url: settingsUrl,
+        // TODO: omit payment_method_types — Stripe recommends leaving it unset so
+        // Dashboard dynamic payment methods apply. Hardcoding ["card"] locks out
+        // other methods. See https://docs.stripe.com/payments/payment-methods/dynamic-payment-methods
         payment_method_types: ["card"],
         mode: "subscription",
         billing_address_collection: "auto",
@@ -80,6 +84,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       url = stripeSession.url || "";
     }
   } catch (error) {
+    // TODO: unused `error` — log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
     return { error: "Something went wrong." };
   }
 

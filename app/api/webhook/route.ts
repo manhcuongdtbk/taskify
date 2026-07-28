@@ -43,6 +43,7 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!,
     );
   } catch (error) {
+    // TODO: unused `error` — log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
     return new NextResponse("Webhook Error", { status: 400 });
   }
 
@@ -92,6 +93,11 @@ export async function POST(req: Request) {
   // On renewals there is no new Checkout Session; Stripe bills the saved payment method
   // and sends this event. We update period end (and price, if they changed plans).
   // Note: Stripe also recommends invoice.paid for provisioning in some docs; both are common.
+  //
+  // TODO: First-payment race — Stripe may deliver invoice.payment_succeeded before
+  // checkout.session.completed finishes creating organizationSubscription. The update
+  // below then fails (record missing) → 500 until Stripe retries. Harden later, e.g.
+  // ignore "not found", upsert, or only update when invoice.billing_reason is a renewal.
   if (event.type === "invoice.payment_succeeded") {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionId = invoice.parent?.subscription_details?.subscription;
