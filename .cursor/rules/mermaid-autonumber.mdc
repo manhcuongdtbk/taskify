@@ -1,0 +1,18 @@
+---
+description: Prefer Mermaid autonumber when writing or editing Mermaid diagrams (sequenceDiagram, etc.)
+globs: "**/*.{md,mdc,canvas.tsx}"
+alwaysApply: false
+---
+
+# Mermaid diagrams
+
+When writing or updating Mermaid diagrams (docs, comments, PRs, canvases):
+
+- Use `autonumber` on `sequenceDiagram` (and other diagram types that support it) whenever steps should be easy to follow.
+- Place `autonumber` immediately after the diagram type line.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  A->>B: Step
+```

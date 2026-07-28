@@ -22,7 +22,9 @@
     // Prisma
     "Prisma.prisma",
     // Pretty TypeScript Errors
-    "yoavbls.pretty-ts-errors"
+    "yoavbls.pretty-ts-errors",
+    // Mermaid
+    "mermaidchart.vscode-mermaid-chart"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": []
