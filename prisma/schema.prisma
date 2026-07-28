@@ -91,13 +91,22 @@ model OrganizationLimit {
   updatedAt DateTime @updatedAt
 }
 
+/// Links a Clerk organization to its Stripe billing state.
+/// Stripe owns customer/subscription/price/period; we mirror the IDs we need locally
+/// so Pro checks and Portal/Checkout don't round-trip Stripe on every request.
+/// Field purposes: keep comments next to each field when the schema changes.
 model OrganizationSubscription {
   id    String @id @default(uuid())
+  /// Clerk org this billing row belongs to (from Checkout session metadata.orgId).
   orgId String @unique
 
+  /// Stripe Customer id (cus_…). Needed to open the Customer Portal for manage/cancel.
   stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  /// Stripe Subscription id (sub_…). Webhook renewals look up by this — invoices have no orgId metadata.
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  /// Stripe Price id (price_…). Marks which plan is active; used by checkSubscription.
   stripePriceId          String?   @map(name: "stripe_price_id")
+  /// End of the current paid period (from Stripe). Used with a small grace window for Pro access.
   stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
 
   createdAt DateTime @default(now())

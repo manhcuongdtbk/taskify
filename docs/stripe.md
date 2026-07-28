@@ -1,7 +1,8 @@
 # Stripe billing in Taskify
 
-How Taskify Pro subscriptions work in this repo. Inline comments on each file still
-explain local details; this page is the bird’s-eye view for newcomers.
+How Taskify Pro subscriptions work in this repo. Inline comments explain *why* a
+line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
+when UI entry points change — update them when the flow changes.
 
 Official Stripe docs: [Webhooks](https://docs.stripe.com/webhooks) ·
 [Subscription webhooks](https://docs.stripe.com/billing/subscriptions/webhooks)
@@ -66,6 +67,10 @@ sequenceDiagram
 
 ## Component map
 
+Paths change — treat this as a starting index, not a contract. Prefer searching
+the repo (`checkSubscription`, `stripeRedirect`, `organizationSubscription`) when
+in doubt.
+
 | Piece | Path | Role |
 | ----- | ---- | ---- |
 | Free-limit trigger | `components/form/form-popover.tsx` | Opens Pro modal on create-board errors |
@@ -82,12 +87,13 @@ sequenceDiagram
 
 ## Data we store
 
-Webhook writes / updates `OrganizationSubscription`:
+Webhook writes / updates `OrganizationSubscription` (see field-level **why** comments in
+`prisma/schema.prisma`). Short summary:
 
-- `orgId` — from Checkout `metadata` (set in `stripe-redirect`)
-- `stripeCustomerId` — for Customer Portal later
-- `stripeSubscriptionId` — renewal lookups (invoices have no org metadata)
-- `stripePriceId` / `stripeCurrentPeriodEnd` — plan + access window
+- `orgId` — Clerk org; from Checkout `metadata` (set in `stripe-redirect`)
+- `stripeCustomerId` — open Customer Portal later
+- `stripeSubscriptionId` — renewal webhook lookups (invoices have no org metadata)
+- `stripePriceId` / `stripeCurrentPeriodEnd` — which plan is active and until when (`checkSubscription`)
 
 ## Local webhook testing
 
@@ -99,7 +105,7 @@ Put the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET` (CLI secret ≠ Dashboa
 
 ## Older Stripe API notes
 
-Field moves (e.g. `Invoice.subscription` → `parent.subscription_details.subscription`,
-`current_period_end` on items) are documented at the **bottom of**
-`app/api/webhook/route.ts`, not here — so tutorial vs current-API diffs stay next to
-the live handler.
+Tutorial / API-version diffs (2023-10-16 → later Invoice/Subscription shape) are a
+**frozen archive** at the bottom of `app/api/webhook/route.ts`. Live handler code
+above that block is the source of truth — don’t expect the archive to track every
+Stripe version bump.

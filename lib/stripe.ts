@@ -18,3 +18,18 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export const stripeTimestampToDate = (unixSeconds: number): Date => {
   return fromUnixTime(unixSeconds);
 };
+
+/**
+ * Convert whole major-unit amounts (e.g. integer dollars) to Stripe's smallest
+ * currency unit (cents for USD). Exact integer math only — no floats / Math.round,
+ * which are unsafe for money. For fractional prices, define unit_amount in cents
+ * as an integer constant instead of converting from a decimal.
+ */
+export const toStripeUnitAmount = (majorUnits: number): number => {
+  if (!Number.isInteger(majorUnits)) {
+    throw new Error(
+      "toStripeUnitAmount expects a whole number of major units (e.g. 20 dollars), not a float",
+    );
+  }
+  return majorUnits * 100;
+};

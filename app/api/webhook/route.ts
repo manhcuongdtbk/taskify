@@ -12,7 +12,7 @@ import prisma from "@/lib/prisma";
  * only means the user finished the hosted page — trust webhooks for provisioning.
  *
  * Project overview + diagrams: docs/stripe.md
- * Older API notes (2023-10-16 vs current): see bottom of this file.
+ * Older API notes (tutorial archive): see bottom of this file.
  *
  * Stripe docs: https://docs.stripe.com/webhooks
  * Subscription events: https://docs.stripe.com/billing/subscriptions/webhooks
@@ -71,10 +71,7 @@ export async function POST(req: Request) {
       session.subscription as string,
     );
 
-    // Persist Stripe IDs so the app can check Pro access and open the Customer Portal later.
-    // - stripeCustomerId: needed for billingPortal.sessions.create
-    // - stripeSubscriptionId: unique key for renewals below
-    // - stripePriceId / stripeCurrentPeriodEnd: what plan is active and until when
+    // Persist mirrored Stripe IDs — why each field exists: OrganizationSubscription in prisma/schema.prisma.
     await prisma.organizationSubscription.create({
       data: {
         orgId: session.metadata.orgId,
@@ -92,7 +89,6 @@ export async function POST(req: Request) {
   // Fired when an invoice is paid successfully — first payment AND later renewals.
   // On renewals there is no new Checkout Session; Stripe bills the saved payment method
   // and sends this event. We update period end (and price, if they changed plans).
-  // Note: Stripe also recommends invoice.paid for provisioning in some docs; both are common.
   //
   // TODO: First-payment race — Stripe may deliver invoice.payment_succeeded before
   // checkout.session.completed finishes creating organizationSubscription. The update
@@ -130,10 +126,11 @@ export async function POST(req: Request) {
 
 /*
  * =============================================================================
- * Older API notes (2023-10-16 vs current, e.g. 2026-06-24.dahlia)
+ * Older API notes (archive) — 2023-10-16 vs Basil-era Invoice/Subscription shape
  * =============================================================================
- * Reference when comparing tutorials or debugging “works in the course, fails here”.
- * Live code above targets the current API only.
+ * Frozen reference for tutorials that still use 2023-10-16. The live handler above
+ * is source of truth for "current"; update this block only when debugging old guides,
+ * not on every API version bump.
  *
  * --- 1. Invoice → subscription ID ---
  *
@@ -156,7 +153,7 @@ export async function POST(req: Request) {
  *
  * That cast is still wrong on old APIs (wrong type), but often worked at runtime.
  *
- * Current API: Invoice.subscription was removed. Use:
+ * Later APIs removed Invoice.subscription. Live code uses:
  *
  *   invoice.parent?.subscription_details?.subscription
  *
@@ -168,11 +165,8 @@ export async function POST(req: Request) {
  *
  *   stripeTimestampToDate(subscription.current_period_end)
  *
- * Current API: period bounds moved onto each subscription item:
- *
- *   stripeTimestampToDate(subscription.items.data[0].current_period_end)
- *
- * (Timestamp → Date conversion: see stripeTimestampToDate in lib/stripe.ts.)
+ * Later APIs moved period bounds onto each subscription item — see live create/update
+ * above. (Timestamp → Date: stripeTimestampToDate in lib/stripe.ts.)
  *
  * --- 3. Casting event.data.object ---
  *

@@ -7,7 +7,8 @@ import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { StripeRedirect } from "./schema";
 import { absoluteUrl } from "@/lib/utils";
-import { stripe } from "@/lib/stripe";
+import { stripe, toStripeUnitAmount } from "@/lib/stripe";
+import { TASKIFY_PRO_MONTHLY_USD } from "@/constants/billing";
 
 /**
  * Start Stripe billing for the current org.
@@ -28,6 +29,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
+  // After Checkout / Portal the user returns here. This is navigation only —
+  // Pro access is provisioned by app/api/webhook, not by landing on this URL.
   const settingsUrl = absoluteUrl(`/organization/${orgId}`);
 
   let url = "";
@@ -57,18 +60,22 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         // Dashboard dynamic payment methods apply. Hardcoding ["card"] locks out
         // other methods. See https://docs.stripe.com/payments/payment-methods/dynamic-payment-methods
         payment_method_types: ["card"],
+        // Recurring subscription (not a one-time payment).
         mode: "subscription",
         billing_address_collection: "auto",
         customer_email: user.emailAddresses[0].emailAddress,
         line_items: [
           {
+            // Inline price_data creates Product/Price on the fly (handy for demos).
+            // Production apps often pass a fixed Dashboard price id: price: "price_...".
             price_data: {
               currency: "USD",
               product_data: {
                 name: "Taskify Pro",
                 description: "Unlimited boards for your organization",
               },
-              unit_amount: 2000,
+              // Stripe unit_amount is in the smallest currency unit; helper keeps dollars readable.
+              unit_amount: toStripeUnitAmount(TASKIFY_PRO_MONTHLY_USD),
               recurring: {
                 interval: "month",
               },
@@ -76,6 +83,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
             quantity: 1,
           },
         ],
+        // Copied onto checkout.session.completed so the webhook can link org ↔ subscription.
         metadata: {
           orgId,
         },
@@ -90,6 +98,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   revalidatePath(`/organization/${orgId}`);
 
+  // Caller redirects the browser to this Stripe-hosted URL.
   return { data: url };
 };
 
