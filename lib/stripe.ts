@@ -1,9 +1,13 @@
 import Stripe from "stripe";
 import { fromUnixTime } from "date-fns";
+import { toSnapshot, type Dinero } from "dinero.js";
 
 /**
  * Shared Stripe client + helpers for this app.
  * Bird’s-eye flow + diagrams: docs/stripe.md
+ *
+ * Money values use Dinero.js (integer minor units + currency). Pass those into
+ * Stripe via toStripeUnitAmount / toStripeCurrency — do not use floats.
  */
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-06-24.dahlia",
@@ -19,17 +23,12 @@ export const stripeTimestampToDate = (unixSeconds: number): Date => {
   return fromUnixTime(unixSeconds);
 };
 
-/**
- * Convert whole major-unit amounts (e.g. integer dollars) to Stripe's smallest
- * currency unit (cents for USD). Exact integer math only — no floats / Math.round,
- * which are unsafe for money. For fractional prices, define unit_amount in cents
- * as an integer constant instead of converting from a decimal.
- */
-export const toStripeUnitAmount = (majorUnits: number): number => {
-  if (!Number.isInteger(majorUnits)) {
-    throw new Error(
-      "toStripeUnitAmount expects a whole number of major units (e.g. 20 dollars), not a float",
-    );
-  }
-  return majorUnits * 100;
+/** Stripe `unit_amount` — Dinero's minor-unit integer (e.g. cents for USD). */
+export const toStripeUnitAmount = (money: Dinero<number>): number => {
+  return toSnapshot(money).amount;
+};
+
+/** Stripe currency code (lowercase), e.g. "usd". */
+export const toStripeCurrency = (money: Dinero<number>): string => {
+  return toSnapshot(money).currency.code.toLowerCase();
 };

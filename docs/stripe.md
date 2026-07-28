@@ -95,6 +95,11 @@ Webhook writes / updates `OrganizationSubscription` (see field-level **why** com
 - `stripeSubscriptionId` — renewal webhook lookups (invoices have no org metadata)
 - `stripePriceId` / `stripeCurrentPeriodEnd` — which plan is active and until when (`checkSubscription`)
 
+App-side money (Checkout `unit_amount`) uses [Dinero.js](https://dinerojs.com) —
+integer minor units + currency (`constants/billing.ts` → `toStripeUnitAmount` /
+`toStripeCurrency` in `lib/stripe.ts`). Format for display with `Intl.NumberFormat`
+via Dinero’s `toDecimal` transformer when needed.
+
 ## Local webhook testing
 
 ```bash
