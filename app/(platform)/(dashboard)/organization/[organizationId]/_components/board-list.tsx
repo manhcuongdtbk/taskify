@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getAvailableCount } from "@/lib/organization-limit";
+import { MAX_FREE_BOARDS } from "@/constants/boards";
 
 export async function BoardList() {
   const { orgId } = await auth();
@@ -22,6 +24,8 @@ export async function BoardList() {
       createdAt: "desc",
     },
   });
+
+  const availableCount = await getAvailableCount();
 
   return (
     <div className="space-y-4">
@@ -47,7 +51,7 @@ export async function BoardList() {
             className="relative flex aspect-video h-full w-full flex-col items-center justify-center gap-y-1 rounded-xs bg-muted transition hover:opacity-75"
           >
             <p className="text-sm">Create new board</p>
-            <span className="text-xs">5 remaining</span>
+            <span className="text-xs">{`${MAX_FREE_BOARDS - availableCount} remaining`}</span>
             <Hint
               sideOffset={40}
               description={`Free Workspaces can have up to 5 open boards. For unlimited boards, upgrade this workspace.`}

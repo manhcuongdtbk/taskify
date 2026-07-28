@@ -9,6 +9,7 @@ import { DeleteBoard } from "./schema";
 import { redirect } from "next/navigation";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
+import { decrementAvailableCount } from "@/lib/organization-limit";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -27,6 +28,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     board = await prisma.board.delete({
       where: { id, orgId },
     });
+
+    await decrementAvailableCount();
 
     await createAuditLog({
       entityId: board.id,
