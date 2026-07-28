@@ -6,9 +6,11 @@ const DAY_IN_MS = milliseconds({ days: 1 });
 
 /**
  * Whether the current Clerk org has an active Taskify Pro subscription.
- * Overview: docs/stripe.md
+ * Overview + isPro vs stripeCustomerId: docs/stripe.md (Gotchas).
+ * Cancel / failed-pay lifecycle gaps: docs/stripe.md → “Complete the current picture first”.
  *
  * Allows a 1-day grace past stripeCurrentPeriodEnd for webhook / clock skew.
+ * Cancel in Customer Portal does not clear this instantly — see docs (Gotchas).
  */
 export const checkSubscription = async () => {
   const { orgId } = await auth();

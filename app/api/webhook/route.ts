@@ -11,7 +11,8 @@ import prisma from "@/lib/prisma";
  * (payment succeeded, subscription renewed, etc.). Your Checkout success_url
  * only means the user finished the hosted page — trust webhooks for provisioning.
  *
- * Project overview + diagrams: docs/stripe.md
+ * Project overview + prioritized backlog (race, logging, lifecycle events):
+ *   docs/stripe.md → “Complete the current picture first” (do that before growth doors).
  * Older API notes (tutorial archive): see bottom of this file.
  *
  * Stripe docs: https://docs.stripe.com/webhooks
@@ -43,7 +44,8 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!,
     );
   } catch (error) {
-    // TODO: unused `error` — log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
+    // TODO: unused `error` (P0 — docs/stripe.md “Complete the current picture first”) —
+    // log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
     return new NextResponse("Webhook Error", { status: 400 });
   }
 
@@ -90,7 +92,8 @@ export async function POST(req: Request) {
   // On renewals there is no new Checkout Session; Stripe bills the saved payment method
   // and sends this event. We update period end (and price, if they changed plans).
   //
-  // TODO: First-payment race — Stripe may deliver invoice.payment_succeeded before
+  // TODO (P0 — docs/stripe.md “Complete the current picture first”): First-payment
+  // race — Stripe may deliver invoice.payment_succeeded before
   // checkout.session.completed finishes creating organizationSubscription. The update
   // below then fails (record missing) → 500 until Stripe retries. Harden later, e.g.
   // ignore "not found", upsert, or only update when invoice.billing_reason is a renewal.

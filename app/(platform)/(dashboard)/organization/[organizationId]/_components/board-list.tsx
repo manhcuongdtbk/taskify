@@ -54,8 +54,9 @@ export async function BoardList() {
           >
             <p className="text-sm">Create new board</p>
             <span className="text-xs">{`${isPro ? "Unlimited" : MAX_FREE_BOARDS - availableCount} remaining`}</span>
-            {/* TODO: UX — Hint always describes the free 5-board limit even when isPro
-                shows "Unlimited". Hide the Hint for Pro, or change the copy by plan. */}
+            {/* TODO (P2 — docs/stripe.md “Complete the current picture first”): Hint
+                always describes the free 5-board limit even when isPro shows
+                "Unlimited". Hide the Hint for Pro, or change the copy by plan. */}
             <Hint
               sideOffset={40}
               description={`Free Workspaces can have up to 5 open boards. For unlimited boards, upgrade this workspace.`}

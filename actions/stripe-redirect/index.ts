@@ -12,11 +12,16 @@ import { TASKIFY_PRO_MONTHLY } from "@/constants/billing";
 
 /**
  * Start Stripe billing for the current org.
- * Overview: docs/stripe.md
  *
- * - No stripeCustomerId yet → Checkout Session (mode: subscription).
+ * Concepts (Checkout vs Customer Portal / Billing Portal, modes, webhooks):
+ *   docs/stripe.md → “Stripe concepts (read this first)”
+ * Prioritized hardening / polish (log errors, payment_method_types, etc.):
+ *   docs/stripe.md → “Complete the current picture first”
+ *
+ * - No stripeCustomerId yet → Checkout Session (mode: subscription) to start Pro.
  *   Puts orgId in session metadata so app/api/webhook can link the subscription.
- * - Already a Stripe customer → Customer Portal (manage/cancel/update card).
+ * - Already a Stripe customer → Customer Portal (SDK: billingPortal.sessions) to
+ *   manage/cancel/update card. “Billing Portal” in the API name = Customer Portal in docs.
  */
 const handler = async (data: InputType): Promise<ReturnType> => {
   // TODO: unused `data` — schema is empty today; prefix with `_` or use fields once Checkout needs input.
@@ -43,7 +48,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         },
       });
 
-    // Existing subscriber → manage billing in Stripe's Customer Portal.
+    // Existing subscriber → Customer Portal (docs name). SDK: billingPortal.sessions.
+    // Same product as “Billing Portal” — not a second kind of portal. Not Checkout.
     if (organizationSubscription && organizationSubscription.stripeCustomerId) {
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: organizationSubscription.stripeCustomerId,
@@ -52,11 +58,15 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
       url = stripeSession.url;
     } else {
-      // First upgrade → hosted Checkout. metadata.orgId is required by the webhook.
+      // First upgrade → Checkout (hosted pay page). mode: "subscription" = recurring Pro.
+      // Other Checkout modes we don't use yet: "payment" (one-time), "setup" (save card only).
+      // Inline price_data is demo-friendly; production often uses Dashboard price_… ids.
+      // See docs/stripe.md → Stripe concepts, Gotchas, Opening more doors.
       const stripeSession = await stripe.checkout.sessions.create({
         success_url: settingsUrl,
         cancel_url: settingsUrl,
-        // TODO: omit payment_method_types — Stripe recommends leaving it unset so
+        // TODO (P2 — docs/stripe.md “Complete the current picture first”): omit
+        // payment_method_types — Stripe recommends leaving it unset so
         // Dashboard dynamic payment methods apply. Hardcoding ["card"] locks out
         // other methods. See https://docs.stripe.com/payments/payment-methods/dynamic-payment-methods
         payment_method_types: ["card"],
@@ -92,7 +102,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       url = stripeSession.url || "";
     }
   } catch (error) {
-    // TODO: unused `error` — log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
+    // TODO: unused `error` (P0 — docs/stripe.md “Complete the current picture first”) —
+    // log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
     return { error: "Something went wrong." };
   }
 

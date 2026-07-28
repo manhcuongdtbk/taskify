@@ -11,8 +11,11 @@ interface SubscriptionButtonProps {
 }
 
 /**
- * Billing CTA: Free → Pro modal (Checkout); Pro → stripeRedirect (Customer Portal).
- * Overview: docs/stripe.md
+ * Billing CTA: Free → Pro modal (Checkout); Pro → stripeRedirect
+ * (Customer Portal via billingPortal.sessions — same product).
+ *
+ * `isPro` here is feature access (checkSubscription), not the same as
+ * “has stripeCustomerId” inside stripe-redirect — see docs/stripe.md Gotchas.
  */
 export function SubscriptionButton({ isPro }: SubscriptionButtonProps) {
   const proModal = useProModal();
