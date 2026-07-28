@@ -68,15 +68,24 @@ enum ENTITY_TYPE {
 }
 
 model AuditLog {
-  id         String      @id @default(uuid())
-  orgId      String
-  action     ACTION
-  entityId   String
-  entityType ENTITY_TYPE
+  id          String      @id @default(uuid())
+  orgId       String
+  action      ACTION
+  entityId    String
+  entityType  ENTITY_TYPE
   entityTitle String
-  userId     String
-  userImage  String      @db.Text
-  userName   String      @db.Text
+  userId      String
+  userImage   String      @db.Text
+  userName    String      @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrganizationLimit {
+  id    String @id @default(uuid())
+  orgId String @unique
+  count Int    @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
