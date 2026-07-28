@@ -4,9 +4,30 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useProModal } from "@/hooks/use-pro-modal";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useAction } from "@/hooks/use-action";
+import { stripeRedirect } from "@/actions/stripe-redirect";
+import { toast } from "sonner";
 
+/**
+ * Upgrade upsell UI → actions/stripe-redirect → Stripe URL.
+ * Overview: docs/stripe.md
+ */
 export const ProModal = () => {
   const proModal = useProModal();
+
+  const { execute, isLoading } = useAction(stripeRedirect, {
+    onSuccess: (data) => {
+      // TODO: read Next.js doc about redirecting to external URLs
+      window.location.href = data;
+    },
+    onError: (error) => {
+      toast.error(error);
+    },
+  });
+
+  const onClick = () => {
+    execute({});
+  };
 
   return (
     <Dialog open={proModal.isOpen} onOpenChange={proModal.onClose}>
@@ -29,7 +50,9 @@ export const ProModal = () => {
               <li>And more!</li>
             </ul>
           </div>
-          <Button className="w-full">Upgrade</Button>
+          <Button className="w-full" onClick={onClick} disabled={isLoading}>
+            Upgrade
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

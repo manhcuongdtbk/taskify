@@ -43,6 +43,7 @@ export function FormPopover({
     },
     onError: (error) => {
       toast.error(error);
+      // Free board limit (or similar) → open Pro upgrade modal (Stripe Checkout).
       proModal.onOpen();
     },
   });

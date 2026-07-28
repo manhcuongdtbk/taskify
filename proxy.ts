@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 
 // TODO: Migrate away from middleware-based auth checks. Refer https://clerk.com/docs/nextjs/guides/development/custom-sign-in-or-up-page#make-the-route-public
 
-const PUBLIC_ROUTES = ["/"];
+const PUBLIC_ROUTES = [
+  "/", // the marketing landing.
+  "/api/webhook", // must be public so Stripe can POST signed events without a Clerk session (see app/api/webhook/route.ts).
+];
 const AUTH_PATHS = ["/sign-in", "/sign-up"];
 
 // Check for matching instead of exact match to allow for nested routes
