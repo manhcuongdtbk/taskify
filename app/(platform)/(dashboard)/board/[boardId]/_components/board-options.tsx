@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { useAction } from "@/hooks/use-action";
 import { MoreHorizontal, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface BoardOptionsProps {
   id: string;
@@ -19,7 +19,10 @@ interface BoardOptionsProps {
 export function BoardOptions({ id }: BoardOptionsProps) {
   const { execute, isLoading } = useAction(deleteBoard, {
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 

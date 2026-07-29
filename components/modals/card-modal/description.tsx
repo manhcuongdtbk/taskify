@@ -12,7 +12,7 @@ import { FormSubmit } from "@/components/form/form-submit";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface DescriptionProps {
   data: CardWithList;
@@ -53,11 +53,17 @@ export function Description({ data }: DescriptionProps) {
       // TODO: fix the eslint error
       // eslint-disable-next-line @tanstack/query/prefer-query-options
       queryClient.invalidateQueries({ queryKey: ["card-logs", data.id] });
-      toast.success(`Card "${data.title}" updated`);
+      toast.add({
+        type: "success",
+        title: `Card "${data.title}" updated`,
+      });
       disableEditing();
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 

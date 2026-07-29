@@ -4,7 +4,7 @@ import { stripeRedirect } from "@/actions/stripe-redirect";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { useProModal } from "@/hooks/use-pro-modal";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface SubscriptionButtonProps {
   isPro: boolean;
@@ -25,7 +25,10 @@ export function SubscriptionButton({ isPro }: SubscriptionButtonProps) {
       window.location.href = data;
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 

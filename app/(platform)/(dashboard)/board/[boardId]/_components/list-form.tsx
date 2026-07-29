@@ -10,7 +10,7 @@ import { FormSubmit } from "@/components/form/form-submit";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { createList } from "@/actions/create-list";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 export function ListForm() {
   const router = useRouter();
@@ -32,12 +32,18 @@ export function ListForm() {
 
   const { execute, fieldErrors } = useAction(createList, {
     onSuccess: (data) => {
-      toast.success(`List "${data.title}" created`);
+      toast.add({
+        type: "success",
+        title: `List "${data.title}" created`,
+      });
       disableEditing();
       router.refresh();
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 

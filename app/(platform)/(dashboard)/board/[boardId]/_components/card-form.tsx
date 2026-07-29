@@ -15,7 +15,7 @@ import { useParams } from "next/navigation";
 import { useAction } from "@/hooks/use-action";
 import { createCard } from "@/actions/create-card";
 import { useEventListener, useOnClickOutside } from "usehooks-ts";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface CardFormProps {
   listId: string;
@@ -31,11 +31,17 @@ export const CardForm = forwardRef<ComponentRef<"textarea">, CardFormProps>(
 
     const { execute, fieldErrors } = useAction(createCard, {
       onSuccess: (data) => {
-        toast.success(`Card "${data.title}" created`);
+        toast.add({
+          type: "success",
+          title: `Card "${data.title}" created`,
+        });
         formRef.current?.reset();
       },
       onError: (error) => {
-        toast.error(error);
+        toast.add({
+          type: "error",
+          title: error,
+        });
       },
     });
 
