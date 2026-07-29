@@ -1,8 +1,19 @@
 # Stripe billing in Taskify
 
-How Taskify Pro subscriptions work in this repo. Inline comments explain *why* a
-line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
+How **billing** works for the **Taskify Pro** paid plan in this repo. Inline comments explain
+*why* a line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
 when UI entry points change — update them when the flow changes.
+
+Docs catalog: [`README.md`](./README.md).
+
+**Vocabulary (avoid mixing these up):**
+
+| Term | Meaning |
+| ---- | ------- |
+| **Billing** | The product feature: Checkout, Customer Portal, webhooks, plan gating |
+| **Free** | Default plan (no Stripe subscription; board limits) |
+| **Taskify Pro** | The paid plan (one monthly subscription today) |
+| **`isPro` / `checkSubscription()`** | Whether the organization currently has **Taskify Pro** access — not a synonym for “billing” |
 
 Read **Stripe concepts** below before diving into Stripe’s own docs — it maps their
 vocabulary onto what this project actually does.
@@ -38,12 +49,12 @@ Stripe is a ledger of objects. Taskify only uses a few:
 | Stripe object | Plain English | In this project |
 | ------------- | ------------- | --------------- |
 | **Customer** | Who pays (`cus_…`) | Saved as `stripeCustomerId` so we can open the Customer Portal later |
-| **Product** | What you sell (“Taskify Pro”) | Created inline via Checkout `price_data.product_data` (demo style) |
+| **Product** | What you sell (“Taskify Pro” paid plan) | Created inline via Checkout `price_data.product_data` (demo style) |
 | **Price** | How you charge for it ($20 / month) | Dinero → `unit_amount`; id stored as `stripePriceId` |
 | **Subscription** | Ongoing agreement to bill on a schedule (`sub_…`) | Saved as `stripeSubscriptionId`; renewals look this up |
 | **Invoice** | A bill for a period (first charge or renewal) | Webhook listens for successful payment |
-| **Checkout Session** | One hosted **pay / subscribe** page | Created when the org has **no** Stripe customer yet |
-| **Customer Portal Session** | Hosted **manage subscription** page (same product as “Billing Portal”) | Created when the org **already** has a `stripeCustomerId` |
+| **Checkout Session** | One hosted **pay / subscribe** page | Created when the organization has **no** Stripe customer yet |
+| **Customer Portal Session** | Hosted **manage subscription** page (same product as “Billing Portal”) | Created when the organization **already** has a `stripeCustomerId` |
 
 Clerk’s `orgId` is *our* tenant id. Stripe never knows about Clerk unless we put
 `orgId` in Checkout `metadata` so the webhook can link them.
@@ -127,11 +138,11 @@ flowchart LR
 
 In code (`actions/stripe-redirect`):
 
-- **No** `stripeCustomerId` → `checkout.sessions.create` (start Pro)
-- **Has** `stripeCustomerId` → `billingPortal.sessions.create` (Customer Portal / manage Pro)
+- **No** `stripeCustomerId` → `checkout.sessions.create` (start **Taskify Pro**)
+- **Has** `stripeCustomerId` → `billingPortal.sessions.create` (Customer Portal / manage **Taskify Pro**)
 
 You do **not** build card forms yourself in this project. After redirect back to
-`success_url` / `return_url`, the user is home — but **Pro access is not granted by
+`success_url` / `return_url`, the user is home — but **Taskify Pro access is not granted by
 that redirect**. Stripe notifies us via **webhooks**; `app/api/webhook` writes
 `OrganizationSubscription`; `checkSubscription` reads it.
 
@@ -145,7 +156,7 @@ When creating a Checkout Session you must set `mode`:
 | **`payment`** | One-time charge (buy once) | No | No — would be e.g. a one-off pack |
 | **`setup`** | Save a payment method **without** charging yet | No | No — e.g. collect card for later |
 
-Taskify uses only `mode: "subscription"` because Pro is monthly access, not a
+Taskify uses only `mode: "subscription"` because **Taskify Pro** is monthly plan access, not a
 one-time fee.
 
 Related ideas you will see in Stripe docs (not separate Checkout modes):
@@ -167,7 +178,7 @@ Stripe `unit_amount` is always an **integer in the smallest currency unit**
 Your server exposes `POST /api/webhook`. Stripe signs each event; we verify the
 signature, then:
 
-1. `checkout.session.completed` → **create** our DB row (org ↔ Stripe ids)
+1. `checkout.session.completed` → **create** our DB row (organization ↔ Stripe ids)
 2. `invoice.payment_succeeded` → **update** period end / price (renewals; also fires on first invoice)
 
 Until (1) succeeds, `checkSubscription` stays false even if Checkout looked successful.
@@ -175,7 +186,7 @@ Until (1) succeeds, `checkSubscription` stays false even if Checkout looked succ
 **Security (don’t skip):** use the **raw** request body (`req.text()`), never
 `req.json()` first. Verify `Stripe-Signature` with `constructEvent` and
 `STRIPE_WEBHOOK_SECRET`. Without verification, anyone could POST a fake
-“payment succeeded” and unlock Pro.
+“payment succeeded” and unlock **Taskify Pro**.
 
 **Secrets:** the `whsec_…` from `stripe listen` (local) is **not** the same as the
 secret on a Dashboard webhook endpoint (deployed). Use the secret that matches
@@ -215,12 +226,12 @@ flowchart TD
   Has -->|no| Checkout["checkout.sessions.create<br/>mode: subscription<br/>metadata.orgId"]
   Portal --> Return["Return URL → client redirects"]
   Checkout --> Return
-  Checkout -.->|after pay| WH["Webhook provisions Pro"]
+  Checkout -.->|after pay| WH["Webhook provisions Taskify Pro"]
 ```
 
 ## Happy path — first upgrade
 
-Entry points: free-board limit (`form-popover`) or Billing page **Upgrade to Pro**
+Entry points: Free-plan board limit (`form-popover`) or Billing page **Upgrade to Pro**
 (`SubscriptionButton` → Pro modal).
 
 ```mermaid
@@ -247,13 +258,13 @@ sequenceDiagram
   Webhook->>DB: create (orgId, sub, customer, price, period end)
   Stripe->>Webhook: invoice.payment_succeeded
   Webhook->>DB: update period end / price
-  Note over User,DB: success_url alone does not provision Pro — trust the webhook
+  Note over User,DB: success_url alone does not provision Taskify Pro — trust the webhook
   Note over Stripe,Webhook: Event order is not guaranteed — invoice may arrive before create finishes (see Gotchas)
 ```
 
 ## Returning customer — manage billing
 
-Pro users on the Billing page call `stripeRedirect` **directly** (no Pro modal) →
+Organizations on **Taskify Pro** use the Billing page and call `stripeRedirect` **directly** (no Pro modal) →
 Customer Portal (SDK: `billingPortal` — same product).
 
 ```mermaid
@@ -285,16 +296,16 @@ in doubt.
 
 | Piece | Path | Role |
 | ----- | ---- | ---- |
-| Free-limit trigger | `components/form/form-popover.tsx` | Opens Pro modal on create-board errors |
+| Free-plan limit trigger | `components/form/form-popover.tsx` | Opens Pro modal on create-board errors |
 | Billing page | `organization/[organizationId]/billing/` | Shows plan via `Info` + `SubscriptionButton` |
-| Subscription CTA | `billing/_components/subscription-button.tsx` | Free → Pro modal; Pro → Customer Portal (`billingPortal`) |
+| Subscription CTA | `billing/_components/subscription-button.tsx` | **Free** plan → Pro modal; **Taskify Pro** → Customer Portal (`billingPortal`) |
 | Modal store | `hooks/use-pro-modal.ts` | Client open/close state |
 | Upgrade UI | `components/modals/pro-modal.tsx` | Calls `stripeRedirect`, navigates to Stripe URL |
 | Server action | `actions/stripe-redirect/index.ts` | Checkout (new) or Customer Portal / billingPortal (existing) |
 | Stripe client | `lib/stripe.ts` | SDK instance + `stripeTimestampToDate` |
 | Webhook | `app/api/webhook/route.ts` | Verifies signature; creates/updates DB row |
 | Auth gate | `proxy.ts` | `/api/webhook` is public (Stripe has no Clerk session) |
-| Pro check | `lib/subscription.ts` | `checkSubscription` — used by billing UI, board limits, org pages |
+| Plan access check | `lib/subscription.ts` | `checkSubscription` / `isPro` — billing UI, board limits, organization pages |
 | Persistence | `prisma/schema.prisma` → `OrganizationSubscription` | Links Clerk `orgId` ↔ Stripe IDs |
 
 ## Data we store
@@ -302,9 +313,9 @@ in doubt.
 Webhook writes / updates `OrganizationSubscription` (see field-level **why** comments in
 `prisma/schema.prisma`). Short summary:
 
-- `orgId` — Clerk org; from Checkout `metadata` (set in `stripe-redirect`)
+- `orgId` — Clerk organization id (`orgId` from Clerk); from Checkout `metadata` (set in `stripe-redirect`)
 - `stripeCustomerId` — open Customer Portal later (`billingPortal.sessions`)
-- `stripeSubscriptionId` — renewal webhook lookups (invoices have no org metadata)
+- `stripeSubscriptionId` — renewal webhook lookups (invoices have no organization metadata)
 - `stripePriceId` / `stripeCurrentPeriodEnd` — which plan is active and until when (`checkSubscription`)
 
 App-side money (Checkout `unit_amount`) uses [Dinero.js](https://dinerojs.com) —
@@ -326,20 +337,20 @@ Put the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET` (CLI secret ≠ Dashboa
 
 | Check | Where | Means |
 | ----- | ----- | ----- |
-| **`isPro`** (`checkSubscription`) | UI (Billing button label, board limits, Free/Pro badge) | “Should this org get Pro **features** right now?” — needs `stripePriceId` + `stripeCurrentPeriodEnd` still valid (+ 1-day grace) |
+| **`isPro`** (`checkSubscription`) | UI (Billing button label, board limits, Free / Taskify Pro badge) | “Does this organization have **Taskify Pro** access right now?” — needs `stripePriceId` + `stripeCurrentPeriodEnd` still valid (+ 1-day grace) |
 | **`stripeCustomerId`** | `stripe-redirect` branch | “Do we already have a Stripe Customer so we open **Customer Portal** instead of Checkout?” |
 
 Usually they agree after a successful Checkout + webhook. They can diverge briefly
 (webhook lag) or if you later add free trials, past-due grace, etc. Don’t replace
 one with the other without thinking.
 
-### Cancel / when Pro actually ends
+### Cancel / when Taskify Pro access actually ends
 
 Today users can cancel in the **Customer Portal**. We do **not** yet handle
 `customer.subscription.deleted` (or similar) in the webhook.
 
 Access is gated by **`stripeCurrentPeriodEnd`** in `checkSubscription`: after
-cancel, Stripe typically lets the period finish, so Pro can remain until that
+cancel, Stripe typically lets the period finish, so **Taskify Pro** can remain until that
 timestamp (plus grace). Instant lockout on cancel would need extra webhook
 handling + product decision.
 
@@ -347,8 +358,8 @@ handling + product decision.
 flowchart TD
   User["User cancels in Customer Portal"] --> Stripe["Stripe ends subscription<br/>at period end or per Portal settings"]
   Stripe --> Period{"Now before stripeCurrentPeriodEnd<br/>+ grace?"}
-  Period -->|yes| Pro["checkSubscription → true<br/>Pro features still on"]
-  Period -->|no| Free["checkSubscription → false<br/>back to free limits"]
+  Period -->|yes| Pro["checkSubscription → true<br/>Taskify Pro access still on"]
+  Period -->|no| Free["checkSubscription → false<br/>back to Free plan limits"]
   Stripe -.->|backlog| Del["customer.subscription.deleted<br/>see Complete the current picture first"]
 ```
 
@@ -401,14 +412,14 @@ fidelity, and small UX polish. **Do this backlog before Opening more doors.**
 
 | Item | Why | Notes |
 | ---- | --- | ----- |
-| **`invoice.payment_failed`** (or past-due) | Failed renewals leave the org looking Pro until period end with no status sync / UX | Also overlaps dunning in growth table — handle the event here first |
+| **`invoice.payment_failed`** (or past-due) | Failed renewals leave the organization looking like **Taskify Pro** until period end with no status sync / UX | Also overlaps dunning in growth table — handle the event here first |
 | **`customer.subscription.updated` / `deleted`** | Cancel-at-period-end, plan changes, immediate cancel aren’t mirrored beyond renewals + period end | Instant lockout on cancel is a **product** decision; period-end gating already works |
 
 ### P2 — polish (same integration, not new doors)
 
 | Item | Why | Where |
 | ---- | --- | ----- |
-| Board-list Hint | Still describes the free 5-board limit when the org is Pro | `board-list.tsx` |
+| Board-list Hint | Still describes the Free-plan 5-board limit when the organization is on **Taskify Pro** | `board-list.tsx` |
 | Omit `payment_method_types: ["card"]` | Stripe prefers unset so Dashboard dynamic methods apply | `actions/stripe-redirect` |
 | Pro modal external redirect | Confirm Next.js-friendly navigation to Stripe URLs | `components/modals/pro-modal.tsx` |
 | Unused action `data` | Empty schema today; prefix `_` or use when Checkout needs input | `actions/stripe-redirect` |
@@ -423,18 +434,18 @@ growth; prefer it when leaving the single-price demo, not as a blocker for P0/P1
 > **Do not start here.** Finish **Complete the current picture first** (P0 → P1 →
 > P2) before picking a growth door below.
 
-What we ship today is a **single monthly Pro subscription** via Checkout + Portal +
-webhooks. That’s a solid base — not a ceiling. Natural next monetization and
+What we ship today is **billing** for a **single monthly Taskify Pro** subscription via Checkout + Portal +
+webhooks (plus the default **Free** plan). That’s a solid base — not a ceiling. Natural next monetization and
 product moves (each opens Stripe/docs doors):
 
 | Direction | Why it makes money / improves UX | Stripe / product hooks |
 | --------- | -------------------------------- | ---------------------- |
-| **Multiple plans** (Starter / Pro / Business) | Price discrimination; upsell | Dashboard Prices + Portal plan switching; store which `price_` is active |
+| **Multiple paid plans** (e.g. Starter / Pro / Business) | Price discrimination; upsell | Dashboard Prices + Portal plan switching; store which `price_` is active |
 | **Annual billing** | Higher commitment, often higher LTV | Second Price on the same Product (`interval: year`) |
 | **Trials** | Lower signup friction → more conversions | `subscription_data.trial_period_days` on Checkout; handle trial-end events |
 | **One-time packs** | Add-ons without a subscription | Checkout `mode: "payment"` (credits, lifetime unlock, etc.) |
-| **Per-seat / per-member pricing** | Grows with org size | Quantity on subscription items; sync with Clerk org membership |
-| **Usage-based** (API calls, AI tokens, storage) | Align price with value | [Metronome](https://docs.stripe.com/billing/usage-based) / meters — not required for simple Pro |
+| **Per-seat / per-member pricing** | Grows with organization size | Quantity on subscription items; sync with Clerk organization membership |
+| **Usage-based** (API calls, AI tokens, storage) | Align price with value | [Metronome](https://docs.stripe.com/billing/usage-based) / meters — not required for simple **Taskify Pro** |
 | **Coupons & promotion codes** | Campaigns, win-back, influencer deals | Checkout `allow_promotion_codes` / Coupons API; Portal retention offers |
 | **Embedded Checkout / Payment Element** | Stay on-site, higher control/branding | Still Checkout Sessions under the hood; more frontend work |
 | **Customer emails & dunning** | Recover failed renewals | Stripe Billing automations + richer failed-pay UX (after P1 `invoice.payment_failed`) |
