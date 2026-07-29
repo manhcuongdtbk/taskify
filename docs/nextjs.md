@@ -1,4 +1,4 @@
-# Next.js in Taskify
+# Next.js
 
 This repo is one place to learn **the Next.js App Router way** (plus how we wire Clerk, Prisma, Stripe, etc.). Prefer official Next.js docs for the version in `package.json`; for agents, also check bundled guides under `node_modules/next/dist/docs/01-app/` (see `AGENTS.md`).
 
@@ -22,7 +22,7 @@ Official overview: [Production checklist](https://nextjs.org/docs/app/guides/pro
 
 ## TODO — follow Next.js recommendations more closely
 
-Track gaps so the repo stays a faithful “Next.js way” reference. Check items off when the app (and any related docs) match the linked guidance. Prefer official patterns over new Taskify-only rules.
+Track gaps so the repo stays a faithful “Next.js way” reference. Check items off when the app (and any related docs) match the linked guidance. Prefer official patterns over new repo-only rules.
 
 - [ ] **Authz in every Server Action and Route Handler** — assume actions are POSTable directly; verify auth/ownership inside each one ([Data security](https://nextjs.org/docs/app/guides/data-security), [Mutating data](https://nextjs.org/docs/app/getting-started/mutating-data))
 - [ ] **Expected errors as return values** — validation/business failures via returned state (e.g. `{ error }`), not thrown exceptions for expected cases ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling)); align with / extend `createSafeAction` where needed

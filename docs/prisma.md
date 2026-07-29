@@ -1,4 +1,4 @@
-# Prisma in Taskify
+# Prisma
 
 Learning reference for **Prisma ORM** as used in this app (Postgres + Next.js). Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.json`. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` can help with CLI and Client details.
 
@@ -16,7 +16,7 @@ Index of all project docs: [`README.md`](./README.md).
 
 ## TODO — follow Prisma / data-layer recommendations more closely
 
-Check items off when the app (and this doc) match current Prisma guidance. Prefer official patterns over new Taskify-only rules.
+Check items off when the app (and this doc) match current Prisma guidance. Prefer official patterns over new repo-only rules.
 
 - [ ] **Audit Prisma import paths** — resolve `// TODO: fix all prisma imports` in `lib/generate-log-message.ts` and standardize on Client / enums imports from the generated output
 - [ ] **Consistent `orgId` (and ownership) filters** on every board/list/card mutation and sensitive read — treat missing tenant filters as a security bug ([Next.js data security](https://nextjs.org/docs/app/guides/data-security) applies at the action layer)

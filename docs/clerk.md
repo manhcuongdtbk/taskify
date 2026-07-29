@@ -1,4 +1,4 @@
-# Clerk in Taskify
+# Clerk
 
 Learning reference for **Clerk** auth and **Organizations** in this Next.js App Router app. Prefer [Clerk docs](https://clerk.com/docs) for the SDK version in `package.json`. Repo Clerk skills under `.claude/skills/clerk*` can help with setup, Organizations, and Next.js patterns.
 
@@ -17,7 +17,7 @@ In prose, write **organization** (not “org”). Keep `orgId` as Clerk names it
 
 ## TODO — follow Clerk / auth recommendations more closely
 
-Check items off when the app (and this doc) match current Clerk + Next.js guidance. Prefer official patterns over new Taskify-only rules.
+Check items off when the app (and this doc) match current Clerk + Next.js guidance. Prefer official patterns over new repo-only rules.
 
 - [ ] **Reduce middleware-centric auth** — finish the TODO in `proxy.ts` toward Clerk’s public-route / less middleware-heavy guidance ([custom sign-in public routes](https://clerk.com/docs/nextjs/guides/development/custom-sign-in-or-up-page#make-the-route-public)); keep real authorization in actions/pages ([Next.js proxy](https://nextjs.org/docs/app/getting-started/proxy))
 - [ ] **Organization activation UX** — revisit `organization-control.tsx` TODO ([set active by slug changelog](https://clerk.com/changelog/2024-08-02-set-active-by-slug)) and use the current Clerk recommended API

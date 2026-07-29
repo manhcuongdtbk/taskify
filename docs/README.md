@@ -1,4 +1,4 @@
-# Taskify docs
+# Docs
 
 Entrypoint for project documentation. **Add new docs here** when you create them — other pages should link to this index (or to one closely related topic), not re-list the whole catalog.
 
@@ -8,7 +8,7 @@ Prefer official docs for the versions in `package.json`. This repo is a **learni
 
 | Doc | What it’s for |
 | --- | ------------- |
-| [`features.md`](./features.md) | Product / feature map (what the app does; where to look) |
+| [`features.md`](./features.md) | What the app does (features + where to look) |
 | [`conventions.md`](./conventions.md) | How we choose patterns (priority ladder; where each rung is documented) |
 | [`project-structure.md`](./project-structure.md) | Folder layout / App Router organization in this repo |
 

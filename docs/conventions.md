@@ -1,4 +1,4 @@
-# Taskify Conventions
+# Conventions
 
 How to choose patterns when something is ambiguous. Prefer existing conventions over inventing new ones — fewer custom rules means faster onboarding and less decision fatigue.
 
@@ -23,7 +23,7 @@ When something is ambiguous, follow this order (highest first). Use the highest 
 | 9 | **JavaScript convention** | Language rules (ECMAScript semantics, standard library behavior) |
 | 10 | **JavaScript recommendation** | Widely accepted JS style/guidance that isn’t a language rule |
 | 11 | **Common convention** | Patterns widely used in the ecosystem but not owned by a single doc |
-| 12 | **Taskify convention** | Only when the levels above don’t cover it; keep these rare |
+| 12 | **Repo convention** | Only when the levels above don’t cover it; keep these rare |
 
 Within the same kind, prefer the **current official docs** for the version this repo depends on (see `package.json`) over blog posts or memory.
 
@@ -36,20 +36,20 @@ Within the same kind, prefer the **current official docs** for the version this 
 | Library (Clerk) | [`clerk.md`](./clerk.md) | [Clerk docs](https://clerk.com/docs) |
 | Library (Prisma) | [`prisma.md`](./prisma.md) | [Prisma docs](https://www.prisma.io/docs) |
 | Library (Stripe) | [`stripe.md`](./stripe.md) | [Stripe docs](https://docs.stripe.com) |
-| Library (Zod / shadcn / …) | *None yet* — use official docs; add a thin repo doc only when Taskify has non-obvious choices or TODOs | [Zod](https://zod.dev) · [shadcn/ui](https://ui.shadcn.com) |
+| Library (Zod / shadcn / …) | *None yet* — use official docs; add a thin repo doc only when this repo has non-obvious choices or TODOs | [Zod](https://zod.dev) · [shadcn/ui](https://ui.shadcn.com) |
 | TypeScript / JavaScript | *None yet* — follow handbook + this repo’s `tsconfig` / ESLint; add a doc only when we track concrete TODOs | [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) · [MDN / ECMAScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) |
 | Common convention | [`project-structure.md`](./project-structure.md) (folder names like `components/`, `lib/`, `hooks/`) | Next.js [project structure examples](https://nextjs.org/docs/app/getting-started/project-structure#examples) (placeholders, not special folders) |
-| Taskify convention | Short lists in this file + [`project-structure.md`](./project-structure.md) + process notes in stack docs (e.g. Stripe doc updates) | — (keep rare) |
+| Repo convention | Short lists in this file + [`project-structure.md`](./project-structure.md) + process notes in stack docs (e.g. Stripe doc updates) | — (keep rare) |
 
 ## Where to look (libraries we use)
 
-Prefer the library’s own docs before adding a Taskify rule. Repo learning guides and the full list live in the [docs index](./README.md). Official starting points: [Next.js](https://nextjs.org/docs), [React](https://react.dev), [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html), [Clerk](https://clerk.com/docs), [Prisma](https://www.prisma.io/docs), [Stripe](https://docs.stripe.com), [Zod](https://zod.dev), [shadcn/ui](https://ui.shadcn.com).
+Prefer the library’s own docs before adding a repo rule. Repo learning guides and the full list live in the [docs index](./README.md). Official starting points: [Next.js](https://nextjs.org/docs), [React](https://react.dev), [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html), [Clerk](https://clerk.com/docs), [Prisma](https://www.prisma.io/docs), [Stripe](https://docs.stripe.com), [Zod](https://zod.dev), [shadcn/ui](https://ui.shadcn.com).
 
-## Taskify conventions
+## Repo conventions
 
 Keep this list short. Structure rules: [`project-structure.md`](./project-structure.md). Stack learning TODOs: [docs index](./README.md) (Next.js, Clerk, Prisma, Stripe).
 
-If you can solve a problem with a higher-priority source above, do that instead of adding a new Taskify rule.
+If you can solve a problem with a higher-priority source above, do that instead of adding a new repo rule.
 
 ## What not to invent
 
@@ -57,5 +57,5 @@ If you can solve a problem with a higher-priority source above, do that instead 
 - Abbreviating **organization** as “org” in prose or UI copy (keep `orgId` — that name comes from Clerk)
 - Parallel “house style” that contradicts Next.js, React, TypeScript, or a library’s required API
 - Repo-only wrappers or patterns when the library already documents an equivalent approach
-- Duplicating long excerpts from official docs here — link them and describe only what Taskify chooses when there are multiple valid options
+- Duplicating long excerpts from official docs here — link them and describe only what this repo chooses when there are multiple valid options
 - Empty stack docs with no “already following” or TODOs — wait until there is something concrete to teach

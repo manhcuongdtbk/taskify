@@ -1,5 +1,5 @@
 ---
-description: Stripe / billing / monetization work in Taskify — read docs/stripe.md first
+description: Stripe / billing / monetization work in this repo — read docs/stripe.md first
 globs: "{docs/stripe.md,**/stripe*,**/billing/**,lib/subscription.ts,actions/stripe-redirect/**,app/api/webhook/**,constants/plans.ts,prisma/schema.prisma}"
 alwaysApply: false
 ---

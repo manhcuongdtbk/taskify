@@ -1,4 +1,4 @@
-# Taskify Project Structure
+# Project structure
 
 How this repo is organized. Prefer existing conventions over inventing new ones — fewer custom rules means faster onboarding and less decision fatigue.
 
@@ -7,7 +7,7 @@ How this repo is organized. Prefer existing conventions over inventing new ones 
 **Official Next.js reference (start here for framework rules):**  
 [Project structure and organization](https://nextjs.org/docs/app/getting-started/project-structure)
 
-That page covers folder/file conventions, route groups, private folders, colocation, and organization strategies. This doc only maps **what Taskify uses** and where our choices sit on the priority list below.
+That page covers folder/file conventions, route groups, private folders, colocation, and organization strategies. This doc only maps **what this repo uses** and where our choices sit on the priority list below.
 
 Paths and UI entry points change — treat concrete examples as a starting index. Prefer searching the repo when in doubt. Full docs catalog: [`README.md`](./README.md).
 
@@ -20,7 +20,7 @@ When something is ambiguous **about folder layout / routing structure**, follow 
 3. **React convention** — language/library rules (components, hooks naming, Server/Client Components where applicable)
 4. **React recommendation** — common React guidance that isn’t a hard rule
 5. **Common convention** — widely used app folders with **no** framework meaning (`components/`, `lib/`, `hooks/`, … — Next.js says these names are placeholders)
-6. **Taskify convention** — only when the levels above don’t cover it; keep these rare
+6. **Repo convention** — only when the levels above don’t cover it; keep these rare
 
 For language, TypeScript, and library choices, see [`conventions.md`](./conventions.md) and the [docs index](./README.md).
 
@@ -56,14 +56,14 @@ Rows are grouped by Kind, in the same order as [Convention priority](#convention
 | `config/`               | App config; **product name** in `config/site.ts` (`siteConfig.name`) | Common convention                   |
 | `constants/`            | App constants; **plans** live in `constants/plans.ts`      | Common convention                   |
 | `prisma/`               | Schema + migrations                                        | Common (Prisma)                     |
-| `components/ui/`        | **shadcn/ui only** (CLI / registry primitives)             | Taskify convention                  |
-| `actions/`              | Server Actions grouped by feature                          | Taskify convention (structure only) |
+| `components/ui/`        | **shadcn/ui only** (CLI / registry primitives)             | Repo convention                  |
+| `actions/`              | Server Actions grouped by feature                          | Repo convention (structure only) |
 
 Next.js does not assign special meaning to `components/`, `lib/`, `hooks/`, or `actions/` — see the [official examples note](https://nextjs.org/docs/app/getting-started/project-structure#examples).
 
 ## Next.js conventions we rely on (don’t relearn here)
 
-Use the official page for definitions. In Taskify you’ll see the usual App Router patterns: `layout` / `page` / `route`, dynamic segments, optional catch-alls (Clerk), route groups, private `_components` folders, and top-level `proxy.ts` for request gating (including keeping the Stripe webhook route reachable without a session).
+Use the official page for definitions. In this repo you’ll see the usual App Router patterns: `layout` / `page` / `route`, dynamic segments, optional catch-alls (Clerk), route groups, private `_components` folders, and top-level `proxy.ts` for request gating (including keeping the Stripe webhook route reachable without a session).
 
 Nested layouts compose shared shell UI and route guards. Details of layout nesting are in the Next.js docs under component hierarchy / nested routes.
 
@@ -87,7 +87,7 @@ Full product map: [`features.md`](./features.md). Below is only a coarse pointer
 | Server mutations | `actions/` |
 | Data models / DB access | `prisma/`, `lib/` (Prisma client) |
 
-## Taskify conventions (keep this list short)
+## Repo conventions (keep this list short)
 
 Only the extras that aren’t covered by Next.js / React / common practice:
 
@@ -98,11 +98,11 @@ Only the extras that aren’t covered by Next.js / React / common practice:
 5. **Plans in `constants/plans.ts`** — Free / Pro definitions (limits, price, Stripe product strings) live only there; docs describe plans as defined in that file. Plan name is **Pro** (product name from `siteConfig`).
 6. **Billing documentation** — change Stripe Checkout / Portal / webhooks or plan gating → update the Stripe billing guide (see [docs index](./README.md)) in the same change.
 
-If you can solve a problem with a Next.js or common pattern instead of a new Taskify rule, do that.
+If you can solve a problem with a Next.js or common pattern instead of a new repo rule, do that.
 
 ## What not to invent
 
 - Putting app-specific components in `components/ui/` (reserved for shadcn/ui)
 - New top-level folders when an existing common folder (`components/`, `lib/`, `hooks/`) already fits
 - Parallel organization schemes (e.g. feature folders _and_ a second global UI tree) without a clear need
-- Re-documenting Next.js file conventions in this repo — link the official page and describe only Taskify’s usage
+- Re-documenting Next.js file conventions in this repo — link the official page and describe only this repo’s usage

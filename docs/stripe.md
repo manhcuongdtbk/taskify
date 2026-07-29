@@ -1,4 +1,4 @@
-# Stripe billing in Taskify
+# Stripe billing
 
 How **billing** works for the **Pro** paid plan in this repo. Inline comments explain
 *why* a line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
@@ -44,7 +44,7 @@ Official Stripe docs (later): [Checkout](https://docs.stripe.com/payments/checko
 
 ### The cast of objects
 
-Stripe is a ledger of objects. Taskify only uses a few:
+Stripe is a ledger of objects. This app only uses a few:
 
 | Stripe object | Plain English | In this project |
 | ------------- | ------------- | --------------- |
@@ -88,7 +88,7 @@ So:
 | ------ | ----- |
 | Checkout **page** | The pay/subscribe UI Stripe shows for a Checkout Session |
 | Customer / Billing **Portal** | The manage-subscription product (and its UI) |
-| Your billing **page** | Taskify’s own `/billing` route (buttons that *start* Checkout or Portal) |
+| Your billing **page** | This app’s `/billing` route (buttons that *start* Checkout or Portal) |
 
 **Session** — a **short-lived API object** your server creates that represents
 “this user may use that hosted UI **once / for a short time**.” Creating a
@@ -156,7 +156,7 @@ When creating a Checkout Session you must set `mode`:
 | **`payment`** | One-time charge (buy once) | No | No — would be e.g. a one-off pack |
 | **`setup`** | Save a payment method **without** charging yet | No | No — e.g. collect card for later |
 
-Taskify uses only `mode: "subscription"` because **Pro** is monthly plan access, not a
+This app uses only `mode: "subscription"` because **Pro** is monthly plan access, not a
 one-time fee.
 
 Related ideas you will see in Stripe docs (not separate Checkout modes):
