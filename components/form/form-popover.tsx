@@ -13,7 +13,7 @@ import { FormSubmit } from "./form-submit";
 import { Button } from "@/components/ui/button";
 import { type BaseUIRenderForwardingProps } from "@/types";
 import { X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { FormPicker } from "./form-picker";
 import { type ComponentRef, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -37,12 +37,18 @@ export function FormPopover({
 
   const { execute, fieldErrors } = useAction(createBoard, {
     onSuccess: (data) => {
-      toast.success("Board created!");
+      toast.add({
+        type: "success",
+        title: "Board created!",
+      });
       closeRef.current?.click();
       router.push(`/board/${data.id}`);
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
       // Free board limit (or similar) → open Pro upgrade modal (Stripe Checkout).
       proModal.onOpen();
     },

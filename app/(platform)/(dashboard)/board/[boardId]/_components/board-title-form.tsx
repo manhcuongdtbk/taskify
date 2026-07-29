@@ -6,7 +6,7 @@ import { FormInput } from "@/components/form/form-input";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { type ComponentRef, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface BoardTitleFormProps {
   data: Board;
@@ -15,12 +15,18 @@ interface BoardTitleFormProps {
 export function BoardTitleForm({ data }: BoardTitleFormProps) {
   const { execute } = useAction(updateBoard, {
     onSuccess: (data) => {
-      toast.success(`Board "${data.title}" updated`);
+      toast.add({
+        type: "success",
+        title: `Board "${data.title}" updated`,
+      });
       setTitle(title); // Optimistically update the title
       disableEditing();
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
   const formRef = useRef<ComponentRef<"form">>(null);

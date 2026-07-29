@@ -5,7 +5,7 @@ import { FormInput } from "@/components/form/form-input";
 import { useAction } from "@/hooks/use-action";
 import { type ListWithCards } from "@/types";
 import { type ComponentRef, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { useEventListener } from "usehooks-ts";
 import { ListOptions } from "./list-options";
 
@@ -36,12 +36,18 @@ export function ListHeader({ data, onAddCard }: ListHeaderProps) {
 
   const { execute } = useAction(updateList, {
     onSuccess: (data) => {
-      toast.success(`Renamed to "${data.title}"`);
+      toast.add({
+        type: "success",
+        title: `Renamed to "${data.title}"`,
+      });
       setTitle(data.title); // Optimistic update
       disableEditing();
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 

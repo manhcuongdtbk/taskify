@@ -9,7 +9,7 @@ import { copyCard } from "@/actions/copy-card";
 import { deleteCard } from "@/actions/delete-card";
 import { useParams } from "next/navigation";
 import { useCardModal } from "@/hooks/use-card-modal";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface ActionsProps {
   data: CardWithList;
@@ -23,11 +23,17 @@ export function Actions({ data }: ActionsProps) {
     copyCard,
     {
       onSuccess: () => {
-        toast.success(`Card "${data.title}" copied`);
+        toast.add({
+          type: "success",
+          title: `Card "${data.title}" copied`,
+        });
         cardModal.onClose();
       },
       onError: (error) => {
-        toast.error(error);
+        toast.add({
+          type: "error",
+          title: error,
+        });
       },
     },
   );
@@ -35,11 +41,17 @@ export function Actions({ data }: ActionsProps) {
     deleteCard,
     {
       onSuccess: () => {
-        toast.success(`Card "${data.title}" deleted`);
+        toast.add({
+          type: "success",
+          title: `Card "${data.title}" deleted`,
+        });
         cardModal.onClose();
       },
       onError: (error) => {
-        toast.error(error);
+        toast.add({
+          type: "error",
+          title: error,
+        });
       },
     },
   );

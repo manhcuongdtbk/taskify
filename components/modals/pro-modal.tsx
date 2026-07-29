@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { stripeRedirect } from "@/actions/stripe-redirect";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 /**
  * Upgrade upsell UI → actions/stripe-redirect → Stripe URL.
@@ -21,7 +21,10 @@ export const ProModal = () => {
       window.location.href = data;
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 

@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface HeaderProps {
   data: CardWithList;
@@ -26,11 +26,17 @@ export function Header({ data }: HeaderProps) {
       // TODO: fix the eslint error
       // eslint-disable-next-line @tanstack/query/prefer-query-options
       queryClient.invalidateQueries({ queryKey: ["card-logs", data.id] });
-      toast.success(`Renamed to ${data.title}`);
+      toast.add({
+        type: "success",
+        title: `Renamed to ${data.title}`,
+      });
       setTitle(data.title);
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
   const inputRef = useRef<ComponentRef<"input">>(null);

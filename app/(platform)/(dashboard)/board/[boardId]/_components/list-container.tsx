@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { ListItem } from "./list-item";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { updateListOrder } from "@/actions/update-list-order";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { useAction } from "@/hooks/use-action";
 import { updateCardOrder } from "@/actions/update-card-order";
 
@@ -26,18 +26,30 @@ export function ListContainer({ boardId, data }: ListContainerProps) {
   const [orderedData, setOrderedData] = useState(data);
   const { execute: executeUpdateListOrder } = useAction(updateListOrder, {
     onSuccess: (data) => {
-      toast.success("List reordered");
+      toast.add({
+        type: "success",
+        title: "List reordered",
+      });
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
   const { execute: executeUpdateCardOrder } = useAction(updateCardOrder, {
     onSuccess: (data) => {
-      toast.success("Card reordered");
+      toast.add({
+        type: "success",
+        title: "Card reordered",
+      });
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 

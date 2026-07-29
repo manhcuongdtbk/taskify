@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAction } from "@/hooks/use-action";
 import { MoreHorizontal, X } from "lucide-react";
 import { type ComponentRef, useRef } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 interface ListOptionsProps {
   data: List;
@@ -27,21 +27,33 @@ export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
 
   const { execute: executeDelete } = useAction(deleteList, {
     onSuccess: (data) => {
-      toast.success(`List "${data.title}" deleted`);
+      toast.add({
+        type: "success",
+        title: `List "${data.title}" deleted`,
+      });
       closeRef.current?.click();
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 
   const { execute: executeCopy } = useAction(copyList, {
     onSuccess: (data) => {
-      toast.success(`List "${data.title}" copied`);
+      toast.add({
+        type: "success",
+        title: `List "${data.title}" copied`,
+      });
       closeRef.current?.click();
     },
     onError: (error) => {
-      toast.error(error);
+      toast.add({
+        type: "error",
+        title: error,
+      });
     },
   });
 
