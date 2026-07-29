@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { geistSans, geistMono } from "@/fonts";
 import "@/app/globals.css";
 import { siteConfig } from "@/config/site";
+import { SpeedInsights } from "@vercel/speed-insights/next"; // NOTE: https://vercel.com/docs/speed-insights/quickstart?framework=nextjs-app#add-the-speedinsights-component-to-your-app
 
 // TODO: setup tanstack query devtools. More info: https://tanstack.com/query/latest/docs/framework/react/devtools#install-and-import-the-devtools
 
@@ -25,7 +26,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       suppressHydrationWarning // https://ui.shadcn.com/docs/dark-mode/next#wrap-your-root-layout
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
