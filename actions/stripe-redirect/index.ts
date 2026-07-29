@@ -8,7 +8,7 @@ import { createSafeAction } from "@/lib/create-safe-action";
 import { StripeRedirect } from "./schema";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe, toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
-import { PRO_PLAN } from "@/constants/plans";
+import { PRO_PLAN } from "@/constants/pricing-plans";
 
 /**
  * Start Stripe billing for the current organization.

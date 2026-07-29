@@ -1,7 +1,7 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { FREE_PLAN, PRO_PLAN } from "@/constants/plans";
+import { FREE_PLAN, PRO_PLAN } from "@/constants/pricing-plans";
 import { useOrganization } from "@clerk/nextjs";
 import { CreditCard } from "lucide-react";
 import Image from "next/image";

@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
-import { FREE_PLAN } from "@/constants/plans";
+import { FREE_PLAN } from "@/constants/pricing-plans";
 
 export const incrementAvailableCount = async () => {
   const { orgId } = await auth();

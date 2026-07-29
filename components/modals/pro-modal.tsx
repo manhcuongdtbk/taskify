@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { stripeRedirect } from "@/actions/stripe-redirect";
 import { toast } from "@/components/ui/toast";
-import { PRO_PLAN, formatBoardLimit } from "@/constants/plans";
+import { PRO_PLAN, formatBoardLimit } from "@/constants/pricing-plans";
 import { siteConfig } from "@/config/site";
 
 /**

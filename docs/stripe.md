@@ -1,6 +1,6 @@
 # Stripe billing
 
-How **billing** works for the **Pro** paid plan in this repo. Inline comments explain
+How **billing** works for the **Pro** pricing plan in this repo. Inline comments explain
 *why* a line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
 when UI entry points change — update them when the flow changes.
 
@@ -10,10 +10,20 @@ Docs catalog: [`README.md`](./README.md).
 
 | Term | Meaning |
 | ---- | ------- |
-| **Billing** | The product feature: Checkout, Customer Portal, webhooks, plan gating |
-| **Free** | Default plan (no Stripe subscription; board limits) |
-| **Pro** | The paid plan (one monthly subscription today). Defined in [`constants/plans.ts`](../constants/plans.ts) |
+| **billing** | The product **feature**: subscriptions, one-off payments, webhooks, pricing-plan gating |
+| **billing provider** | The external PSP that implements charging today. **Stripe** is the current (and only) billing provider — not a synonym for "billing" |
+| **pricing plan** | Access / commercial tier (**Free**, **Pro**, …). Not a project-management "plan" — see [`vocabulary.md`](./vocabulary.md) |
+| **Free** | Default pricing plan (no paid subscription; board limits) |
+| **Pro** | Paid pricing plan (one monthly subscription today). Defined in [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) |
 | **`isPro` / `checkSubscription()`** | Whether the organization currently has **Pro** access — not a synonym for “billing” |
+
+### Why Stripe (for now)
+
+Stripe is the easy integration path (docs, tutorials, Checkout, Customer Portal, webhooks). That is a **library / provider choice**, not the product definition of billing.
+
+Known limits matter later (e.g. country / payment-method coverage such as Vietnam not being a simple out-of-the-box fit). Expect that Stripe may stay, be **replaced**, or become **one provider among several**. Keep product language as **billing** / **pricing plans**; keep provider-specific details in this file and in Stripe-shaped code until a second provider forces an abstraction.
+
+Do **not** add a parallel billing stack (e.g. Clerk Billing beside Stripe) without an explicit product decision — finish **Complete the current picture first** first.
 
 Read **Stripe concepts** below before diving into Stripe’s own docs — it maps their
 vocabulary onto what this project actually does.
@@ -219,8 +229,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  Start["stripeRedirect()"] --> Auth["Clerk userId + orgId"]
-  Auth --> Lookup["Load OrganizationSubscription by orgId"]
+  Start["stripeRedirect()"] --> Ident["Clerk userId + orgId"]
+  Ident --> Lookup["Load OrganizationSubscription by orgId"]
   Lookup --> Has{"stripeCustomerId set?"}
   Has -->|yes| Portal["billingPortal.sessions.create<br/>Customer Portal URL"]
   Has -->|no| Checkout["checkout.sessions.create<br/>mode: subscription<br/>metadata.orgId"]
@@ -304,7 +314,7 @@ in doubt.
 | Server action | `actions/stripe-redirect/index.ts` | Checkout (new) or Customer Portal / billingPortal (existing) |
 | Stripe client | `lib/stripe.ts` | SDK instance + `stripeTimestampToDate` |
 | Webhook | `app/api/webhook/route.ts` | Verifies signature; creates/updates DB row |
-| Auth gate | `proxy.ts` | `/api/webhook` is public (Stripe has no Clerk session) |
+| Authentication gate | `proxy.ts` | `/api/webhook` is public (Stripe has no Clerk session) |
 | Plan access check | `lib/subscription.ts` | `checkSubscription` / `isPro` — billing UI, board limits, organization pages |
 | Persistence | `prisma/schema.prisma` → `OrganizationSubscription` | Links Clerk `orgId` ↔ Stripe IDs |
 
@@ -319,7 +329,7 @@ Webhook writes / updates `OrganizationSubscription` (see field-level **why** com
 - `stripePriceId` / `stripeCurrentPeriodEnd` — which plan is active and until when (`checkSubscription`)
 
 App-side money (Checkout `unit_amount`) uses [Dinero.js](https://dinerojs.com) —
-integer minor units + currency (`PRO_PLAN.priceMonthly` in `constants/plans.ts` →
+integer minor units + currency (`PRO_PLAN.priceMonthly` in `constants/pricing-plans.ts` →
 `toStripeUnitAmount` / `toStripeCurrency` in `lib/stripe.ts`). Format for display with
 `Intl.NumberFormat` via Dinero’s `toDecimal` transformer when needed.
 
@@ -440,7 +450,7 @@ product moves (each opens Stripe/docs doors):
 
 | Direction | Why it makes money / improves UX | Stripe / product hooks |
 | --------- | -------------------------------- | ---------------------- |
-| **Multiple paid plans** (e.g. Starter / Pro / Business) | Price discrimination; upsell | Extend [`constants/plans.ts`](../constants/plans.ts) (new `*Plan` type + `PLANS` entry — see file header); Dashboard Prices + Portal plan switching; store which `price_` is active |
+| **Multiple paid plans** (e.g. Starter / Pro / Business) | Price discrimination; upsell | Extend [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) (new `*Plan` type + `PLANS` entry — see file header); Dashboard Prices + Portal plan switching; store which `price_` is active |
 | **Annual billing** | Higher commitment, often higher LTV | Second Price on the same Product (`interval: year`) |
 | **Trials** | Lower signup friction → more conversions | `subscription_data.trial_period_days` on Checkout; handle trial-end events |
 | **One-time packs** | Add-ons without a subscription | Checkout `mode: "payment"` (credits, lifetime unlock, etc.) |

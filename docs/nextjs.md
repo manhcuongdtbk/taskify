@@ -9,7 +9,7 @@ These are intentional patterns learners should copy unless a higher-priority off
 
 - **Server Components by default**; `"use client"` only where interactivity/browser APIs need it
 - **Await `params`** (and similar async request APIs) in pages/layouts/route handlers
-- **Server Actions** (`"use server"`) for mutations, with auth checks inside the action
+- **Server Actions** (`"use server"`) for mutations, with authentication / authorization checks inside the action
 - **`revalidatePath`** after successful mutations
 - **Route Handlers** (`route.ts`) for HTTP endpoints (e.g. Stripe webhook)
 - **`proxy.ts`** for request gating/redirects (not as the sole authorization layer)
@@ -24,7 +24,7 @@ Official overview: [Production checklist](https://nextjs.org/docs/app/guides/pro
 
 Track gaps so the repo stays a faithful “Next.js way” reference. Check items off when the app (and any related docs) match the linked guidance. Prefer official patterns over new repo-only rules.
 
-- [ ] **Authz in every Server Action and Route Handler** — assume actions are POSTable directly; verify auth/ownership inside each one ([Data security](https://nextjs.org/docs/app/guides/data-security), [Mutating data](https://nextjs.org/docs/app/getting-started/mutating-data))
+- [ ] **Authorization in every Server Action and Route Handler** — assume actions are POSTable directly; verify authentication, authorization, and ownership inside each one ([Data security](https://nextjs.org/docs/app/guides/data-security), [Mutating data](https://nextjs.org/docs/app/getting-started/mutating-data))
 - [ ] **Expected errors as return values** — validation/business failures via returned state (e.g. `{ error }`), not thrown exceptions for expected cases ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling)); align with / extend `createSafeAction` where needed
 - [ ] **Segment `error.tsx` / `not-found.tsx` (and optional `loading.tsx`)** — especially for board / organization routes; we already call `notFound()` in places but lack dedicated segment files ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling), [loading](https://nextjs.org/docs/app/api-reference/file-conventions/loading), production checklist)
 - [ ] **`<Link>` for in-app navigation** — prefer `next/link` over raw `<a>` for internal routes ([Linking and navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating))

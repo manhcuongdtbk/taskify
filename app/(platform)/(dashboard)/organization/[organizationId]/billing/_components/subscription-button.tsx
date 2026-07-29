@@ -2,7 +2,7 @@
 
 import { stripeRedirect } from "@/actions/stripe-redirect";
 import { Button } from "@/components/ui/button";
-import { PRO_PLAN } from "@/constants/plans";
+import { PRO_PLAN } from "@/constants/pricing-plans";
 import { useAction } from "@/hooks/use-action";
 import { useProModal } from "@/hooks/use-pro-modal";
 import { toast } from "@/components/ui/toast";
