@@ -8,6 +8,7 @@ import { useAction } from "@/hooks/use-action";
 import { stripeRedirect } from "@/actions/stripe-redirect";
 import { toast } from "@/components/ui/toast";
 import { PRO_PLAN, formatBoardLimit } from "@/constants/plans";
+import { siteConfig } from "@/config/site";
 
 /**
  * Upgrade upsell UI → actions/stripe-redirect → Stripe URL.
@@ -46,7 +47,7 @@ export const ProModal = () => {
             Upgrade to {PRO_PLAN.name} Today!
           </h2>
           <p className="text-xs font-semibold text-neutral-600">
-            Explore the best of Taskify
+            Explore the best of {siteConfig.name}
           </p>
           <div className="pl-3">
             <ul className="list-disc text-sm">

@@ -3,6 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { calSansUI, poppins } from "@/fonts";
+import { siteConfig } from "@/config/site";
 
 export default function MarketingPage() {
   return (
@@ -19,7 +20,7 @@ export default function MarketingPage() {
         </div>
       </div>
       <h1 className="mb-6 text-center text-3xl text-neutral-800 md:text-6xl">
-        Taskify helps team move
+        {siteConfig.name} helps team move
       </h1>
       <div className="w-fit rounded-md bg-linear-to-r from-fuchsia-600 to-pink-600 p-2 px-4 pb-4 text-3xl text-white md:text-6xl">
         work forward.
@@ -30,9 +31,8 @@ export default function MarketingPage() {
           poppins.className,
         )}
       >
-        Collaborate, manage projects, and reach new productivity peaks. From
-        high rises to the home office, the way your team works is unique —
-        accomplish it all with Taskify.
+        {siteConfig.description} From high rises to the home office, the way
+        your team works is unique — accomplish it all with {siteConfig.name}.
       </div>
       <Link
         href="/sign-up"
@@ -42,7 +42,7 @@ export default function MarketingPage() {
           className: "mt-6",
         })}
       >
-        Get Taskify for free
+        Get {siteConfig.name} for free
       </Link>
     </div>
   );

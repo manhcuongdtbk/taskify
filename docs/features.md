@@ -8,7 +8,7 @@ Paths drift — use folders as a starting index; search the repo when in doubt. 
 
 In prose, write **organization** (not “org”). The identifier `orgId` is the exception — that name comes from Clerk.
 
-**Plans vs billing:** **Billing** is the product feature (upgrade, manage subscription, webhooks, plan gating). **Free** and **Pro** are **plans** — Taskify is the product; **Pro** is the paid plan. Do not use “Pro” to mean the billing feature itself.
+**Plans vs billing:** **Billing** is the product feature (upgrade, manage subscription, webhooks, plan gating). **Free** and **Pro** are **plans**. Product display name in app code: [`config/site.ts`](../config/site.ts) (`siteConfig.name`). **Pro** is the paid plan — do not use “Pro” to mean the billing feature itself.
 
 Canonical plan definitions (limits, price, Stripe product strings): [`constants/plans.ts`](../constants/plans.ts).
 

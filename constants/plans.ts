@@ -11,7 +11,8 @@ import { USD } from "dinero.js/currencies";
  * - **Free** — default plan (no Stripe subscription; board limits)
  * - **Pro** — paid plan (monthly Stripe subscription)
  *
- * Plan display name is **Pro**. Taskify is the product; Pro is the plan.
+ * Plan display name is **Pro**. Product display name is `siteConfig.name`
+ * (`config/site.ts`); Pro is the plan.
  * More plans are expected; keep all plan definitions in this module.
  *
  * ## `maxBoards`

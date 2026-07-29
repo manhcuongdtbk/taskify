@@ -1,5 +1,6 @@
 import Logo from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
 import Link from "next/link";
 
 export function Navbar() {
@@ -18,7 +19,7 @@ export function Navbar() {
             href="/sign-up"
             className={buttonVariants({ variant: "default", size: "sm" })}
           >
-            Get Taskify for free
+            Get {siteConfig.name} for free
           </Link>
         </div>
       </div>
