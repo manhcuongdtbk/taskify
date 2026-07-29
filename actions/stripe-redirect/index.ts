@@ -8,10 +8,10 @@ import { createSafeAction } from "@/lib/create-safe-action";
 import { StripeRedirect } from "./schema";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe, toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
-import { TASKIFY_PRO_MONTHLY } from "@/constants/billing";
+import { PRO_PLAN } from "@/constants/plans";
 
 /**
- * Start Stripe billing for the current org.
+ * Start Stripe billing for the current organization.
  *
  * Concepts (Checkout vs Customer Portal / Billing Portal, modes, webhooks):
  *   docs/stripe.md → “Stripe concepts (read this first)”
@@ -79,15 +79,15 @@ const handler = async (data: InputType): Promise<ReturnType> => {
             // Inline price_data creates Product/Price on the fly (handy for demos).
             // Production apps often pass a fixed Dashboard price id: price: "price_...".
             price_data: {
-              currency: toStripeCurrency(TASKIFY_PRO_MONTHLY),
+              currency: toStripeCurrency(PRO_PLAN.priceMonthly),
               product_data: {
-                name: "Taskify Pro",
-                description: "Unlimited boards for your organization",
+                name: PRO_PLAN.name,
+                description: PRO_PLAN.stripeProductDescription,
               },
               // Dinero amount is already Stripe's minor-unit integer.
-              unit_amount: toStripeUnitAmount(TASKIFY_PRO_MONTHLY),
+              unit_amount: toStripeUnitAmount(PRO_PLAN.priceMonthly),
               recurring: {
-                interval: "month",
+                interval: PRO_PLAN.interval,
               },
             },
             quantity: 1,

@@ -53,7 +53,8 @@ Rows are grouped by Kind, in the same order as [Convention priority](#convention
 | `components/`           | Shared UI across routes (app-specific)                     | Common convention                   |
 | `hooks/`                | Shared client hooks                                        | Common convention                   |
 | `lib/`                  | Shared helpers and integrations                            | Common convention                   |
-| `config/`, `constants/` | App config / constants                                     | Common convention                   |
+| `config/`               | App config (e.g. site metadata)                            | Common convention                   |
+| `constants/`            | App constants; **plans** live in `constants/plans.ts`      | Common convention                   |
 | `prisma/`               | Schema + migrations                                        | Common (Prisma)                     |
 | `components/ui/`        | **shadcn/ui only** (CLI / registry primitives)             | Taskify convention                  |
 | `actions/`              | Server Actions grouped by feature                          | Taskify convention (structure only) |
@@ -93,7 +94,8 @@ Only the extras that aren’t covered by Next.js / React / common practice:
 1. **Server Actions folder shape** — each action under `actions/<name>/` with `index.ts` (`"use server"`), `schema.ts` (Zod), `types.ts`, and a shared validation wrapper in `lib/` (`create-safe-action`).
 2. **`components/ui/` is shadcn-only** — primitives from the shadcn CLI/registry live here; other shared UI goes under `components/` (e.g. `form/`, `modals/`, `providers/`) or route `_components/`.
 3. **Say “organization,” not “org”** — in docs and UI copy write **organization**; keep `orgId` (and Clerk path segments like `select-org`) because those names come from Clerk / existing routes.
-4. **Billing documentation** — change Stripe Checkout / Portal / webhooks or plan gating → update the Stripe billing guide (see [docs index](./README.md)) in the same change.
+4. **Plans in `constants/plans.ts`** — Free / Pro definitions (limits, price, Stripe product strings) live only there; docs describe plans as defined in that file. Plan name is **Pro** (product is Taskify).
+5. **Billing documentation** — change Stripe Checkout / Portal / webhooks or plan gating → update the Stripe billing guide (see [docs index](./README.md)) in the same change.
 
 If you can solve a problem with a Next.js or common pattern instead of a new Taskify rule, do that.
 

@@ -2,6 +2,7 @@
 
 import { stripeRedirect } from "@/actions/stripe-redirect";
 import { Button } from "@/components/ui/button";
+import { PRO_PLAN } from "@/constants/plans";
 import { useAction } from "@/hooks/use-action";
 import { useProModal } from "@/hooks/use-pro-modal";
 import { toast } from "@/components/ui/toast";
@@ -42,7 +43,7 @@ export function SubscriptionButton({ isPro }: SubscriptionButtonProps) {
 
   return (
     <Button disabled={isLoading} onClick={onClick}>
-      {isPro ? "Manage Subscription" : "Upgrade to Pro"}
+      {isPro ? "Manage Subscription" : `Upgrade to ${PRO_PLAN.name}`}
     </Button>
   );
 }

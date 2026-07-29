@@ -53,7 +53,7 @@ If you can solve a problem with a higher-priority source above, do that instead 
 
 ## What not to invent
 
-- Calling **Pro** / **Taskify Pro** the billing *feature* — **billing** is the feature; **Free** and **Taskify Pro** are **plans** (see [`features.md`](./features.md))
+- Calling **Pro** the billing *feature* — **billing** is the feature; **Free** and **Pro** are **plans** defined in `constants/plans.ts` (see [`features.md`](./features.md))
 - Abbreviating **organization** as “org” in prose or UI copy (keep `orgId` — that name comes from Clerk)
 - Parallel “house style” that contradicts Next.js, React, TypeScript, or a library’s required API
 - Repo-only wrappers or patterns when the library already documents an equivalent approach

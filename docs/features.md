@@ -8,7 +8,9 @@ Paths drift — use folders as a starting index; search the repo when in doubt. 
 
 In prose, write **organization** (not “org”). The identifier `orgId` is the exception — that name comes from Clerk.
 
-**Plans vs billing:** **Billing** is the product feature (upgrade, manage subscription, webhooks, plan gating). Today there are two **plans**: **Free** (default, board limits) and **Taskify Pro** (the paid monthly subscription). Do not use “Pro” to mean the billing feature itself.
+**Plans vs billing:** **Billing** is the product feature (upgrade, manage subscription, webhooks, plan gating). **Free** and **Pro** are **plans** — Taskify is the product; **Pro** is the paid plan. Do not use “Pro” to mean the billing feature itself.
+
+Canonical plan definitions (limits, price, Stripe product strings): [`constants/plans.ts`](../constants/plans.ts).
 
 ## Product areas
 
@@ -22,15 +24,21 @@ In prose, write **organization** (not “org”). The identifier `orgId` is the 
 | Card detail | Card modal (title, description, activity) | `components/modals/card-modal/`, `app/api/cards/[cardId]/` |
 | Activity | Organization audit / activity feed | `…/organization/[organizationId]/activity/`, `AuditLog`, `lib/create-audit-log.ts` |
 | Organization settings | Clerk organization profile UI | `…/organization/[organizationId]/settings/` |
-| Billing | Upgrade to **Taskify Pro**, manage subscription, gate features by plan | `…/organization/[organizationId]/billing/`, Stripe guide in the [docs index](./README.md) |
-| Free-plan limits | Cap boards on the **Free** plan; nudge toward **Taskify Pro** | `lib/organization-limit.ts`, `lib/subscription.ts`, create-board action, pro modal / form popover |
+| Billing | Upgrade to **Pro**, manage subscription, gate features by plan | `…/organization/[organizationId]/billing/`, Stripe guide in the [docs index](./README.md) |
+| Free-plan limits | Cap boards on the **Free** plan; nudge toward **Pro** | `lib/organization-limit.ts`, `lib/subscription.ts`, create-board action, pro modal / form popover |
 
 ### Plans (today)
 
+Source of truth: [`constants/plans.ts`](../constants/plans.ts).
+
 | Plan | Kind | Notes |
 | ---- | ---- | ----- |
-| **Free** | Default | No Stripe subscription required; board limits apply |
-| **Taskify Pro** | Paid | Single monthly subscription; unlimited boards (current product promise) |
+| **Free** | Default | No Stripe subscription required; board limits from `FREE_PLAN.maxBoards` |
+| **Pro** | Paid | Monthly subscription; price / Stripe product fields from `PRO_PLAN` |
+
+**Board caps:** on each plan, `maxBoards` is a number (capped) or `null` (unlimited). Pro uses `null` today — see [`constants/plans.ts`](../constants/plans.ts) (`hasUnlimitedBoards`).
+
+More plans are expected. Keep definitions in that module only. Named types there (`FreePlan`, `ProPlan`, …) + `satisfies` are the shape contract for each plan entry — useful now as documentation/checks, and as the base when you export a `Plan` union, narrow by `plan.id`, build plan lists/maps, or add another paid plan. See the file header for the full growth notes.
 
 ## Cross-cutting (not separate products)
 

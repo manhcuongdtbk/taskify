@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
-import { MAX_FREE_BOARDS } from "@/constants/boards";
+import { FREE_PLAN } from "@/constants/plans";
 
 export const incrementAvailableCount = async () => {
   const { orgId } = await auth();
@@ -79,7 +79,7 @@ export const hasAvailableCount = async () => {
     },
   });
 
-  if (!organizationLimit || organizationLimit.count < MAX_FREE_BOARDS) {
+  if (!organizationLimit || organizationLimit.count < FREE_PLAN.maxBoards) {
     return true;
   }
 

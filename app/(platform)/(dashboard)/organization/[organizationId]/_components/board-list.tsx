@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAvailableCount } from "@/lib/organization-limit";
-import { MAX_FREE_BOARDS } from "@/constants/boards";
+import { FREE_PLAN, PRO_PLAN, hasUnlimitedBoards } from "@/constants/plans";
 import { checkSubscription } from "@/lib/subscription";
 
 export async function BoardList() {
@@ -28,6 +28,11 @@ export async function BoardList() {
 
   const availableCount = await getAvailableCount();
   const isPro = await checkSubscription();
+
+  const remainingLabel =
+    isPro && hasUnlimitedBoards(PRO_PLAN)
+      ? "Unlimited"
+      : FREE_PLAN.maxBoards - availableCount;
 
   return (
     <div className="space-y-4">
@@ -53,13 +58,13 @@ export async function BoardList() {
             className="relative flex aspect-video h-full w-full flex-col items-center justify-center gap-y-1 rounded-xs bg-muted transition hover:opacity-75"
           >
             <p className="text-sm">Create new board</p>
-            <span className="text-xs">{`${isPro ? "Unlimited" : MAX_FREE_BOARDS - availableCount} remaining`}</span>
+            <span className="text-xs">{`${remainingLabel} remaining`}</span>
             {/* TODO (P2 — docs/stripe.md “Complete the current picture first”): Hint
-                always describes the free 5-board limit even when isPro shows
+                always describes the Free plan board limit even when isPro shows
                 "Unlimited". Hide the Hint for Pro, or change the copy by plan. */}
             <Hint
               sideOffset={40}
-              description={`Free Workspaces can have up to 5 open boards. For unlimited boards, upgrade this workspace.`}
+              description={`${FREE_PLAN.name} Workspaces can have up to ${FREE_PLAN.maxBoards} open boards. For unlimited boards, upgrade this workspace.`}
             >
               <HelpCircle className="absolute right-2 bottom-2 h-3.5 w-3.5" />
             </Hint>

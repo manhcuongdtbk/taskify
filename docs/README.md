@@ -21,7 +21,7 @@ Same shape where possible: **already following** + **TODOs** to stay a faithful 
 | [`nextjs.md`](./nextjs.md) | Next.js App Router |
 | [`clerk.md`](./clerk.md) | Clerk auth & Organizations |
 | [`prisma.md`](./prisma.md) | Prisma / Postgres data layer |
-| [`stripe.md`](./stripe.md) | Billing (Stripe) for the **Taskify Pro** plan — deep dive + backlog |
+| [`stripe.md`](./stripe.md) | Billing (Stripe) for the **Pro** plan — deep dive + backlog |
 
 ## Maintenance
 
