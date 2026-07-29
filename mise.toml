@@ -6,5 +6,8 @@ pnpm = "11"
 
 [env]
 _.path = [
-  "{{config_root}}/node_modules/.bin"
-]  # https://mise.jdx.dev/mise-cookbook/nodejs.html#add-node-modules-binaries-to-the-path
+  "{{config_root}}/node_modules/.bin",
+] # https://mise.jdx.dev/mise-cookbook/nodejs.html#add-node-modules-binaries-to-the-path
+
+[settings]
+lockfile = true
