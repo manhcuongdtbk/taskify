@@ -1,11 +1,11 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 /**
  * Enforce route-mirrored default-export names for App Router page.tsx / layout.tsx.
  * Spec: docs/conventions.md § Route-mirrored page/layout names
  *
- * Usage:
- *   tsx scripts/check-route-export-names.ts          # check (exit 1 on mismatch)
- *   tsx scripts/check-route-export-names.ts --fix    # rewrite export names (+ *Props)
+ * Usage (via package scripts; loads TS with `node --import tsx`):
+ *   pnpm lint:routes          # check (exit 1 on mismatch)
+ *   pnpm lint:routes:fix     # rewrite export names (+ *Props)
  */
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";

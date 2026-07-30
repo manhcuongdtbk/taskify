@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint && pnpm lint:routes",
     "lint:fix": "eslint --fix",
-    "lint:routes": "tsx scripts/check-route-export-names.ts",
-    "lint:routes:fix": "tsx scripts/check-route-export-names.ts --fix",
+    "lint:routes": "node --import tsx scripts/check-route-export-names.ts",
+    "lint:routes:fix": "node --import tsx scripts/check-route-export-names.ts --fix",
     "prepare": "husky",
     "postinstall": "prisma generate"
   },
