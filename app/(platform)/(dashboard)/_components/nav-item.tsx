@@ -21,7 +21,7 @@ interface NavItemProps {
   onExpand: (id: string) => void;
 }
 
-export default function NavItem({
+export function NavItem({
   isExpanded,
   isActive,
   organization,

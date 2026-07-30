@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import OrganizationControl from "./_components/organization-control";
+import { OrganizationControl } from "./_components/organization-control";
 import { startCase } from "es-toolkit/string";
 import { type Metadata } from "next";
 

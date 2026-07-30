@@ -1,12 +1,12 @@
-import Logo from "@/components/logo";
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
-import MobileSidebar from "./mobile-sidebar";
-import ThemeToggler from "./theme-toggler";
+import { MobileSidebar } from "./mobile-sidebar";
+import { ThemeToggler } from "./theme-toggler";
 import { FormPopover } from "@/components/form/form-popover";
 
-export default function Navbar() {
+export function Navbar() {
   return (
     <nav className="fixed top-0 z-50 flex h-14 w-full items-center border-b bg-white px-4 shadow-xs">
       <MobileSidebar />

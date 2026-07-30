@@ -10,13 +10,13 @@ import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion } from "@/components/ui/accordion";
-import NavItem from "./nav-item";
+import { NavItem } from "./nav-item";
 
 interface SidebarProps {
   storageKey?: string;
 }
 
-export default function Sidebar({
+export function Sidebar({
   storageKey = "taskify-sidebar-expanded",
 }: SidebarProps) {
   const [expanded, setExpanded] = useLocalStorage<Record<string, boolean>>(

@@ -5,7 +5,7 @@ interface FormErrorsProps {
   errors?: Record<string, string[] | undefined>;
 }
 
-export default function FormErrors({ id, errors }: FormErrorsProps) {
+export function FormErrors({ id, errors }: FormErrorsProps) {
   const errorMessage = errors?.[id]?.join(", ");
 
   if (!errorMessage) return null;

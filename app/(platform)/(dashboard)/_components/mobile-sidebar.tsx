@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import Sidebar from "./sidebar";
+import { Sidebar } from "./sidebar";
 
-export default function MobileSidebar() {
+export function MobileSidebar() {
   const pathname = usePathname();
 
   // Helps prevent hydration errors. TODO: figure out why this is needed and whether there's a better way to handle this.

@@ -1,4 +1,4 @@
-import Logo from "@/components/logo";
+import { Logo } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import Link from "next/link";
