@@ -5,11 +5,11 @@ import { ActivityItem } from "@/components/activity-item";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActivityIcon } from "lucide-react";
 
-interface ActivityProps {
+interface CardModalActivityProps {
   items: AuditLog[];
 }
 
-export function Activity({ items }: ActivityProps) {
+export function CardModalActivity({ items }: CardModalActivityProps) {
   return (
     <div className="flex w-full items-start gap-x-3">
       <ActivityIcon className="mt-0.5 h-5 w-5 text-neutral-700" />
@@ -25,7 +25,7 @@ export function Activity({ items }: ActivityProps) {
   );
 }
 
-Activity.Skeleton = function ActivitySkeleton() {
+CardModalActivity.Skeleton = function ActivitySkeleton() {
   return (
     <div className="flex w-full items-start gap-x-3">
       <Skeleton className="h-6 w-6 bg-neutral-200" />

@@ -1,4 +1,4 @@
-import { Sidebar } from "../_components/sidebar";
+import { DashboardSidebar } from "../_components/dashboard-sidebar";
 
 export default function OrganizationLayout({
   children,
@@ -9,7 +9,7 @@ export default function OrganizationLayout({
     <div className="mx-auto max-w-6xl px-4 pt-20 md:pt-24 2xl:max-w-7xl">
       <div className="flex gap-x-7">
         <div className="hidden w-64 shrink-0 md:block">
-          <Sidebar />
+          <DashboardSidebar />
         </div>
         {children}
       </div>

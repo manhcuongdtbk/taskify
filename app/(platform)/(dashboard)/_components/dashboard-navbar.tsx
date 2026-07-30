@@ -6,7 +6,7 @@ import { MobileSidebar } from "./mobile-sidebar";
 import { ThemeToggler } from "./theme-toggler";
 import { FormPopover } from "@/components/form/form-popover";
 
-export function Navbar() {
+export function DashboardNavbar() {
   return (
     <nav className="fixed top-0 z-50 flex h-14 w-full items-center border-b bg-white px-4 shadow-xs">
       <MobileSidebar />

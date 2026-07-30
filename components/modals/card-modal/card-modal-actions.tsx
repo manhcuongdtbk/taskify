@@ -11,11 +11,11 @@ import { useParams } from "next/navigation";
 import { useCardModal } from "@/hooks/use-card-modal";
 import { toast } from "@/components/ui/toast";
 
-interface ActionsProps {
+interface CardModalActionsProps {
   data: CardWithList;
 }
 
-export function Actions({ data }: ActionsProps) {
+export function CardModalActions({ data }: CardModalActionsProps) {
   const params = useParams();
   const cardModal = useCardModal();
 
@@ -95,7 +95,7 @@ export function Actions({ data }: ActionsProps) {
   );
 }
 
-Actions.Skeleton = function ActionsSkeleton() {
+CardModalActions.Skeleton = function ActionsSkeleton() {
   return (
     <div className="mt-2 space-y-2">
       <Skeleton className="h-4 w-20 bg-neutral-200" />

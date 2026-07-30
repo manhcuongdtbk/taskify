@@ -12,13 +12,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion } from "@/components/ui/accordion";
 import { NavItem } from "./nav-item";
 
-interface SidebarProps {
+interface DashboardSidebarProps {
   storageKey?: string;
 }
 
-export function Sidebar({
+export function DashboardSidebar({
   storageKey = "taskify-sidebar-expanded",
-}: SidebarProps) {
+}: DashboardSidebarProps) {
   const [expanded, setExpanded] = useLocalStorage<Record<string, boolean>>(
     storageKey,
     {},

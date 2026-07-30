@@ -6,15 +6,15 @@ import { useOrganization } from "@clerk/nextjs";
 import { CreditCard } from "lucide-react";
 import Image from "next/image";
 
-interface InfoProps {
+interface OrganizationInfoProps {
   isPro: boolean;
 }
 
-export function Info({ isPro }: InfoProps) {
+export function OrganizationInfo({ isPro }: OrganizationInfoProps) {
   const { organization, isLoaded } = useOrganization();
 
   if (!isLoaded) {
-    return <Info.Skeleton />;
+    return <OrganizationInfo.Skeleton />;
   }
 
   return (
@@ -40,7 +40,7 @@ export function Info({ isPro }: InfoProps) {
   );
 }
 
-Info.Skeleton = function InfoSkeleton() {
+OrganizationInfo.Skeleton = function InfoSkeleton() {
   return (
     <div className="flex items-center gap-x-4">
       <div className="relative h-15 w-15">

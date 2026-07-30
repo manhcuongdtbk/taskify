@@ -129,6 +129,9 @@ importers:
       eslint-config-prettier:
         specifier: ^10.1.8
         version: 10.1.8(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))
+      eslint-plugin-filename-match-export:
+        specifier: ^1.4.0
+        version: 1.4.0
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -3011,6 +3014,10 @@ packages:
         optional: true
       eslint-import-resolver-webpack:
         optional: true
+
+  eslint-plugin-filename-match-export@1.4.0:
+    resolution: {integrity: sha512-wKTH8MqCC06kcBKNZgYcsK3ASr3WGAIAd4hA1wNgpkmdDQCf4BzSKaZWD81YhUCUFUsowjTxmsmwWn4Wd+prtA==}
+    engines: {node: '>=20.19.0'}
 
   eslint-plugin-import@2.32.0:
     resolution: {integrity: sha512-whOE1HFo/qJDyX4SnXzP4N6zOWn79WhnCUY/iDR0mPfQZO8wcYE4JClzI2oZrhBnnMUCBCHZhO6VQyoBU95mZA==}
@@ -8538,6 +8545,8 @@ snapshots:
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
+
+  eslint-plugin-filename-match-export@1.4.0: {}
 
   eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.65.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@8.1.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0):
     dependencies:

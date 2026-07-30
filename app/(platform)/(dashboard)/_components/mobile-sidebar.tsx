@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Sidebar } from "./sidebar";
+import { DashboardSidebar } from "./dashboard-sidebar";
 
 export function MobileSidebar() {
   const pathname = usePathname();
@@ -46,7 +46,7 @@ export function MobileSidebar() {
       </Button>
       <Sheet open={isOpen} onOpenChange={onClose}>
         <SheetContent side="left" className="p-2 pt-10">
-          <Sidebar storageKey="taskify-mobile-sidebar-expanded" />
+          <DashboardSidebar storageKey="taskify-mobile-sidebar-expanded" />
         </SheetContent>
       </Sheet>
     </>

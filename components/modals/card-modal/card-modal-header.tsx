@@ -11,11 +11,11 @@ import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
 
-interface HeaderProps {
+interface CardModalHeaderProps {
   data: CardWithList;
 }
 
-export function Header({ data }: HeaderProps) {
+export function CardModalHeader({ data }: CardModalHeaderProps) {
   const queryClient = useQueryClient();
   const params = useParams();
   const { execute } = useAction(updateCard, {
@@ -76,7 +76,7 @@ export function Header({ data }: HeaderProps) {
   );
 }
 
-Header.Skeleton = function HeaderSkeleton() {
+CardModalHeader.Skeleton = function HeaderSkeleton() {
   return (
     <div className="mb-6 flex items-start gap-x-3">
       <Skeleton className="mt-1 h-6 w-6 bg-neutral-200" />

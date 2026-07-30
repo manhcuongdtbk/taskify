@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { Info } from "../_components/info";
+import { OrganizationInfo } from "../_components/organization-info";
 import { Suspense } from "react";
 import { ActivityList } from "../_components/activity-list";
 import { checkSubscription } from "@/lib/subscription";
@@ -9,7 +9,7 @@ export default async function OrganizationActivityPage() {
 
   return (
     <div className="w-full">
-      <Info isPro={isPro} />
+      <OrganizationInfo isPro={isPro} />
       <Separator className="my-2" />
       <Suspense fallback={<ActivityList.Skeleton />}>
         <ActivityList />

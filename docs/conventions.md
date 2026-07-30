@@ -71,6 +71,7 @@ Within the same kind, prefer the **current official docs** for the version this 
 | File names for UI: **kebab-case** (e.g. `activity-item.tsx`) | Adopted | Widespread in Next/React codebases; no single sealed rule — stay consistent with neighbors |
 | Server Action folders: **kebab-case** under `actions/<name>/` | Adopted | Repo shape; mirrors common “one folder per mutation” habit |
 | App Router `page.tsx` / `layout.tsx` default exports: **route-mirrored `*Page` / `*Layout`** | Adopted | Common `*Page` suffix; **route mirroring is a repo rule** — see [Route-mirrored page/layout names](#route-mirrored-pagelayout-names). Enforced by `scripts/check-route-export-names.ts` (`pnpm lint:routes`; autofix `pnpm lint:routes:fix`) |
+| App UI components: **filename ↔ export**, **generics denylist**, **`Form*` in `components/form/`** | Adopted | See [Component export names](#component-export-names). Enforced via ESLint (`eslint-plugin-filename-match-export` + `@typescript-eslint/naming-convention` / `no-restricted-syntax`). **`components/ui/` excluded** (shadcn) |
 | Env vars: **`SCREAMING_SNAKE_CASE`**; client-exposed only via `NEXT_PUBLIC_*` | Adopted | [Next.js Environment Variables](https://nextjs.org/docs/app/guides/environment-variables) |
 | Don’t put secrets in `NEXT_PUBLIC_*` or git | Adopted | Same Next.js guide · [Vercel Environment Variables](https://vercel.com/docs/environment-variables) |
 
@@ -92,6 +93,15 @@ Next.js requires the **file** to be `page.tsx` / `layout.tsx`; it does **not** p
 4. Do **not** use Rails-style Index/Show/New/Edit unless that word is a real URL segment.
 5. When the page takes props, name the props type `{SameName}Props` (e.g. `BoardIdPageProps`).
 
+#### Component export names
+
+Applies to `components/**` **except** `components/ui/**`, and to `app/**/_components/**`. Prefer **named** exports (Next `page` / `layout` stay default).
+
+1. **Filename ↔ export** — `board-title-form.tsx` → `BoardTitleForm`. Enforced by `eslint-plugin-filename-match-export` (skips multi-export files and `index.*`). For `index.tsx`, name the export after the parent folder (`card-modal/index.tsx` → `CardModal`) — convention only; the plugin ignores `index`.
+2. **Generics denylist** — do not export these bare names as components: `Header`, `Footer`, `Navbar`, `Sidebar`, `Actions`, `Activity`, `Description`, `Info`, `Content`, `Item`. Qualify with the nearest useful segment (folder / route / feature), e.g. `CardModalHeader`, `OrganizationInfo`, `MarketingNavbar`, `DashboardSidebar`.
+3. **`components/form/**`** — exported components must be prefixed **`Form`** (`FormInput`, `FormSubmit`, …); files stay `form-*.tsx`.
+4. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`.
+5. **Not enforced** — full path→name mirroring for `_components`, global uniqueness of every symbol across the repo.
 ### React / UI
 
 | Practice | Status | Widespread sources |
