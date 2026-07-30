@@ -2,7 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Documentation
 
-See [`docs/README.md`](./docs/README.md) for the docs index (conventions, structure, Next.js / Clerk / Prisma / Stripe guides).
+See [`docs/README.md`](./docs/README.md) for the docs index (conventions, structure, data, billing, authentication and authorization, Next.js / Prisma guides).
 
 ## Getting Started
 

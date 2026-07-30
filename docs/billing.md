@@ -1,6 +1,6 @@
-# Stripe billing
+# Billing
 
-How **billing** works for the **Pro** pricing plan in this repo. Inline comments explain
+How **billing** works for the **Pro** pricing plan in this repo. **Stripe** is the current **billing provider** (swappable later). Inline comments explain
 *why* a line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
 when UI entry points change — update them when the flow changes.
 

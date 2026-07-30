@@ -1,17 +1,17 @@
 ---
-description: Stripe / billing / monetization work in this repo — read docs/stripe.md first
-globs: "{docs/stripe.md,**/stripe*,**/billing/**,lib/subscription.ts,actions/stripe-redirect/**,app/api/webhook/**,constants/pricing-plans.ts,prisma/schema.prisma}"
+description: Billing / Stripe / monetization work in this repo — read docs/billing.md first
+globs: "{docs/billing.md,**/stripe*,**/billing/**,lib/subscription.ts,actions/stripe-redirect/**,app/api/webhook/**,constants/pricing-plans.ts,prisma/schema.prisma}"
 alwaysApply: false
 ---
 
-# Stripe billing in this repo
+# Billing in this repo
 
-Before proposing or implementing Stripe, billing, or monetization changes:
+Before proposing or implementing billing, Stripe, or monetization changes:
 
-1. Read `docs/stripe.md` (concepts, gotchas, **Complete the current picture first**, Mermaid flows).
+1. Read `docs/billing.md` (concepts, gotchas, **Complete the current picture first**, Mermaid flows). Stripe is the current **billing provider**; the durable concern is **billing**.
 2. **Priority:** finish that backlog (P0 → P1 → P2) before any item under **Opening more doors**. Do not open new monetization doors while hardiness / lifecycle gaps remain.
 3. Extend existing patterns: Checkout + Customer Portal (`billingPortal`), signed webhooks, Dinero helpers, Clerk `orgId` metadata, `OrganizationSubscription` / `checkSubscription`.
-4. Update diagrams in `docs/stripe.md` when user-visible billing flows change.
+4. Update diagrams in `docs/billing.md` when user-visible billing flows change.
 5. Do not introduce a parallel billing stack unless the user explicitly asks.
 
 Use `autonumber` on new `sequenceDiagram`s (see mermaid-autonumber rule).

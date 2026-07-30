@@ -19,10 +19,91 @@ When something is ambiguous **about folder layout / routing structure**, follow 
 2. **Next.js recommendation** — strategies Next.js documents but does not enforce (e.g. store shared code outside `app/`, colocate with `_components`)
 3. **React convention** — language/library rules (components, hooks naming, Server/Client Components where applicable)
 4. **React recommendation** — common React guidance that isn’t a hard rule
-5. **Common practice** — widely used app folders with **no** framework meaning (`components/`, `lib/`, `hooks/`, … — Next.js says these names are placeholders). Term defined in [`vocabulary.md`](./vocabulary.md).
+5. **Common practice** — folder habits with **no** framework meaning here (see [Common practice folders](#common-practice-folders); code habits in [`conventions.md`](./conventions.md#common-practices-catalog)). Term defined in [`vocabulary.md`](./vocabulary.md).
 6. **Repo convention** — only when the levels above don’t cover it; keep these rare
 
 For language, TypeScript, and library choices, see [`conventions.md`](./conventions.md) and the [docs index](./README.md).
+
+## Common practice folders
+
+**Purpose:** a living **folder catalog** so people can choose a known name instead of inventing a new tree as the project grows. Non-folder habits (naming, hooks, env vars, …) live in [`conventions.md` → Common practices catalog](./conventions.md#common-practices-catalog).
+
+**There is no sealed, community-approved checklist** of required top-level names. What exists is a **widespread habit in component-based UI ecosystems** — shared UI, helpers, and reusable reactive logic in predictable folders:
+
+| Ecosystem | Typical shared folders (habit) | Structure guides |
+| --------- | ------------------------------ | ---------------- |
+| **React** (+ Next, Remix, …) | `components/`, `hooks/`, `lib/` or `utils/` | [Next.js project structure](https://nextjs.org/docs/app/getting-started/project-structure) (placeholders) |
+| **Vue** (+ Nuxt) | `components/`, `composables/`, `utils/` / `lib/` | [Nuxt directory structure](https://nuxt.com/docs/guide/directory-structure) (Nuxt assigns meaning to some names — don’t copy blindly into Next) |
+| **Svelte** (+ SvelteKit) | `lib/` (`$lib` is special in SvelteKit), often `components/` | [SvelteKit project structure](https://kit.svelte.dev/docs/project-structure) |
+| **Solid / Qwik / Preact** | React-like `components/`, hooks-style folders | Community templates (same habit) |
+| **Angular** | CLI-shaped (`services/`, feature modules, `*.component.ts`) | [Angular style guide / workspace](https://angular.dev/style-guide) |
+| **Astro** | `components/` for UI islands | [Astro project structure](https://docs.astro.build/en/basics/project-structure/) |
+
+Classic MVC stacks (Rails, Django, Laravel) traditionally used `controllers` / `views` / `models`; some later add `components/` for partials — related idea, different default tree.
+
+Next.js is [unopinionated](https://nextjs.org/docs/app/getting-started/project-structure#organizing-your-project) about layout and treats names like `components` and `lib` as **generalized placeholders** with [no special framework significance](https://nextjs.org/docs/app/getting-started/project-structure#examples).
+
+**Status** (same meanings as [`conventions.md`](./conventions.md#common-practices-catalog)): **Adopted** · **When needed** · **Avoid here**.
+
+### Folder catalog (adopted + future)
+
+| Folder | Role | Status | Notes / sources |
+| ------ | ---- | ------ | --------------- |
+| `components/` | Shared UI across routes | Adopted | [Next.js examples](https://nextjs.org/docs/app/getting-started/project-structure#examples) |
+| `components/ui/` | Design-system / registry primitives | Adopted | Here: **shadcn only** (repo rule) — [shadcn/ui](https://ui.shadcn.com/docs) |
+| `hooks/` | Shared React hooks | Adopted | Next.js lists as typical peer folder |
+| `lib/` | Shared helpers / clients / integrations | Adopted | Prefer this over adding `utils/` |
+| `config/` | App config (e.g. site metadata) | Adopted | Widespread; not a Next special folder |
+| `constants/` | App-wide constants (e.g. pricing plans) | Adopted | Widespread; not a Next special folder |
+| `actions/` | Server Actions by use-case | Adopted (repo shape) | Folder name has no Next meaning; our layout is under [Repo conventions](#repo-conventions-keep-this-list-short) |
+| `styles/` | Shared style-related modules (e.g. fonts) | Adopted (narrow) | Not a CSS dumping ground — see fonts note in [quick map](#in-this-repo-quick-map) |
+| `utils/` | Alternate name for shared helpers | Avoid here | Use `lib/` — both are common placeholders; one is enough |
+| `helpers/` | Another alternate for helpers | Avoid here | Use `lib/` |
+| `types/` | Shared TypeScript types only | When needed | Prefer co-location first; add only if shared types sprawl |
+| `schemas/` | Shared Zod schemas | When needed | Prefer name **`schemas/`** over `validators/`; co-locate with actions/forms first |
+| `validators/` | Alternate name for schemas | Avoid here | Use `schemas/` if extracted |
+| `stores/` | Client global state modules | When needed | Only if Zustand stores outgrow `hooks/`; library is **Zustand** (not Redux) |
+| `state/` | Alternate name for stores | Avoid here | Use `hooks/` or `stores/` — one name |
+| `services/` | API/client wrappers | When needed | Often overlaps `lib/` — prefer `lib/` unless a clear service layer emerges |
+| `queries/` | Read/query helpers separate from UI | When needed | Prefer name **`queries/`** over `data-access/`; start in `lib/` until the seam is obvious |
+| `data-access/` | Alternate name for queries | Avoid here | Use `queries/` or `lib/` |
+| `repositories/` | DB access wrappers over Prisma | When needed | Optional layer; don’t add by default — Prisma Client in `lib/` is enough until it hurts |
+| `providers/` (top-level) | React context providers | Avoid here | We keep providers under `components/providers/` |
+| `features/` | Feature-oriented top-level split | When needed | Prefer **`features/`** (matches [`features.md`](./features.md)) after [migration triggers](#triggers-to-start-a-feature-oriented-migration) |
+| `modules/` | Alternate name for feature folders | Avoid here | Use `features/` |
+| `contexts/` | React context modules | When needed | Fine if contexts outgrow `components/providers/` |
+| `layouts/` (outside `app/`) | Shared layout components | When needed | App Router layouts stay in `app/`; this would only be extracted UI shells |
+| `assets/` | Non-`public` bundled assets | When needed | Static files that need a URL stay in `public/` (Next convention) |
+| `icons/` | SVG/icon components or sprites | When needed | Fine when icon set outgrows inline/`components`; or use a registry/package |
+| `emails/` | Transactional email templates | When needed | Prefer [React Email](https://react.email) |
+| `content/` | Local MDX / markdown sources | When needed | Prefer **`content/`** — matches Next’s [MDX guide](https://nextjs.org/docs/app/guides/mdx) dynamic-import example (`@/content/...`). Don’t put editorial MDX only under `app/` unless it’s a one-off `page.mdx` |
+| `markdown/` | Alternate MDX folder name | Avoid here | Next’s guide also shows `markdown/` in one import example; we standardize on **`content/`** |
+| `mdx/` | Alternate content folder name | Avoid here | Use `content/` |
+| `mdx-components.tsx` (repo root) | Global MDX component map | When needed | **Next.js convention** when using `@next/mdx` — [file convention](https://nextjs.org/docs/app/api-reference/file-conventions/mdx-components) · [MDX guide](https://nextjs.org/docs/app/guides/mdx) |
+| `messages/` | i18n copy dictionaries (next-intl style) | When needed | Prefer **`messages/`** with next-intl; avoid parallel `locales/` + `i18n/` trees |
+| `locales/` / `i18n/` | Alternate i18n folder names | Avoid here | Use `messages/` (or whatever next-intl’s guide uses when we adopt it) |
+| `jobs/` | Background/async job definitions | When needed | Prefer **`jobs/`**; pick one runner (see [`conventions.md`](./conventions.md#common-practices-catalog)) |
+| `workers/` / vendor-named job roots | Alternate job folder names | Avoid here | Use `jobs/` (vendor SDK files can live under it) |
+| `scripts/` | One-off maintenance / codegen scripts | When needed | Keep out of `app/`; document how to run them |
+| `fixtures/` | Seed / test / Storybook fixtures | When needed | Prefer **`fixtures/`** over vague `data/` or `mocks/` when we add tests |
+| `data/` / `mocks/` | Alternate fixture names | Avoid here | Use `fixtures/` (or MSW handlers next to tests) |
+| `stories/` | Storybook stories | When needed | Prefer colocated `*.stories.tsx`; optional `stories/` only if colocation fails |
+| `e2e/` | Playwright E2E tests | When needed | Prefer **`e2e/`** for Playwright; Vitest files colocated as `*.test.ts` |
+| `tests/` | Catch-all test tree | Avoid here | Split: colocate unit tests; `e2e/` for Playwright |
+| `factories/` | Test data builders | When needed | With a real test suite |
+| `permissions/` | Authorization rules beyond Clerk roles | When needed | Prefer **`permissions/`** over `policies/` / `abilities/` for plain product language |
+| `policies/` / `abilities/` | Alternate authorization folder names | Avoid here | Use `permissions/` (unless a library forces another name, e.g. CASL `abilities`) |
+| `adapters/` | Swap-out integrations (e.g. billing PSPs) | When needed | Fits [`product.md`](./product.md) multi-provider billing — only when a second provider is real |
+| `packages/` | Monorepo packages | When needed | With Turborepo/pnpm workspaces when we split apps |
+| `infra/` | IaC / deploy helpers | When needed | Prefer **`infra/`** over `deploy/`; Vercel project settings first |
+| `deploy/` | Alternate infra folder name | Avoid here | Use `infra/` |
+| `pages/` (Pages Router tree) | Legacy Next routing | Avoid here | App Router only — [App Router](https://nextjs.org/docs/app) |
+| `api/` (outside `app/api`) | Parallel API tree | Avoid here | Use `app/api/**/route.ts` |
+| `src/` | Wrap application under `src/` | Avoid here | Valid Next option; this repo uses project-root layout |
+
+**Evidence order** when adding a folder: (1) recurring component-UI habit, (2) [Next.js examples](https://nextjs.org/docs/app/getting-started/project-structure#examples), (3) this catalog + [quick map](#in-this-repo-quick-map), (4) team judgment — still not “best practice,” and still below Next.js convention / recommendation.
+
+When you adopt a **When needed** row: update this table, the [quick map](#in-this-repo-quick-map), and (if it changes how people write code) [`conventions.md`](./conventions.md#common-practices-catalog) in the **same** change. The catalog will never be exhaustive — add a row when a real debate shows up twice.
 
 ## Organization strategy we use
 
@@ -86,7 +167,7 @@ Rows are grouped by Kind, in the same order as [Convention priority](#convention
 | `components/ui/`        | **shadcn/ui only** (CLI / registry primitives)             | Repo convention                     |
 | `actions/`              | Server Actions grouped by feature                          | Repo convention (structure only)    |
 
-Next.js does not assign special meaning to `components/`, `lib/`, `hooks/`, or `actions/` — see the [official examples note](https://nextjs.org/docs/app/getting-started/project-structure#examples).
+Next.js does not assign special meaning to `components/`, `lib/`, `hooks/`, or `actions/` — see the [official examples note](https://nextjs.org/docs/app/getting-started/project-structure#examples). Rows marked **Common practice** above are this repo’s **Adopted** subset — full catalog (including future folders) in [Common practice folders](#common-practice-folders). Code/naming habits: [`conventions.md`](./conventions.md#common-practices-catalog).
 
 ## Next.js conventions we rely on (don’t relearn here)
 
@@ -122,17 +203,17 @@ Only the extras that aren’t covered by Next.js / React / common practice:
 1. **Server Actions folder shape** — each action under `actions/<name>/` with `index.ts` (`"use server"`), `schema.ts` (Zod), `types.ts`, and a shared validation wrapper in `lib/` (`create-safe-action`).
 2. **`components/ui/` is shadcn-only** — primitives from the shadcn CLI/registry live here; other shared UI goes under `components/` (e.g. `form/`, `modals/`, `providers/`) or route `_components/`.
 3. **Say “organization,” not “org”** — in docs and UI copy write **organization**; keep `orgId` (and Clerk path segments like `select-org`) because those names come from Clerk / existing routes.
-4. **Say “authentication,” not “auth”** — in docs and UI copy write **authentication**; keep Clerk identifiers such as `auth()`, `useAuth`, and similar because those names come from Clerk.
+4. **Say “authentication” and “authorization” in full** — in docs and UI copy do not abbreviate them; keep Clerk identifiers such as `auth()`, `useAuth`, and similar because those names come from Clerk.
 5. **Product name in `config/site.ts`** — app UI / metadata use `siteConfig.name` (not hardcoded brand strings). Docs and external dashboards are outside that file.
 6. **Pricing plans in `constants/pricing-plans.ts`** — Free / Pro definitions (limits, price, Stripe product strings) live only there; docs describe pricing plans as defined in that file. Paid tier name is **Pro** (product name from `siteConfig`).
-7. **Billing documentation** — change Stripe Checkout / Portal / webhooks or plan gating → update the Stripe billing guide (see [docs index](./README.md)) in the same change.
+7. **Billing documentation** — change Checkout / Portal / webhooks or plan gating → update [`billing.md`](./billing.md) in the same change.
 
 If you can solve a problem with a Next.js or common pattern instead of a new repo rule, do that.
 
 ## What not to invent
 
 - Putting app-specific components in `components/ui/` (reserved for shadcn/ui)
-- New top-level folders when an existing common folder (`components/`, `lib/`, `hooks/`) already fits
+- New top-level folders when an existing catalog entry already fits — see [folder catalog](#common-practice-folders); prefer **Adopted** / documented **When needed** over inventing a synonym (`utils/` vs `lib/`, top-level `providers/`, …)
 - Parallel organization schemes (e.g. feature folders _and_ a second global UI tree) without a clear need
 - Big-bang “split everything by feature” before a [trigger](#triggers-to-start-a-feature-oriented-migration) — prefer route-first growth
 - Re-documenting Next.js file conventions in this repo — link the official page and describe only this repo’s usage

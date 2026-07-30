@@ -4,7 +4,7 @@ import { USD } from "dinero.js/currencies";
 /**
  * Single source of truth for **pricing plans** (commercial / access tiers).
  *
- * Docs (`docs/features.md`, `docs/stripe.md`, `docs/vocabulary.md`) should describe
+ * Docs (`docs/features.md`, `docs/billing.md`, `docs/vocabulary.md`) should describe
  * pricing plans as defined here — when you add or rename one, update those docs
  * in the same change.
  *

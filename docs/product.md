@@ -38,8 +38,16 @@ Today the codebase is still primarily a board-style foundation plus billing. Tre
 
 - **Billing** is the product feature (subscriptions, one-off payments, plan gating) — see [`features.md`](./features.md).
 - **Stripe** is the current **billing provider** (PSP). Chosen for docs, tutorials, and speed of integration — not because billing *is* Stripe.
-- Provider limits (e.g. regional / payment-method coverage such as Vietnam) may later mean replacing Stripe or supporting **more than one** provider. Product language stays **billing** / **pricing plans**; integration details stay in [`stripe.md`](./stripe.md) until a second provider exists.
+- Provider limits (e.g. regional / payment-method coverage such as Vietnam) may later mean replacing Stripe or supporting **more than one** provider. Product language stays **billing** / **pricing plans**; integration details stay in [`billing.md`](./billing.md) until a second provider exists.
 - **Pricing plan** (Free / Pro) ≠ **project plan** — see [`vocabulary.md`](./vocabulary.md).
+
+## Authentication vs authentication provider
+
+- **Authentication** is the product capability (sign-in, sign-up, session) — see [`features.md`](./features.md).
+- **Clerk** is the current **authentication provider** (hosted SaaS). Chosen because it is the fastest way to ship a solid authentication UX (UI, Organizations, dashboard) while learning the product — not because authentication *must* stay on a paid third party forever.
+- Unlike a **billing provider** / PSP (hard to replace with “we run card networks ourselves”), authentication is something we *can* move in-house later: stop paying a host when cost ≫ value, keep users in **our** database.
+- **Do not** write cryptography / session protocols from scratch. The usual 2026 alternative to hosted Clerk is a **library you run** (sessions + users in your DB) — today that conversation is dominated by **[Better Auth](https://www.better-auth.com)** (TypeScript, Next.js App Router support, orgs/plugins; Auth.js / NextAuth guidance for *new* projects also points people there). Other options (Supabase Auth if already on Supabase, etc.) exist; pick one library stack, don’t invent a fourth.
+- Migration is a **product decision** with real cost (UI rewrite, `orgId` / tenant model, Stripe `metadata` coupling). Stay on Clerk until triggers fire; document the exit in [`authentication-and-authorization.md`](./authentication-and-authorization.md). Product language stays **authentication**; implementation details stay in [`authentication-and-authorization.md`](./authentication-and-authorization.md) until a provider change ships.
 
 ## Domain priority (highest first)
 

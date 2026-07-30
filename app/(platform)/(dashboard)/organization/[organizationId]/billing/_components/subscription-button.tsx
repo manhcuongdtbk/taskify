@@ -16,7 +16,7 @@ interface SubscriptionButtonProps {
  * (Customer Portal via billingPortal.sessions — same product).
  *
  * `isPro` here is feature access (checkSubscription), not the same as
- * “has stripeCustomerId” inside stripe-redirect — see docs/stripe.md Gotchas.
+ * “has stripeCustomerId” inside stripe-redirect — see docs/billing.md Gotchas.
  */
 export function SubscriptionButton({ isPro }: SubscriptionButtonProps) {
   const proModal = useProModal();

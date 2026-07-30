@@ -12,7 +12,7 @@ import { siteConfig } from "@/config/site";
 
 /**
  * Upgrade upsell UI → actions/stripe-redirect → Stripe URL.
- * Overview: docs/stripe.md
+ * Overview: docs/billing.md
  */
 export const ProModal = () => {
   const proModal = useProModal();

@@ -78,6 +78,13 @@ These words describe **how strongly something is required**. They work the same 
 | Engineering | Next.js docs, React docs, TypeScript handbook, Prisma docs, Stripe docs |
 | Domain | Scrum Guide (Scrum.org), PMBOK / PMI standards, official cert study guides |
 
+For engineering, living catalogs of common practice (with status + source links) are:
+
+- Code / naming / workflow → [`conventions.md` → Common practices catalog](./conventions.md#common-practices-catalog)
+- Folders → [`project-structure.md` → Common practice folders](./project-structure.md#common-practice-folders)
+
+Those lists are **habits + evidence**, not a sealed cross-framework registry.
+
 ## Priority list
 
 Both [`conventions.md`](./conventions.md) and [`product.md`](./product.md) have an **ordered list** where higher rows win when two ideas disagree.
@@ -95,7 +102,8 @@ These are **separate lists** for **separate decisions**. Don't mix them.
 | **subscription** | **Recurring** charge under billing (e.g. monthly Pro) |
 | **one-off payment** | **One-time** charge under billing (e.g. lifetime unlock, pack) — not a name for the whole billing feature |
 | **pricing plan** | An **access / commercial tier** we sell or default to (Free, Pro, …): limits, price, entitlements. Source: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) |
-| **billing provider** | External PSP that implements charging. **Stripe** is current; may be replaced or joined by others |
+| **billing provider** | External PSP that implements charging. **Stripe** is current; may be replaced or joined by others. Details: [`billing.md`](./billing.md) |
+| **authentication provider** | How we implement sign-in / sessions. **Clerk** is current (hosted). May later move to a **library we run** (e.g. Better Auth) — not hand-rolled crypto. See [`product.md`](./product.md) · [`authentication-and-authorization.md`](./authentication-and-authorization.md) |
 
 **Billing** covers both **subscriptions** and **one-off payments**.  
 **Pricing plans** are the tiers (Free / Pro). Charge shape (monthly vs one-time) is separate from the tier name.
@@ -108,7 +116,7 @@ In a project-management product, bare **plan** is easy to confuse with a **proje
 | --- | ---- |
 | **pricing plan** (or **Free** / **Pro** by name) | Commercial tier, limits, upgrade — especially next to PM/domain copy |
 | **project plan** (or the cert term in use) | Planning artifacts in the PM domain — only once those capabilities ship |
-| **plan** alone | OK only when the billing / pricing context is already obvious (e.g. inside `stripe.md` or the billing settings UI) |
+| **plan** alone | OK only when the billing / pricing context is already obvious (e.g. inside `billing.md` or the billing settings UI) |
 
 Prefer **pricing plan** in docs and UI when a reader could mean either. Do **not** invent “billing plan” as a third label — use **pricing plan** + **subscription** or **one-off payment** for the charge shape.
 
@@ -120,7 +128,11 @@ Code keeps short identifiers (`FREE_PLAN`, `PRO_PLAN`, `PLANS`) in [`constants/p
 | ---- | ------------- | ------------- |
 | **Billing** / **pricing plan** / … | [Billing terms](#billing-terms) above | Do not confuse pricing plans with project plans |
 | **Organization** | Clerk concept, used throughout | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code |
-| **Authentication** | Sign-in / session identity | Write **authentication** in prose — not “auth”. Keep Clerk identifiers such as `auth()`, `useAuth` |
+| **Authentication** | Sign-in / session identity | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md) |
+| **Authorization** | Whether an identity may do a specific action or see a resource | Write **authorization** in prose — do not abbreviate. Different from authentication. Same doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md) |
+| **Cache** | Overloaded — Redis/CDN vs Next framework caching vs TanStack Query | Disambiguate in [`data.md`](./data.md#cache-means-different-things-traditional-be-vs-next-vs-client). Do not invent a separate cache doc |
+| **DAL** (Data Access Layer) | Server module(s) that control **how/when** data is read/mutated and run **authorization** | Not a Next API — a pattern. Solid explanation + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only). Next snippets: [Data Security](https://nextjs.org/docs/app/guides/data-security#data-access-layer), [Authentication](https://nextjs.org/docs/app/guides/authentication#creating-a-data-access-layer-dal) |
+| **DTO** (Data Transfer Object) | Safe, minimal return shape across a boundary (not a raw DB row) | Produced by a DAL. Same idea as NestJS response DTOs. Teach + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only) |
 | **Repo convention** | [`conventions.md`](./conventions.md) | A rare rule this repo invents when no higher authority covers it |
 | **Product choice** | [`product.md`](./product.md) | UX/copy we invent when no higher domain authority decides |
 

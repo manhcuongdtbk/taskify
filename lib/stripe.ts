@@ -4,7 +4,7 @@ import { toSnapshot, type Dinero } from "dinero.js";
 
 /**
  * Shared Stripe client + helpers for this app.
- * Bird’s-eye flow + diagrams: docs/stripe.md
+ * Bird’s-eye flow + diagrams: docs/billing.md
  *
  * Money values use Dinero.js (integer minor units + currency). Pass those into
  * Stripe via toStripeUnitAmount / toStripeCurrency — do not use floats.

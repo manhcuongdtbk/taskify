@@ -59,7 +59,7 @@ export async function BoardList() {
           >
             <p className="text-sm">Create new board</p>
             <span className="text-xs">{`${remainingLabel} remaining`}</span>
-            {/* TODO (P2 — docs/stripe.md “Complete the current picture first”): Hint
+            {/* TODO (P2 — docs/billing.md “Complete the current picture first”): Hint
                 always describes the Free plan board limit even when isPro shows
                 "Unlimited". Hide the Hint for Pro, or change the copy by plan. */}
             <Hint
