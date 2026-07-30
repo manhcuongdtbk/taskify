@@ -95,13 +95,16 @@ Next.js requires the **file** to be `page.tsx` / `layout.tsx`; it does **not** p
 
 #### Component export names
 
-Applies to `components/**` **except** `components/ui/**`, and to `app/**/_components/**`. Prefer **named** exports (Next `page` / `layout` stay default).
+Applies to `components/**` **except** `components/ui/**`, and to `app/**/_components/**`.
+
+Use **named** exports for these components (Next `page` / `layout` stay **default** — required by the framework). Named exports make route files vs UI obvious at a glance, and they support compound components on the same binding (e.g. `CardModalActivity.Skeleton`), in the spirit of [Base UI](https://base-ui.com/)-style composition.
 
 1. **Filename ↔ export** — `board-title-form.tsx` → `BoardTitleForm`. Enforced by `eslint-plugin-filename-match-export` (skips multi-export files and `index.*`). For `index.tsx`, name the export after the parent folder (`card-modal/index.tsx` → `CardModal`) — convention only; the plugin ignores `index`.
 2. **Generics denylist** — do not export these bare names as components: `Header`, `Footer`, `Navbar`, `Sidebar`, `Actions`, `Activity`, `Description`, `Info`, `Content`, `Item`. Qualify with the nearest useful segment (folder / route / feature), e.g. `CardModalHeader`, `OrganizationInfo`, `MarketingNavbar`, `DashboardSidebar`.
 3. **`components/form/**`** — exported components must be prefixed **`Form`** (`FormInput`, `FormSubmit`, …); files stay `form-*.tsx`.
 4. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`.
 5. **Not enforced** — full path→name mirroring for `_components`, global uniqueness of every symbol across the repo.
+
 ### React / UI
 
 | Practice | Status | Widespread sources |
