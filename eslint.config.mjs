@@ -5,6 +5,8 @@ import nextTs from "eslint-config-next/typescript";
 import prettier from "eslint-config-prettier/flat";
 import pluginQuery from "@tanstack/eslint-plugin-query";
 import filenameMatchExport from "eslint-plugin-filename-match-export";
+// Community-only (new, niche). We use a single rule — watch releases / health; replace with a local rule if it stalls. See docs/conventions.md § Component export names.
+import noctcoreReact from "@noctcore/eslint-plugin-react";
 
 /** One-word generics that must be qualified — docs/conventions.md § Component export names */
 const GENERIC_COMPONENT_NAMES =
@@ -31,18 +33,25 @@ const eslintConfig = defineConfig([
     ".windsurf/**",
   ]),
 
-  // Filename ↔ single named export for app UI (not shadcn, not route files).
+  // Filename ↔ export, generics denylist, ComponentProps naming for app UI (not shadcn).
   {
     files: [
       "components/**/*.{ts,tsx}",
       "app/**/_components/**/*.{ts,tsx}",
+      "app/**/page.tsx",
     ],
     ignores: ["components/ui/**"],
     plugins: {
       "filename-match-export": filenameMatchExport,
+      "noctcore-react": noctcoreReact,
     },
     rules: {
       "filename-match-export/match-named-export": "error",
+      // `Component` → `ComponentProps` (community plugin; not in stock eslint-plugin-react)
+      "noctcore-react/component-props-naming": [
+        "error",
+        { requireExported: true },
+      ],
       "no-restricted-syntax": [
         "error",
         {

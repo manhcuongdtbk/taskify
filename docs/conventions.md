@@ -71,7 +71,7 @@ Within the same kind, prefer the **current official docs** for the version this 
 | File names for UI: **kebab-case** (e.g. `activity-item.tsx`) | Adopted | Widespread in Next/React codebases; no single sealed rule — stay consistent with neighbors |
 | Server Action folders: **kebab-case** under `actions/<name>/` | Adopted | Repo shape; mirrors common “one folder per mutation” habit |
 | App Router `page.tsx` / `layout.tsx` default exports: **route-mirrored `*Page` / `*Layout`** | Adopted | Common `*Page` suffix; **route mirroring is a repo rule** — see [Route-mirrored page/layout names](#route-mirrored-pagelayout-names). Enforced by `scripts/check-route-export-names.ts` (`pnpm lint:routes`; autofix `pnpm lint:routes:fix`) |
-| App UI components: **filename ↔ export**, **generics denylist**, **`Form*` in `components/form/`** | Adopted | See [Component export names](#component-export-names). Enforced via ESLint (`eslint-plugin-filename-match-export` + `@typescript-eslint/naming-convention` / `no-restricted-syntax`). **`components/ui/` excluded** (shadcn) |
+| App UI components: **filename ↔ export**, **generics denylist**, **`Form*` in `components/form/`**, **`Component` → `ComponentProps`** | Adopted | See [Component export names](#component-export-names). Enforced via ESLint (`eslint-plugin-filename-match-export`, `@noctcore/eslint-plugin-react` `component-props-naming`, `@typescript-eslint/naming-convention` / `no-restricted-syntax`). **`components/ui/` excluded** (shadcn) |
 | Env vars: **`SCREAMING_SNAKE_CASE`**; client-exposed only via `NEXT_PUBLIC_*` | Adopted | [Next.js Environment Variables](https://nextjs.org/docs/app/guides/environment-variables) |
 | Don’t put secrets in `NEXT_PUBLIC_*` or git | Adopted | Same Next.js guide · [Vercel Environment Variables](https://vercel.com/docs/environment-variables) |
 
@@ -91,7 +91,7 @@ Next.js requires the **file** to be `page.tsx` / `layout.tsx`; it does **not** p
    - Last token from a dynamic segment → that token + suffix (`OrganizationIdPage`, `BoardIdPage`).
    - Last token static (nested leaf) → **first static resource** + leaf + suffix (`OrganizationSettingsPage`, `OrganizationActivityPage`).
 4. Do **not** use Rails-style Index/Show/New/Edit unless that word is a real URL segment.
-5. When the page takes props, name the props type `{SameName}Props` (e.g. `BoardIdPageProps`).
+5. When the page takes props, name the props type `{SameName}Props` (e.g. `BoardIdPageProps`) — same rule as [Component export names](#component-export-names) §2; enforced by `noctcore-react/component-props-naming` on `app/**/page.tsx`.
 
 #### Component export names
 
@@ -100,10 +100,11 @@ Applies to `components/**` **except** `components/ui/**`, and to `app/**/_compon
 Use **named** exports for these components (Next `page` / `layout` stay **default** — required by the framework). Named exports make route files vs UI obvious at a glance, and they support compound components on the same binding (e.g. `CardModalActivity.Skeleton`), in the spirit of [Base UI](https://base-ui.com/)-style composition.
 
 1. **Filename ↔ export** — `board-title-form.tsx` → `BoardTitleForm`. Enforced by `eslint-plugin-filename-match-export` (skips multi-export files and `index.*`). For `index.tsx`, name the export after the parent folder (`card-modal/index.tsx` → `CardModal`) — convention only; the plugin ignores `index`.
-2. **Generics denylist** — do not export these bare names as components: `Header`, `Footer`, `Navbar`, `Sidebar`, `Actions`, `Activity`, `Description`, `Info`, `Content`, `Item`. Qualify with the nearest useful segment (folder / route / feature), e.g. `CardModalHeader`, `OrganizationInfo`, `MarketingNavbar`, `DashboardSidebar`.
-3. **`components/form/**`** — exported components must be prefixed **`Form`** (`FormInput`, `FormSubmit`, …); files stay `form-*.tsx`.
-4. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`.
-5. **Not enforced** — full path→name mirroring for `_components`, global uniqueness of every symbol across the repo.
+2. **Props type** — when the first parameter uses a named type, call it **`{Component}Props`** (e.g. `BoardTitleForm` → `BoardTitleFormProps`). Same for App Router pages (`BoardIdPageProps`). Enforced by [`@noctcore/eslint-plugin-react`](https://github.com/noctcore/eslint-plugins/tree/main/packages/eslint-plugin-react) `component-props-naming` (not in stock `eslint-plugin-react`). Inline object types and wrappers like `PropsWithChildren<…>` / `React.ComponentProps<…>` are left alone. **Watch this dependency:** it is new and low-adoption; we only enable this one rule (not their full recommended set). Revisit if the package goes unmaintained, breaks on ESLint upgrades, or an official/typescript-eslint equivalent appears — then swap to a small local rule.
+3. **Generics denylist** — do not export these bare names as components: `Header`, `Footer`, `Navbar`, `Sidebar`, `Actions`, `Activity`, `Description`, `Info`, `Content`, `Item`. Qualify with the nearest useful segment (folder / route / feature), e.g. `CardModalHeader`, `OrganizationInfo`, `MarketingNavbar`, `DashboardSidebar`.
+4. **`components/form/**`** — exported components must be prefixed **`Form`** (`FormInput`, `FormSubmit`, …); files stay `form-*.tsx`.
+5. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`.
+6. **Not enforced** — full path→name mirroring for `_components`, global uniqueness of every symbol across the repo.
 
 ### React / UI
 

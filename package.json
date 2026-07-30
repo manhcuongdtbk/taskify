@@ -46,6 +46,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@noctcore/eslint-plugin-react": "^0.2.0",
     "@tailwindcss/postcss": "^4",
     "@tanstack/eslint-plugin-query": "^5.101.4",
     "@tanstack/react-query-devtools": "^5.101.4",
