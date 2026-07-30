@@ -2,9 +2,14 @@
 
 How this App Router app **reads** and **writes** data — **what we use where**.
 
-**Do not** re-teach Next.js or TanStack Query APIs here. Prefer official pages, then this map of **what we use where** (including [when Query applies](#tanstack-query-client-only)).
+| | |
+| - | - |
+| **Owner / SoT** | This file — App Router fetch/mutate map, cache vocabulary, DAL/DTO teaching, when TanStack Query applies |
+| **Open when** | Choosing or changing how we load or save data (RSC, Server Actions, Route Handlers, client Query, cache/`revalidatePath`) |
 
-**Reading order:** official links → mental model → this repo’s App Router map → places Next is thin (cache, DAL/DTO) → [orientation if you came from SPA or Pages Router](#if-you-came-from-spa-or-pages-router).
+**Do not** re-teach Next.js or TanStack Query APIs here. Prefer official pages, then this map. Catalog / picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
+
+**Page shape:** Already following → TODO → Out of scope → deep detail (mental model, decision map, Next thin spots, SPA/Pages orientation).
 
 | Official Next.js                                                                         | Covers                                                                                                                                                                                                         |
 | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -22,7 +27,36 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 | [Authentication](https://nextjs.org/docs/app/guides/authentication) (DAL / DTO sections) | Same **DAL** / **DTO** ideas in an auth-focused walkthrough — see [DAL and DTO](#dal-and-dto-not-auth-only)                                                                                                    |
 | [Extended `fetch`](https://nextjs.org/docs/app/api-reference/functions/fetch)            | Server-side `fetch` (`cache` / `revalidate` / `tags`)                                                                                                                                                          |
 
-Catalog / picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
+## Already following (keep as examples)
+
+- **Default read path** — Server Components + Prisma with `orgId` scoping
+- **Default write path** — Server Actions under `actions/` with Zod schemas
+- **Client read cache** — TanStack Query + `lib/fetcher.ts` for card modal (and similar client islands)
+- **Client Action helper** — `useAction` wrapping safe-action results (see TODO to align with `useActionState`)
+- **Route Handlers** — webhooks and client-facing JSON the modal needs; not the primary mutation style
+- **Transport picks** — REST → `fetch`; GraphQL → `graphql-request` only if we adopt GraphQL; mocks → MSW — [`conventions.md`](./conventions.md)
+
+**Tip — `React.cache`:** request-scoped memoization for server helpers (same args → same Promise in one RSC render). It is **not** Redis and **not** Next’s Data Cache — see [Cache](#cache-means-different-things-traditional-be-vs-next-vs-client). Use when the same `auth()` / profile helper would otherwise hit Clerk/DB twice per request.
+
+## TODO — clarify / harden data paths
+
+- [ ] **Segment `loading.tsx` / streaming** where slow server fetches hurt UX ([Fetching Data](https://nextjs.org/docs/app/getting-started/fetching-data#streaming), [`nextjs.md`](./nextjs.md))
+- [ ] **Expected Action errors as return values** (not throws for validation) — [`nextjs.md`](./nextjs.md) + `create-safe-action`
+- [ ] **Authorization on Actions / protected Route Handlers** — checklist in [`authentication-and-authorization.md`](./authentication-and-authorization.md)
+- [ ] **TanStack Query patterns** — `prefer-query-options`, provider nesting; guidance in [`conventions.md`](./conventions.md). Add `docs/tanstack-query.md` only if that outgrows a catalog row — see [TanStack Query](#tanstack-query-client-only)
+- [ ] **Align Action client UX with `useActionState` / `useFormStatus`** — keep toasts/field-error behavior; prefer React hooks + [Forms](https://nextjs.org/docs/app/guides/forms) over a forever-custom `useAction` ([`useActionState`](https://react.dev/reference/react/useActionState), [`useFormStatus`](https://react.dev/reference/react/useFormStatus))
+- [ ] **Unsplash** — whether client + public key stays acceptable vs server-only fetch (production Unsplash app TODO in `lib/unsplash.ts`)
+- [ ] **Stronger DAL / DTO** — only if authorization-near-data keeps getting duplicated; don’t invent `dal.ts` for fashion (see [DAL and DTO](#dal-and-dto-not-auth-only))
+
+## Out of scope for now
+
+- GraphQL / `graphql-request` until product needs it
+- Replacing Server Actions with “all mutations via Route Handlers”
+- Hand-rolling a second ORM next to Prisma
+- A big Nest-style DTO/class layer before we feel the need
+- Deep **Cache Components** / PPR / ISR redesign, Draft Mode, CDN caching guides — link from [`nextjs.md`](./nextjs.md) when we adopt them; don’t re-teach here
+- **Dedicated `tanstack-query.md`** — until Query TODs need more than [`conventions.md`](./conventions.md) + [this map](#tanstack-query-client-only)
+- **Error handling** file conventions (`error.tsx` / `not-found.tsx`) and Action error-return style — tracked in [`nextjs.md`](./nextjs.md) (related to mutations, but not a second data map)
 
 ## Mental model (one picture)
 
@@ -103,37 +137,6 @@ Still prefer the **server** for secrets, Prisma, and most first-load data. Use t
 | **Transport** | Web `fetch` via [`lib/fetcher.ts`](../lib/fetcher.ts) — not Next’s server `fetch` |
 
 **In this repo today:** card modal (`components/modals/card-modal`) — `useQuery` → Route Handlers; after Action success, `queryClient.invalidateQueries`. Provider: `components/providers/query-provider.tsx`.
-
-## Already following (keep as examples)
-
-- **Default read path** — Server Components + Prisma with `orgId` scoping
-- **Default write path** — Server Actions under `actions/` with Zod schemas
-- **Client read cache** — TanStack Query + `lib/fetcher.ts` for card modal (and similar client islands)
-- **Client Action helper** — `useAction` wrapping safe-action results (see TODO to align with `useActionState`)
-- **Route Handlers** — webhooks and client-facing JSON the modal needs; not the primary mutation style
-- **Transport picks** — REST → `fetch`; GraphQL → `graphql-request` only if we adopt GraphQL; mocks → MSW — [`conventions.md`](./conventions.md)
-
-**Tip — `React.cache`:** request-scoped memoization for server helpers (same args → same Promise in one RSC render). It is **not** Redis and **not** Next’s Data Cache — see [Cache](#cache-means-different-things-traditional-be-vs-next-vs-client). Use when the same `auth()` / profile helper would otherwise hit Clerk/DB twice per request.
-
-## TODO — clarify / harden data paths
-
-- [ ] **Segment `loading.tsx` / streaming** where slow server fetches hurt UX ([Fetching Data](https://nextjs.org/docs/app/getting-started/fetching-data#streaming), [`nextjs.md`](./nextjs.md))
-- [ ] **Expected Action errors as return values** (not throws for validation) — [`nextjs.md`](./nextjs.md) + `create-safe-action`
-- [ ] **Authorization on Actions / protected Route Handlers** — checklist in [`authentication-and-authorization.md`](./authentication-and-authorization.md)
-- [ ] **TanStack Query patterns** — `prefer-query-options`, provider nesting; guidance in [`conventions.md`](./conventions.md). Add `docs/tanstack-query.md` only if that outgrows a catalog row — see [TanStack Query](#tanstack-query-client-only)
-- [ ] **Align Action client UX with `useActionState` / `useFormStatus`** — keep toasts/field-error behavior; prefer React hooks + [Forms](https://nextjs.org/docs/app/guides/forms) over a forever-custom `useAction` ([`useActionState`](https://react.dev/reference/react/useActionState), [`useFormStatus`](https://react.dev/reference/react/useFormStatus))
-- [ ] **Unsplash** — whether client + public key stays acceptable vs server-only fetch (production Unsplash app TODO in `lib/unsplash.ts`)
-- [ ] **Stronger DAL / DTO** — only if authorization-near-data keeps getting duplicated; don’t invent `dal.ts` for fashion (see [DAL and DTO](#dal-and-dto-not-auth-only))
-
-## Out of scope for now
-
-- GraphQL / `graphql-request` until product needs it
-- Replacing Server Actions with “all mutations via Route Handlers”
-- Hand-rolling a second ORM next to Prisma
-- A big Nest-style DTO/class layer before we feel the need
-- Deep **Cache Components** / PPR / ISR redesign, Draft Mode, CDN caching guides — link from [`nextjs.md`](./nextjs.md) when we adopt them; don’t re-teach here
-- **Dedicated `tanstack-query.md`** — until Query TODs need more than [`conventions.md`](./conventions.md) + [this map](#tanstack-query-client-only)
-- **Error handling** file conventions (`error.tsx` / `not-found.tsx`) and Action error-return style — tracked in [`nextjs.md`](./nextjs.md) (related to mutations, but not a second data map)
 
 ## Where Next is thin (teach here)
 

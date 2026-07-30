@@ -1,27 +1,38 @@
 # Billing
 
-How **billing** works for the **Pro** pricing plan in this repo. **Stripe** is the current **billing provider** (swappable later). Inline comments explain
-*why* a line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
-when UI entry points change — update them when the flow changes.
+How **billing** works for the **Pro** pricing plan. **Stripe** is the current **billing provider** (swappable later). Inline comments explain *why* a line exists; this page is the bird’s-eye view. Update diagrams when user-visible flows change.
 
-Docs catalog: [`README.md`](./README.md). Shared terms (**billing**, **billing provider**, **pricing plan**, Free / Pro, `isPro`): [`vocabulary.md`](./vocabulary.md). Pricing numbers: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts).
+| | |
+| - | - |
+| **Owner / SoT** | This file — Checkout / Portal / webhooks / `checkSubscription` map, hardening backlog, growth doors |
+| **Open when** | Stripe Checkout, Customer Portal, webhooks, Pro gating, pricing-plan entitlements, or monetization backlog |
 
-### Why Stripe (for now)
+Index: [`README.md`](./README.md). Terms: [`vocabulary.md`](./vocabulary.md). Pricing numbers: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts). Provider *why*: [`product.md`](./product.md). Official Stripe later: [Checkout](https://docs.stripe.com/payments/checkout) · [Customer Portal](https://docs.stripe.com/customer-management) · [Webhooks](https://docs.stripe.com/webhooks) · [Subscription webhooks](https://docs.stripe.com/billing/subscriptions/webhooks).
+
+**Page shape:** Already following → TODO (harden) → Out of scope (growth) → deep detail (concepts, flows, file map).
+
+## Already following (keep as examples)
+
+- **Happy path** — Checkout → webhook create → renewals update → Customer Portal → `checkSubscription` gates Pro ([Happy path](#happy-path--first-upgrade), [Returning customer](#returning-customer--manage-billing))
+- **Tenant link** — Checkout `metadata.orgId` (Clerk) ↔ `OrganizationSubscription` ↔ Stripe Customer / Subscription / Price
+- **UI entry** — organization billing page + Pro modal; Server Action `stripe-redirect`; webhook at `/api/webhook`
+- **Plan constants** — Free / Pro in [`constants/pricing-plans.ts`](../constants/pricing-plans.ts)
+
+Do **not** add a parallel billing stack without an explicit product decision — finish the hardening backlog first.
+
+## TODO — complete the current picture first
+
+Hardiness, lifecycle fidelity, and small UX polish — **not** missing Checkout/Portal wiring. Full P0 / P1 / P2 tables live under [Complete the current picture first](#complete-the-current-picture-first). Do that backlog **before** [Opening more doors](#opening-more-doors-growth-paths).
+
+## Out of scope for now (growth / later)
+
+Multi-plan, annual, trials, seats, usage billing, embedded Checkout, tax, etc. — see [Opening more doors](#opening-more-doors-growth-paths). Switching providers is a product decision ([`product.md`](./product.md)).
+
+## Why Stripe (for now)
 
 **Stripe** is the current **billing provider** (easy Checkout / Portal / webhooks path). Product *why*, regional limits, and multi-provider direction live in [`product.md`](./product.md) (**Billing vs billing provider**). This file is the integration, flows, and backlog.
 
-Do **not** add a parallel billing stack without an explicit product decision — finish the hardening backlog in this file first.
-
 Read **Stripe concepts** below before diving into Stripe’s own docs — it maps their vocabulary onto what this project actually does.
-
-### For AI assistants
-
-Read **this file** first for billing / Stripe / monetization work. Prefer extending patterns already here. Harden before growth. Update diagrams in this file when user-visible flows change. Do not invent a second billing system unless the user explicitly asks.
-
-Official Stripe docs (later): [Checkout](https://docs.stripe.com/payments/checkout) ·
-[Customer Portal](https://docs.stripe.com/customer-management) ·
-[Webhooks](https://docs.stripe.com/webhooks) ·
-[Subscription webhooks](https://docs.stripe.com/billing/subscriptions/webhooks)
 
 ## Stripe concepts (read this first)
 

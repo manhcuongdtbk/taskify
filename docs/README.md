@@ -2,6 +2,8 @@
 
 Entrypoint for project documentation. **Add new docs here** when you create them — other pages should link to this index (or to one closely related topic), not re-list the whole catalog.
 
+**For agents:** start here, then open the matching concern doc. Do not invent a parallel stack or a second catalog. Point at **files**, not section titles. Cursor always-on rule: `.cursor/rules/docs.mdc`.
+
 Prefer official docs for the versions in `package.json`. This repo is a **learning reference** today and a **foundation for a real product** — docs map what we ship, how we choose patterns, and learning TODOs. Engineering decisions: [`conventions.md`](./conventions.md). Domain / cert decisions: [`product.md`](./product.md). Shared words (**common practice**, **best practice**, …): [`vocabulary.md`](./vocabulary.md).
 
 **Concern over vendor:** name durable docs for the **concern** (`data`, `billing`, `authentication-and-authorization`). Current libraries/providers (TanStack Query, Stripe, Clerk, …) live *inside* those pages and may be swapped later.
@@ -21,7 +23,7 @@ Prefer official docs for the versions in `package.json`. This repo is a **learni
 
 ## Stack learning guides
 
-Same shape where possible: **already following** + **TODOs** to stay a faithful reference.
+Same shape where possible: **Owner / SoT** + **Open when** → **Already following** → **TODO** → **Out of scope** → deep detail.
 
 | Doc | Concern (implementation today) |
 | --- | ------------------------------ |
@@ -29,6 +31,7 @@ Same shape where possible: **already following** + **TODOs** to stay a faithful 
 | [`authentication-and-authorization.md`](./authentication-and-authorization.md) | Authentication & authorization — **Clerk** today; exit notes |
 | [`prisma.md`](./prisma.md) | Prisma / Postgres data layer |
 | [`billing.md`](./billing.md) | Billing — **Stripe** today for the **Pro** plan; deep dive + backlog |
+| [`data.md`](./data.md) | Fetching & mutating (App Router map; also listed under Start here) |
 
 ## Maintenance
 

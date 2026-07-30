@@ -1,0 +1,16 @@
+---
+description: Route agents to docs/README.md — concern docs, no parallel stacks
+alwaysApply: true
+---
+
+# Project docs (humans and agents)
+
+Before non-trivial work in this repo:
+
+1. Open [`docs/README.md`](docs/README.md) and pick the matching **concern** doc (data, billing, authentication-and-authorization, conventions, …).
+2. Prefer official docs for the versions in `package.json` (Next: also `node_modules/next/dist/docs/` — see `AGENTS.md`).
+3. **Concern over vendor** — durable docs are named for the concern; Stripe/Clerk/Query live *inside* those pages.
+4. **One source of truth** — don’t restate another doc’s checklist or invent a parallel stack (second billing provider, second authentication system, SWR beside Query, …) unless the user explicitly asks.
+5. Code comments and rules should point at a **file** (e.g. `docs/billing.md`), not at another doc’s section titles.
+
+Topic-specific rules (e.g. billing) still apply when their globs match; they do not replace this index.

@@ -1,8 +1,16 @@
 # Prisma
 
-Learning reference for **Prisma ORM** as used in this app (Postgres + Next.js). Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.json`. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` can help with CLI and Client details.
+Learning reference for **Prisma ORM** as used in this app (Postgres + Next.js).
 
-Index of all project docs: [`README.md`](./README.md).
+| | |
+| - | - |
+| **Owner / SoT** | This file — schema/Client/migrations patterns and Prisma TODOs (not App Router fetch/mutate — that’s [`data.md`](./data.md)) |
+| **Open when** | Changing schema, Client setup, migrations, or org-scoped query patterns |
+
+Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.json`. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` help with CLI/Client. Index: [`README.md`](./README.md).
+
+**Page shape:** Already following → TODO → Out of scope.
+
 ## Already following (keep as examples)
 
 - **Schema + migrations** under `prisma/` (`schema.prisma`, `migrations/`)

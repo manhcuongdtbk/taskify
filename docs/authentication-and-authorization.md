@@ -1,16 +1,15 @@
 # Authentication and authorization
 
-Learning reference for **authentication** and **authorization** in this app. **Clerk** is the current **authentication provider** (plus Organizations); it may be replaced later — the concern names stay. Prefer [Clerk docs](https://clerk.com/docs) for the SDK version in `package.json`. Repo Clerk skills under `.claude/skills/clerk*` can help with setup, Organizations, and Next.js patterns.
+Learning reference for **authentication** and **authorization** in this app. **Clerk** is the current **authentication provider** (plus Organizations); it may be replaced later — the concern names stay.
 
-Index of all project docs: [`README.md`](./README.md). **Billing** `orgId` coupling: [`billing.md`](./billing.md). Product *why* for the provider: [`product.md`](./product.md).
+| | |
+| - | - |
+| **Owner / SoT** | This file — Clerk wiring map, authentication TODOs, **authorization checklist** (don’t duplicate elsewhere) |
+| **Open when** | Session / organization gating, `proxy.ts`, Server Action checks, tenant `orgId` scoping, or authz hardening |
 
-Prose rules for **authentication** / **authorization** / **organization**: [`vocabulary.md`](./vocabulary.md). Keep Clerk identifiers such as `auth()`, `useAuth`, and `orgId`.
+Prefer [Clerk docs](https://clerk.com/docs) for the SDK in `package.json`. Repo skills under `.claude/skills/clerk*` help with setup. Index: [`README.md`](./README.md). Billing `orgId` coupling: [`billing.md`](./billing.md). Provider *why*: [`product.md`](./product.md). Prose rules: [`vocabulary.md`](./vocabulary.md). Keep Clerk identifiers such as `auth()`, `useAuth`, and `orgId`.
 
-## Why Clerk now (and what “later” means)
-
-**Clerk** is the current **authentication provider** (ship-fast / Organizations). Product *why*, exit triggers, and “library not hand-roll” live in [`product.md`](./product.md) (**Authentication vs authentication provider**). This file is the integration + TODO map.
-
-Until that product decision changes: deepen the current Clerk wiring ([TODOs](#todo--authentication) below); keep billing `orgId` coupling in [`billing.md`](./billing.md).
+**Page shape:** Already following → TODO → Out of scope → deep detail (why Clerk now).
 
 ## Already following (keep as examples)
 
@@ -60,3 +59,9 @@ When closing a TODO, update this list; add a one-line note under **Already follo
 - **Role-based / fine-grained authorization** (organization admin vs member, board-level permissions, CASL/`permissions/` folder, Clerk `has({ role })` as product rules) — only when [`product.md`](./product.md) / [`features.md`](./features.md) call for it; until then don’t pretend we ship an Authorization feature
 - Native mobile Clerk SDKs
 - **Hand-rolled authentication** (custom crypto, home-grown OAuth, ad-hoc session cookies) — never the exit path from Clerk
+
+## Why Clerk now (and what “later” means)
+
+**Clerk** is the current **authentication provider** (ship-fast / Organizations). Product *why*, exit triggers, and “library not hand-roll” live in [`product.md`](./product.md) (**Authentication vs authentication provider**). This file is the integration + TODO map.
+
+Until that product decision changes: deepen the current Clerk wiring ([TODOs](#todo--authentication) above); keep billing `orgId` coupling in [`billing.md`](./billing.md).

@@ -1,8 +1,16 @@
 # Next.js
 
-This repo is one place to learn **the Next.js App Router way** (plus how we wire Clerk, Prisma, Stripe, etc.). Prefer official Next.js docs for the version in `package.json`; for agents, also check bundled guides under `node_modules/next/dist/docs/01-app/` (see `AGENTS.md`).
+This repo is one place to learn **the Next.js App Router way** (plus how we wire Clerk, Prisma, Stripe, etc.).
 
-Index of all project docs: [`README.md`](./README.md).
+| | |
+| - | - |
+| **Owner / SoT** | This file — App Router patterns we keep, framework TODOs, official-guide index (not a second data/auth map) |
+| **Open when** | Choosing Next conventions (RSC vs client, Actions, `proxy.ts`, segment files, Link/Image) or closing a Next.js TODO |
+
+Prefer official Next.js docs for the version in `package.json`; for agents, also check `node_modules/next/dist/docs/01-app/` (see `AGENTS.md`). Fetch/mutate map: [`data.md`](./data.md). Index: [`README.md`](./README.md).
+
+**Page shape:** Already following → TODO → Out of scope → deep detail (guides table).
+
 ## Already following (keep as examples)
 
 These are intentional patterns learners should copy unless a higher-priority official doc says otherwise:
@@ -21,6 +29,27 @@ These are intentional patterns learners should copy unless a higher-priority off
 
 Official overview: [Production checklist](https://nextjs.org/docs/app/guides/production-checklist). Topic guide index: [Guides](https://nextjs.org/docs/app/guides). **Fetching & mutating map (this repo):** [`data.md`](./data.md). Engineering catalog: [`conventions.md`](./conventions.md#common-practices-catalog).
 
+## TODO — follow Next.js recommendations more closely
+
+Track gaps so the repo stays a faithful “Next.js way” reference. Check items off when the app (and any related docs) match the linked guidance. Prefer official patterns over new repo-only rules.
+
+- [ ] **Authorization / `proxy.ts` gating** — framework checklist lives in [`authentication-and-authorization.md`](./authentication-and-authorization.md) (**TODO — authorization**). Link Next [Data security](https://nextjs.org/docs/app/guides/data-security) / [Proxy](https://nextjs.org/docs/app/getting-started/proxy) from there; don’t duplicate the checkbox list here.
+- [ ] **Expected errors as return values** — validation/business failures via returned state (e.g. `{ error }`), not thrown exceptions for expected cases ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling)); align with / extend `createSafeAction` where needed
+- [ ] **Segment `error.tsx` / `not-found.tsx` (and optional `loading.tsx`)** — especially for board / organization routes; we already call `notFound()` in places but lack dedicated segment files ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling), [loading](https://nextjs.org/docs/app/api-reference/file-conventions/loading), production checklist)
+- [ ] **`<Link>` for in-app navigation** — prefer `next/link` over raw `<a>` for internal routes ([Linking and navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating))
+- [ ] **`next/image` where it fits** — review CSS `backgroundImage` board / organization thumbnails vs Image optimization tradeoffs ([Images](https://nextjs.org/docs/app/getting-started/images))
+- [ ] **Don’t call our own Route Handlers from Server Components** — keep server data access in Server Components / `lib/`; Route Handlers for clients/webhooks ([Production checklist](https://nextjs.org/docs/app/guides/production-checklist#data-fetching-and-caching))
+- [ ] **Push `"use client"` boundaries down** — shrink client islands so Server Component trees stay the default ([Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components))
+
+When closing a TODO, update this list and, if the change teaches a new pattern, a one-line note under **Already following** is enough — don’t duplicate Next.js docs here.
+
+## Out of scope for now (not TODOs)
+
+Only adopt when we deliberately need them:
+
+- Broad ISR / `revalidateTag` / Cache Components redesign (we mostly use `revalidatePath`)
+- `instrumentation.ts` / OpenTelemetry
+- Partial Prerendering and other experimental caching modes
 ## Guides we lean on (not duplicated here)
 
 Prefer the official page over re-teaching it in this file:
@@ -47,24 +76,3 @@ Prefer the official page over re-teaching it in this file:
 
 Anything not listed stays in the [Guides index](https://nextjs.org/docs/app/guides) until we have a concrete TODO or catalog row.
 
-## TODO — follow Next.js recommendations more closely
-
-Track gaps so the repo stays a faithful “Next.js way” reference. Check items off when the app (and any related docs) match the linked guidance. Prefer official patterns over new repo-only rules.
-
-- [ ] **Authorization / `proxy.ts` gating** — framework checklist lives in [`authentication-and-authorization.md`](./authentication-and-authorization.md) (**TODO — authorization**). Link Next [Data security](https://nextjs.org/docs/app/guides/data-security) / [Proxy](https://nextjs.org/docs/app/getting-started/proxy) from there; don’t duplicate the checkbox list here.
-- [ ] **Expected errors as return values** — validation/business failures via returned state (e.g. `{ error }`), not thrown exceptions for expected cases ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling)); align with / extend `createSafeAction` where needed
-- [ ] **Segment `error.tsx` / `not-found.tsx` (and optional `loading.tsx`)** — especially for board / organization routes; we already call `notFound()` in places but lack dedicated segment files ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling), [loading](https://nextjs.org/docs/app/api-reference/file-conventions/loading), production checklist)
-- [ ] **`<Link>` for in-app navigation** — prefer `next/link` over raw `<a>` for internal routes ([Linking and navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating))
-- [ ] **`next/image` where it fits** — review CSS `backgroundImage` board / organization thumbnails vs Image optimization tradeoffs ([Images](https://nextjs.org/docs/app/getting-started/images))
-- [ ] **Don’t call our own Route Handlers from Server Components** — keep server data access in Server Components / `lib/`; Route Handlers for clients/webhooks ([Production checklist](https://nextjs.org/docs/app/guides/production-checklist#data-fetching-and-caching))
-- [ ] **Push `"use client"` boundaries down** — shrink client islands so Server Component trees stay the default ([Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components))
-
-When closing a TODO, update this list and, if the change teaches a new pattern, a one-line note under **Already following** is enough — don’t duplicate Next.js docs here.
-
-## Out of scope for now (not TODOs)
-
-Only adopt when we deliberately need them:
-
-- Broad ISR / `revalidateTag` / Cache Components redesign (we mostly use `revalidatePath`)
-- `instrumentation.ts` / OpenTelemetry
-- Partial Prerendering and other experimental caching modes
