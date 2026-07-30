@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { ActivityList } from "../_components/activity-list";
 import { checkSubscription } from "@/lib/subscription";
 
-export default async function ActivityPage() {
+export default async function OrganizationActivityPage() {
   const isPro = await checkSubscription();
 
   return (

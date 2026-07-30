@@ -70,8 +70,27 @@ Within the same kind, prefer the **current official docs** for the version this 
 | Shared hooks live under `hooks/` (not sprinkled without reason) | Adopted | Habit; Next.js lists `hooks` as a [placeholder peer](https://nextjs.org/docs/app/getting-started/project-structure#examples) |
 | File names for UI: **kebab-case** (e.g. `activity-item.tsx`) | Adopted | Widespread in Next/React codebases; no single sealed rule — stay consistent with neighbors |
 | Server Action folders: **kebab-case** under `actions/<name>/` | Adopted | Repo shape; mirrors common “one folder per mutation” habit |
+| App Router `page.tsx` / `layout.tsx` default exports: **route-mirrored `*Page` / `*Layout`** | Adopted | Common `*Page` suffix; **route mirroring is a repo rule** — see [Route-mirrored page/layout names](#route-mirrored-pagelayout-names). Enforced by `scripts/check-route-export-names.ts` (`pnpm lint:routes`; autofix `pnpm lint:routes:fix`) |
 | Env vars: **`SCREAMING_SNAKE_CASE`**; client-exposed only via `NEXT_PUBLIC_*` | Adopted | [Next.js Environment Variables](https://nextjs.org/docs/app/guides/environment-variables) |
 | Don’t put secrets in `NEXT_PUBLIC_*` or git | Adopted | Same Next.js guide · [Vercel Environment Variables](https://vercel.com/docs/environment-variables) |
+
+#### Route-mirrored page/layout names
+
+Next.js requires the **file** to be `page.tsx` / `layout.tsx`; it does **not** prescribe the default-export function name. This repo names that export from the route:
+
+1. Suffix **`Page`** or **`Layout`** (match the file).
+2. Build the prefix from path segments under `app/`:
+   - Ignore private folders (`_components`, …) and parallel slots (`@slot`).
+   - Ignore route groups `(name)` **unless** no URL segments remain (e.g. `(marketing)/page.tsx` → `MarketingPage`; `app/layout.tsx` → `RootLayout`).
+   - `[param]` / `[...param]` / `[[...param]]` → PascalCase of the param (`organizationId` → `OrganizationId`).
+   - Static segments: kebab-case → PascalCase (`select-org` → `SelectOrg`).
+   - Drop a catch-all segment when it duplicates the previous token (`sign-in/[[...sign-in]]` → `SignInPage`).
+3. Compose:
+   - One token → that token + suffix (`ProtectedPage`).
+   - Last token from a dynamic segment → that token + suffix (`OrganizationIdPage`, `BoardIdPage`).
+   - Last token static (nested leaf) → **first static resource** + leaf + suffix (`OrganizationSettingsPage`, `OrganizationActivityPage`).
+4. Do **not** use Rails-style Index/Show/New/Edit unless that word is a real URL segment.
+5. When the page takes props, name the props type `{SameName}Props` (e.g. `BoardIdPageProps`).
 
 ### React / UI
 

@@ -84,7 +84,7 @@ Next.js is [unopinionated](https://nextjs.org/docs/app/getting-started/project-s
 | `locales/` / `i18n/` | Alternate i18n folder names | Avoid here | Use `messages/` (or whatever next-intl’s guide uses when we adopt it) |
 | `jobs/` | Background/async job definitions | When needed | Prefer **`jobs/`**; pick one runner (see [`conventions.md`](./conventions.md#common-practices-catalog)) |
 | `workers/` / vendor-named job roots | Alternate job folder names | Avoid here | Use `jobs/` (vendor SDK files can live under it) |
-| `scripts/` | One-off maintenance / codegen scripts | When needed | Keep out of `app/`; document how to run them |
+| `scripts/` | One-off maintenance / codegen scripts | Adopted | Keep out of `app/`; e.g. `check-route-export-names.ts` (`pnpm lint:routes` / `pnpm lint:routes:fix`) — see [`conventions.md`](./conventions.md#route-mirrored-pagelayout-names) |
 | `fixtures/` | Seed / test / Storybook fixtures | When needed | Prefer **`fixtures/`** over vague `data/` or `mocks/` when we add tests |
 | `data/` / `mocks/` | Alternate fixture names | Avoid here | Use `fixtures/` (or MSW handlers next to tests) |
 | `stories/` | Storybook stories | When needed | Prefer colocated `*.stories.tsx`; optional `stories/` only if colocation fails |
@@ -166,6 +166,7 @@ Rows are grouped by Kind, in the same order as [Convention priority](#convention
 | `prisma/`               | Schema + migrations                                        | Common (Prisma)                     |
 | `components/ui/`        | **shadcn/ui only** (CLI / registry primitives)             | Repo convention                     |
 | `actions/`              | Server Actions grouped by feature                          | Repo convention (structure only)    |
+| `scripts/`              | Maintenance scripts (e.g. route export-name check)         | Common practice                     |
 
 Next.js does not assign special meaning to `components/`, `lib/`, `hooks/`, or `actions/` — see the [official examples note](https://nextjs.org/docs/app/getting-started/project-structure#examples). Rows marked **Common practice** above are this repo’s **Adopted** subset — full catalog (including future folders) in [Common practice folders](#common-practice-folders). Code/naming habits: [`conventions.md`](./conventions.md#common-practices-catalog).
 
