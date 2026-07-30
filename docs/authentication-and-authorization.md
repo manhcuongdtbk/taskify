@@ -5,7 +5,7 @@ Learning reference for **authentication** and **authorization** in this app. **C
 | | |
 | - | - |
 | **Owner / SoT** | This file — Clerk wiring map, authentication TODOs, **authorization checklist** (don’t duplicate elsewhere) |
-| **Open when** | Session / organization gating, `proxy.ts`, Server Action checks, tenant `orgId` scoping, or authz hardening |
+| **Open when** | Session / organization gating, `proxy.ts`, Server Action checks, tenant `orgId` scoping, or authorization hardening |
 
 Prefer [Clerk docs](https://clerk.com/docs) for the SDK in `package.json`. Repo skills under `.claude/skills/clerk*` help with setup. Index: [`README.md`](./README.md). Billing `orgId` coupling: [`billing.md`](./billing.md). Provider *why*: [`product.md`](./product.md). Prose rules: [`vocabulary.md`](./vocabulary.md). Keep Clerk identifiers such as `auth()`, `useAuth`, and `orgId`.
 

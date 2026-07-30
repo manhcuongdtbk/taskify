@@ -10,6 +10,8 @@ Prefer official docs for the versions in `package.json`. This repo is a **learni
 
 ## Start here
 
+Orientation for the product and how we choose patterns. When changing how something works, open the matching concern under [Stack learning guides](#stack-learning-guides).
+
 | Doc | What it’s for |
 | --- | ------------- |
 | [`vocabulary.md`](./vocabulary.md) | Definitions: common practice vs best practice, recommendation, priority list, … |
@@ -17,21 +19,18 @@ Prefer official docs for the versions in `package.json`. This repo is a **learni
 | [`features.md`](./features.md) | What the app does today (features + where to look) |
 | [`conventions.md`](./conventions.md) | How we choose engineering patterns (priority list + **common practices catalog**) |
 | [`project-structure.md`](./project-structure.md) | Folder layout / App Router organization (+ **common practice folder catalog**) |
-| [`data.md`](./data.md) | Fetching & mutating (App Router map; TanStack Query when/where; cache / DAL·DTO) |
-| [`billing.md`](./billing.md) | Billing & pricing-plan gating (Stripe is the current **billing provider**) |
-| [`authentication-and-authorization.md`](./authentication-and-authorization.md) | Authentication & authorization (Clerk is the current **authentication provider**) |
 
 ## Stack learning guides
 
-Same shape where possible: **Owner / SoT** + **Open when** → **Already following** → **TODO** → **Out of scope** → deep detail.
+Concern and framework maps (each listed once). Same shape where possible: **Owner / SoT** + **Open when** → **Already following** → **TODO** → **Out of scope** → deep detail.
 
 | Doc | Concern (implementation today) |
 | --- | ------------------------------ |
 | [`nextjs.md`](./nextjs.md) | Next.js App Router |
+| [`data.md`](./data.md) | Fetching & mutating (App Router map; TanStack Query when/where; cache / DAL·DTO) |
+| [`billing.md`](./billing.md) | Billing — **Stripe** today for the **Pro** plan; deep dive + backlog |
 | [`authentication-and-authorization.md`](./authentication-and-authorization.md) | Authentication & authorization — **Clerk** today; exit notes |
 | [`prisma.md`](./prisma.md) | Prisma / Postgres data layer |
-| [`billing.md`](./billing.md) | Billing — **Stripe** today for the **Pro** plan; deep dive + backlog |
-| [`data.md`](./data.md) | Fetching & mutating (App Router map; also listed under Start here) |
 
 ## Maintenance
 

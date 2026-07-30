@@ -204,7 +204,7 @@ Relationship: the DAL **produces** DTOs. A DTO is not a separate runtime framewo
 ```mermaid
 flowchart LR
   SC["Server Component / Action"]
-  DAL["DAL<br/>authz + query"]
+  DAL["DAL<br/>authorization + query"]
   DB[("DB / private APIs")]
   DTO["DTO<br/>minimal fields"]
   CC["Client Component<br/>(serialized props)"]
