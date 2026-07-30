@@ -6,11 +6,10 @@ const DAY_IN_MS = milliseconds({ days: 1 });
 
 /**
  * Whether the current Clerk organization has an active Pro plan subscription.
- * Overview + isPro vs stripeCustomerId: docs/billing.md (Gotchas).
- * Cancel / failed-pay lifecycle gaps: docs/billing.md → “Complete the current picture first”.
+ * Overview: `docs/billing.md`.
  *
  * Allows a 1-day grace past stripeCurrentPeriodEnd for webhook / clock skew.
- * Cancel in Customer Portal does not clear this instantly — see docs (Gotchas).
+ * Cancel in Customer Portal does not clear this instantly — see `docs/billing.md`.
  */
 export const checkSubscription = async () => {
   const { orgId } = await auth();

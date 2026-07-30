@@ -4,46 +4,19 @@ How **billing** works for the **Pro** pricing plan in this repo. **Stripe** is t
 *why* a line exists; this page is the bird’s-eye view. Diagrams and the file map can drift
 when UI entry points change — update them when the flow changes.
 
-Docs catalog: [`README.md`](./README.md).
-
-**Vocabulary (avoid mixing these up):**
-
-| Term | Meaning |
-| ---- | ------- |
-| **billing** | The product **feature**: subscriptions, one-off payments, webhooks, pricing-plan gating |
-| **billing provider** | The external PSP that implements charging today. **Stripe** is the current (and only) billing provider — not a synonym for "billing" |
-| **pricing plan** | Access / commercial tier (**Free**, **Pro**, …). Not a project-management "plan" — see [`vocabulary.md`](./vocabulary.md) |
-| **Free** | Default pricing plan (no paid subscription; board limits) |
-| **Pro** | Paid pricing plan (one monthly subscription today). Defined in [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) |
-| **`isPro` / `checkSubscription()`** | Whether the organization currently has **Pro** access — not a synonym for “billing” |
+Docs catalog: [`README.md`](./README.md). Shared terms (**billing**, **billing provider**, **pricing plan**, Free / Pro, `isPro`): [`vocabulary.md`](./vocabulary.md). Pricing numbers: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts).
 
 ### Why Stripe (for now)
 
-Stripe is the easy integration path (docs, tutorials, Checkout, Customer Portal, webhooks). That is a **library / provider choice**, not the product definition of billing.
+**Stripe** is the current **billing provider** (easy Checkout / Portal / webhooks path). Product *why*, regional limits, and multi-provider direction live in [`product.md`](./product.md) (**Billing vs billing provider**). This file is the integration, flows, and backlog.
 
-Known limits matter later (e.g. country / payment-method coverage such as Vietnam not being a simple out-of-the-box fit). Expect that Stripe may stay, be **replaced**, or become **one provider among several**. Keep product language as **billing** / **pricing plans**; keep provider-specific details in this file and in Stripe-shaped code until a second provider forces an abstraction.
+Do **not** add a parallel billing stack without an explicit product decision — finish the hardening backlog in this file first.
 
-Do **not** add a parallel billing stack (e.g. Clerk Billing beside Stripe) without an explicit product decision — finish **Complete the current picture first** first.
-
-Read **Stripe concepts** below before diving into Stripe’s own docs — it maps their
-vocabulary onto what this project actually does.
+Read **Stripe concepts** below before diving into Stripe’s own docs — it maps their vocabulary onto what this project actually does.
 
 ### For AI assistants
 
-When continuing Stripe / billing / monetization work in this repo:
-
-1. Read this file first (concepts, gotchas, **Complete the current picture first**,
-   then **Opening more doors**).
-2. **Priority:** finish the backlog under **Complete the current picture first**
-   before any growth item in **Opening more doors**. Hardiness and lifecycle
-   fidelity beat new monetization doors.
-3. Prefer extending existing patterns: Checkout + Customer Portal (`billingPortal`),
-   signed webhooks, Dinero → `unit_amount`, Clerk `orgId` in Checkout `metadata`,
-   `OrganizationSubscription` + `checkSubscription`.
-4. If you change a user-visible flow, update the Mermaid diagrams and component map
-   in this file in the same change.
-5. Do not invent a second billing system (e.g. parallel Clerk Billing) unless the
-   user explicitly asks — grow from the Stripe integration already here.
+Read **this file** first for billing / Stripe / monetization work. Prefer extending patterns already here. Harden before growth. Update diagrams in this file when user-visible flows change. Do not invent a second billing system unless the user explicitly asks.
 
 Official Stripe docs (later): [Checkout](https://docs.stripe.com/payments/checkout) ·
 [Customer Portal](https://docs.stripe.com/customer-management) ·

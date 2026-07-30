@@ -2,15 +2,11 @@
 
 What the app does **today**, and where to look in the codebase.
 
-**Positioning / audience / domain terms:** [`product.md`](./product.md). **What “feature” means:** [`vocabulary.md`](./vocabulary.md). This file is only the shipped map — keep it honest as capabilities ship, and prefer extending what is listed here over inventing parallel paths.
+**Positioning / audience / domain terms:** [`product.md`](./product.md). **Word meanings** (feature, billing, pricing plan, organization, …): [`vocabulary.md`](./vocabulary.md). This file is only the shipped map — keep it honest as capabilities ship.
 
-This repo is also a **learning reference** for the Next.js / Clerk / Prisma / Stripe stack. Paths drift — use folders as a starting index; search the repo when in doubt. Catalog: [`README.md`](./README.md).
+This repo is also a **learning reference** for the stack. Paths drift — use folders as a starting index; search the repo when in doubt. Catalog: [`README.md`](./README.md).
 
-In prose, write **organization**, **authentication**, and **authorization** in full (do not abbreviate). Keep Clerk names such as `orgId` and `auth()`.
-
-**Plans vs billing:** **Billing** is the feature (subscriptions and one-off payments, webhooks, gating). **Free** and **Pro** are **pricing plans** (access tiers) — see [`vocabulary.md`](./vocabulary.md). Product display name in app code: [`config/site.ts`](../config/site.ts) (`siteConfig.name`). **Pro** is the paid pricing plan — do not use “Pro” to mean billing. Do not confuse **pricing plan** with a **project plan**.
-
-Canonical pricing-plan definitions (limits, price, Stripe product strings): [`constants/pricing-plans.ts`](../constants/pricing-plans.ts).
+Canonical pricing-plan definitions: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts). Product display name in app code: [`config/site.ts`](../config/site.ts) (`siteConfig.name`).
 
 ## Features
 
@@ -63,4 +59,4 @@ Code that supports the features above — shared building blocks, not rows in th
 
 ## Keeping this current
 
-When you add or remove something users can do, update the Features table in the same change. Vision that is not shipped yet belongs in [`product.md`](./product.md), not here. Deep billing behavior stays in [`billing.md`](./billing.md); authentication / authorization TODOs in [`authentication-and-authorization.md`](./authentication-and-authorization.md); stack “how we code” TODOs also in Next.js / Prisma guides ([docs index](./README.md)).
+When you add or remove something users can do, update the Features table in the same change. Vision that is not shipped yet belongs in [`product.md`](./product.md), not here. Deep how-to for a concern stays in that concern’s doc ([docs index](./README.md)).

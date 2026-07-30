@@ -34,6 +34,6 @@ Same shape where possible: **already following** + **TODOs** to stay a faithful 
 
 - **Catalog:** update this file when adding/renaming/removing a doc.
 - **Cross-links:** from a topic page, link the [index](./README.md) plus at most one neighbor you truly depend on (e.g. authentication ↔ billing only where `orgId` coupling matters). Avoid copying the full table into every file.
-- **Code comments / Cursor rules** that point at a specific doc (especially `billing.md`) are fine — those guide implementers in-context; they are not a second catalog.
+- **Code comments / Cursor rules** that point at a concern doc (e.g. `billing.md`) are fine — point at the **file**, not at another doc’s section titles (those drift). They are not a second catalog.
 - **Don’t invent** empty stack docs; wait until there are concrete patterns or TODOs ([`conventions.md`](./conventions.md)).
 - **Don’t name new concern docs after a vendor** (`stripe.md`, `clerk.md`, `tanstack-query.md`) unless the page is only SDK trivia — prefer the durable concern name.

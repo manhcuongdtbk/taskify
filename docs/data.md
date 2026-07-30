@@ -22,7 +22,7 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 | [Authentication](https://nextjs.org/docs/app/guides/authentication) (DAL / DTO sections) | Same **DAL** / **DTO** ideas in an auth-focused walkthrough — see [DAL and DTO](#dal-and-dto-not-auth-only)                                                                                                    |
 | [Extended `fetch`](https://nextjs.org/docs/app/api-reference/functions/fetch)            | Server-side `fetch` (`cache` / `revalidate` / `tags`)                                                                                                                                                          |
 
-Catalog / picks (TanStack Query + `fetch`, …): [`conventions.md`](./conventions.md). Stack TODOs: [`nextjs.md`](./nextjs.md), [`prisma.md`](./prisma.md), [`authentication-and-authorization.md`](./authentication-and-authorization.md), [`billing.md`](./billing.md). Index: [`README.md`](./README.md).
+Catalog / picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
 
 ## Mental model (one picture)
 
@@ -119,8 +119,8 @@ Still prefer the **server** for secrets, Prisma, and most first-load data. Use t
 
 - [ ] **Segment `loading.tsx` / streaming** where slow server fetches hurt UX ([Fetching Data](https://nextjs.org/docs/app/getting-started/fetching-data#streaming), [`nextjs.md`](./nextjs.md))
 - [ ] **Expected Action errors as return values** (not throws for validation) — [`nextjs.md`](./nextjs.md) + `create-safe-action`
-- [ ] **Authorization on every Action / protected Route Handler** — [`authentication-and-authorization.md`](./authentication-and-authorization.md) + [`nextjs.md`](./nextjs.md)
-- [ ] **TanStack Query patterns** — `prefer-query-options`, provider nesting TODOs in code; keep guidance in [`conventions.md`](./conventions.md) (+ this map). Add `docs/tanstack-query.md` only if that outgrows a catalog row — see [TanStack Query](#tanstack-query-client-only)
+- [ ] **Authorization on Actions / protected Route Handlers** — checklist in [`authentication-and-authorization.md`](./authentication-and-authorization.md)
+- [ ] **TanStack Query patterns** — `prefer-query-options`, provider nesting; guidance in [`conventions.md`](./conventions.md). Add `docs/tanstack-query.md` only if that outgrows a catalog row — see [TanStack Query](#tanstack-query-client-only)
 - [ ] **Align Action client UX with `useActionState` / `useFormStatus`** — keep toasts/field-error behavior; prefer React hooks + [Forms](https://nextjs.org/docs/app/guides/forms) over a forever-custom `useAction` ([`useActionState`](https://react.dev/reference/react/useActionState), [`useFormStatus`](https://react.dev/reference/react/useFormStatus))
 - [ ] **Unsplash** — whether client + public key stays acceptable vs server-only fetch (production Unsplash app TODO in `lib/unsplash.ts`)
 - [ ] **Stronger DAL / DTO** — only if authorization-near-data keeps getting duplicated; don’t invent `dal.ts` for fashion (see [DAL and DTO](#dal-and-dto-not-auth-only))
@@ -168,7 +168,7 @@ Same word in **this stack** (neither Redis nor “the Next Data Cache”):
 
 **Rule of thumb:** if someone from a Nest/Rails/Spring team says “add a cache,” ask **which** — Redis in front of Postgres, CDN headers, Next `revalidatePath`, or Query `invalidateQueries`. Those are different tools.
 
-**Server `fetch` ≠ `lib/fetcher.ts`:** Next’s extended `fetch` (caching options) is for the **server**. The client helper is ordinary Web `fetch` for Query. Details: [`nextjs.md`](./nextjs.md), [`lib/fetcher.ts`](../lib/fetcher.ts).
+**Server `fetch` ≠ `lib/fetcher.ts`:** Next’s extended `fetch` is for the **server**; the client helper is ordinary Web `fetch` for Query — see [`lib/fetcher.ts`](../lib/fetcher.ts).
 
 Short definition: [`vocabulary.md`](./vocabulary.md).
 
@@ -214,29 +214,7 @@ flowchart LR
 
 **How to read:** the page/action never talks to the DB directly; only the DAL does. What flows toward the client is a **DTO**, not a raw row. (Same arrow rule as [Mental model](#mental-model-one-picture): arrows are calls; the DTO is the return value of the DAL call.)
 
-Closest familiar ideas:
-
-| Pattern | Rough equivalent |
-| ------- | ---------------- |
-| DAL | Guarded repository / service that checks the caller before querying |
-| DTO | Safe response shape — “don’t return the entity” — only fields this screen needs |
-
-#### Same ideas in other frameworks (read more)
-
-These are **patterns**, not Next-only. Names and folder layouts differ; the jobs match.
-
-| Ecosystem | DTO | Data access (≈ DAL) | Official / canonical reads |
-| --------- | --- | ------------------- | -------------------------- |
-| **NestJS** | **Yes — first-class.** Request payload classes; outbound shaping via serialization | Nest rarely says **DAL**. Closest official term: **repository** (TypeORM) injected into services | [Controllers — request payloads / DTO](https://docs.nestjs.com/controllers#request-payloads) · [Validation](https://docs.nestjs.com/techniques/validation) · [Serialization](https://docs.nestjs.com/techniques/serialization) (exclude sensitive fields) · [Database — repository pattern](https://docs.nestjs.com/techniques/database#repository-pattern) |
-| **FastAPI** | **Yes — first-class** as **Pydantic models** (often called schemas). Separate in/out models; `response_model` filters what leaves | Rarely says **DAL**. Usual split: path operations → service/deps → SQLAlchemy/session (or a **repository** class in larger apps). Auth via dependencies | [Body / models](https://fastapi.tiangolo.com/tutorial/body/) · [Extra models](https://fastapi.tiangolo.com/tutorial/extra-models/) (multiple schemas) · [Response model](https://fastapi.tiangolo.com/tutorial/response-model/) (filter/serialize out) · [SQL databases](https://fastapi.tiangolo.com/tutorial/sql-databases/) |
-| **Rails** | Rarely says **DTO**. **Strong parameters** whitelist **input**; **Jbuilder** / serializers / `as_json` shape **output** (don’t dump the whole Active Record) | Rarely says **DAL**. **Active Record** + controller/`before_action` / scopes / policies (e.g. Pundit) — authorization often beside the query, not one named layer | [Strong Parameters](https://guides.rubyonrails.org/action_controller_overview.html#strong-parameters) · [Jbuilder](https://github.com/rails/jbuilder) · [Active Model Serialization](https://api.rubyonrails.org/classes/ActiveModel/Serialization.html) · [Active Record Querying](https://guides.rubyonrails.org/active_record_querying.html) |
-| **Spring** | Very common (API/view models separate from entities) | **DAO** / **Repository** (Spring Data) — data access, not always authorization-in-the-same-module the way Next’s DAL examples do | [Spring Data Access](https://docs.spring.io/spring-framework/reference/data-access.html) (start here; DTO is convention + countless guides, less one “DTO” chapter) |
-| **ASP.NET** | Common (request/response models vs domain entities) | Repository / data layer patterns in docs and templates | [Model binding](https://learn.microsoft.com/en-us/aspnet/core/mvc/models/model-binding) · broader “DTOs vs entities” shows up in Clean Architecture / Web API samples |
-| **Pattern catalog** | [Data Transfer Object](https://martinfowler.com/eaaCatalog/dataTransferObject.html) (Fowler / PoEAA) | Often paired with [Data Mapper](https://martinfowler.com/eaaCatalog/dataMapper.html) / repository-style layers | Best for **what the words meant originally** (DTO = carry data across a boundary), not Next folder names |
-
-**Caveats:** Nest/FastAPI DTOs are often **classes + validators** on **HTTP in/out**. Next’s examples are usually **plain objects** from `server-only` functions into RSC. Rails almost never uses the words **DAL** / **DTO**, but strong params + serializers solve the same “only safe fields across the boundary” problem. Do **not** copy another framework’s decorator/class stack into this App Router app unless we deliberately adopt it.
-
-Laravel **API Resources**, Django REST **serializers**, etc. play a similar “shape what leaves” role under other names.
+Closest familiar ideas: guarded repository / service (DAL); safe response shape / “don’t return the entity” (DTO). Same jobs appear under other names in Nest, FastAPI, Rails, Spring, etc. — see those ecosystems’ docs if you already know them; don’t copy their decorator stacks into this App Router app.
 
 #### Why App Router makes this hurt more than Pages Router
 
@@ -310,17 +288,7 @@ Extract a real DAL when the same authorization + select rules are copy-pasted, o
 
 Spell out **Data Access Layer** / **Data Transfer Object** on first use in prose; **DAL** / **DTO** are OK after that (unlike abbreviating authentication / authorization). Short definitions: [`vocabulary.md`](./vocabulary.md).
 
-#### Where Next mentions them (this install)
-
-| Page                                                                                                                                                          | What it says                                                           |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Data Security](https://nextjs.org/docs/app/guides/data-security#data-access-layer)                                                                           | **Primary** — DAL for new projects, DTOs, DAL for mutations, checklist |
-| [Authentication](https://nextjs.org/docs/app/guides/authentication#creating-a-data-access-layer-dal)                                                          | Auth walkthrough (`verifySession`, profile DTO)                        |
-| [Production checklist](https://nextjs.org/docs/app/guides/production-checklist)                                                                               | Move DB access to a `server-only` DAL                                  |
-| [Server Actions](https://nextjs.org/docs/app/guides/server-actions) / ["use server"](https://nextjs.org/docs/app/api-reference/directives/use-server)         | Point at / prefer DAL                                                  |
-| [unauthorized](https://nextjs.org/docs/app/api-reference/functions/unauthorized) / [forbidden](https://nextjs.org/docs/app/api-reference/functions/forbidden) | Examples import `@/app/lib/dal`                                        |
-
-Also often linked: [Security in Next.js](https://nextjs.org/blog/security-nextjs-server-components-actions) (blog).
+Next also names these in [Data Security](https://nextjs.org/docs/app/guides/data-security#data-access-layer) (primary), [Authentication](https://nextjs.org/docs/app/guides/authentication#creating-a-data-access-layer-dal), and cross-links from the production checklist / Server Actions / `use server` / unauthorized·forbidden examples.
 
 ## If you came from SPA or Pages Router
 

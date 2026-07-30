@@ -126,7 +126,7 @@ Code keeps short identifiers (`FREE_PLAN`, `PRO_PLAN`, `PLANS`) in [`constants/p
 
 | Word | Where defined | Quick meaning |
 | ---- | ------------- | ------------- |
-| **Billing** / **pricing plan** / … | [Billing terms](#billing-terms) above | Do not confuse pricing plans with project plans |
+| **billing** / **pricing plan** / … | [Billing terms](#billing-terms) above | Do not confuse pricing plans with project plans. Flows: [`billing.md`](./billing.md) |
 | **Organization** | Clerk concept, used throughout | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code |
 | **Authentication** | Sign-in / session identity | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md) |
 | **Authorization** | Whether an identity may do a specific action or see a resource | Write **authorization** in prose — do not abbreviate. Different from authentication. Same doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md) |

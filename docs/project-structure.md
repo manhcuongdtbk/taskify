@@ -13,7 +13,7 @@ Paths and UI entry points change — treat concrete examples as a starting index
 
 ### Convention priority
 
-When something is ambiguous **about folder layout / routing structure**, follow this order (highest first). Use the highest rung that **owns this decision** (structure questions are usually Next.js / common folders — not Stripe or Prisma APIs).
+When something is ambiguous **about folder layout / routing structure**, follow this order (highest first). This is a **subset** of [`conventions.md`](./conventions.md) for structure questions — not a second full priority system. Use the highest rung that **owns this decision** (structure questions are usually Next.js / common folders — not Stripe or Prisma APIs).
 
 1. **Next.js convention** — special files/folders the framework recognizes (`app/`, `page.tsx`, `layout.tsx`, `route.ts`, `proxy.ts`, `(group)`, `_folder`, `[param]`, …)
 2. **Next.js recommendation** — strategies Next.js documents but does not enforce (e.g. store shared code outside `app/`, colocate with `_components`)
@@ -202,11 +202,10 @@ Only the extras that aren’t covered by Next.js / React / common practice:
 
 1. **Server Actions folder shape** — each action under `actions/<name>/` with `index.ts` (`"use server"`), `schema.ts` (Zod), `types.ts`, and a shared validation wrapper in `lib/` (`create-safe-action`).
 2. **`components/ui/` is shadcn-only** — primitives from the shadcn CLI/registry live here; other shared UI goes under `components/` (e.g. `form/`, `modals/`, `providers/`) or route `_components/`.
-3. **Say “organization,” not “org”** — in docs and UI copy write **organization**; keep `orgId` (and Clerk path segments like `select-org`) because those names come from Clerk / existing routes.
-4. **Say “authentication” and “authorization” in full** — in docs and UI copy do not abbreviate them; keep Clerk identifiers such as `auth()`, `useAuth`, and similar because those names come from Clerk.
-5. **Product name in `config/site.ts`** — app UI / metadata use `siteConfig.name` (not hardcoded brand strings). Docs and external dashboards are outside that file.
-6. **Pricing plans in `constants/pricing-plans.ts`** — Free / Pro definitions (limits, price, Stripe product strings) live only there; docs describe pricing plans as defined in that file. Paid tier name is **Pro** (product name from `siteConfig`).
-7. **Billing documentation** — change Checkout / Portal / webhooks or plan gating → update [`billing.md`](./billing.md) in the same change.
+3. **Prose / naming words** — organization, authentication, authorization, billing vs pricing plan: follow [`vocabulary.md`](./vocabulary.md) (keep Clerk identifiers such as `orgId`, `auth()`).
+4. **Product name in `config/site.ts`** — app UI / metadata use `siteConfig.name` (not hardcoded brand strings). Docs and external dashboards are outside that file.
+5. **Pricing plans in `constants/pricing-plans.ts`** — Free / Pro definitions live only there; docs describe that file, not a second table of limits/prices.
+6. **Billing documentation** — change Checkout / Portal / webhooks or plan gating → update [`billing.md`](./billing.md) in the same change.
 
 If you can solve a problem with a Next.js or common pattern instead of a new repo rule, do that.
 

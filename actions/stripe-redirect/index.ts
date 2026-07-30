@@ -11,12 +11,7 @@ import { stripe, toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
 import { PRO_PLAN } from "@/constants/pricing-plans";
 
 /**
- * Start Stripe billing for the current organization.
- *
- * Concepts (Checkout vs Customer Portal / Billing Portal, modes, webhooks):
- *   docs/billing.md → “Stripe concepts (read this first)”
- * Prioritized hardening / polish (log errors, payment_method_types, etc.):
- *   docs/billing.md → “Complete the current picture first”
+ * Start Stripe billing for the current organization. Overview: `docs/billing.md`.
  *
  * - No stripeCustomerId yet → Checkout Session (mode: subscription) to start Pro.
  *   Puts orgId in session metadata so app/api/webhook can link the subscription.
@@ -61,11 +56,11 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       // First upgrade → Checkout (hosted pay page). mode: "subscription" = recurring Pro.
       // Other Checkout modes we don't use yet: "payment" (one-time), "setup" (save card only).
       // Inline price_data is demo-friendly; production often uses Dashboard price_… ids.
-      // See docs/billing.md → Stripe concepts, Gotchas, Opening more doors.
+      // See docs/billing.md.
       const stripeSession = await stripe.checkout.sessions.create({
         success_url: settingsUrl,
         cancel_url: settingsUrl,
-        // TODO (P2 — docs/billing.md “Complete the current picture first”): omit
+        // TODO (P2 — docs/billing.md): omit
         // payment_method_types — Stripe recommends leaving it unset so
         // Dashboard dynamic payment methods apply. Hardcoding ["card"] locks out
         // other methods. See https://docs.stripe.com/payments/payment-methods/dynamic-payment-methods
@@ -102,7 +97,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       url = stripeSession.url || "";
     }
   } catch (error) {
-    // TODO: unused `error` (P0 — docs/billing.md “Complete the current picture first”) —
+    // TODO: unused `error` (P0 — docs/billing.md) —
     // log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
     return { error: "Something went wrong." };
   }

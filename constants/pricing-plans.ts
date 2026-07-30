@@ -3,21 +3,11 @@ import { USD } from "dinero.js/currencies";
 
 /**
  * Single source of truth for **pricing plans** (commercial / access tiers).
+ * Docs should describe plans as defined here — update docs in the same change
+ * when you add or rename one. Word meanings: `docs/vocabulary.md`.
  *
- * Docs (`docs/features.md`, `docs/billing.md`, `docs/vocabulary.md`) should describe
- * pricing plans as defined here — when you add or rename one, update those docs
- * in the same change.
- *
- * Today:
- * - **Free** — default pricing plan (no paid subscription; board limits)
- * - **Pro** — paid pricing plan (monthly subscription)
- *
- * Display name for the paid tier is **Pro**. Product display name is
- * `siteConfig.name` (`config/site.ts`). More pricing plans are expected;
- * keep all definitions in this module.
- *
- * Do not confuse **pricing plan** with a **project plan** (PM domain) —
- * see `docs/vocabulary.md`.
+ * Today: **Free** (default, board limits) and **Pro** (monthly). More expected;
+ * keep definitions in this module. Product display name: `siteConfig.name`.
  *
  * ## `maxBoards`
  *

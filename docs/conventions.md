@@ -187,19 +187,16 @@ Prefer the library’s own docs before adding a repo rule. Repo learning guides 
 
 ## Repo conventions
 
-Keep this list short. Structure rules: [`project-structure.md`](./project-structure.md). Stack learning TODOs: [docs index](./README.md) (Next.js, Clerk, Prisma, Stripe). Code/naming habits: [Common practices catalog](#common-practices-catalog).
+Keep this list short. Structure rules: [`project-structure.md`](./project-structure.md). Stack learning TODOs: [docs index](./README.md). Code/naming habits: [Common practices catalog](#common-practices-catalog).
 
 If you can solve a problem with a higher-priority source above, do that instead of adding a new repo rule.
 
 ## What not to invent
 
-- Calling **Pro** the billing *feature* — **billing** is the feature; **Free** and **Pro** are **pricing plans** (see [`vocabulary.md`](./vocabulary.md) / [`features.md`](./features.md))
-- Using bare **plan** next to project-management copy when **pricing plan** or **project plan** is needed to avoid ambiguity
+- House synonyms that contradict [`vocabulary.md`](./vocabulary.md) (billing vs pricing plan, organization / authentication / authorization prose rules, …)
 - Inventing house synonyms for domain/cert terms this product’s audience already knows — see [`product.md`](./product.md)
-- Abbreviating **organization** as “org” in prose or UI copy (keep `orgId` — that name comes from Clerk)
-- Abbreviating **authentication** in prose or UI copy (keep Clerk names such as `auth()` / `useAuth`)
-- Abbreviating **authorization** in prose or UI copy
 - Parallel “house style” that contradicts Next.js, React, TypeScript, or a library’s required API
 - Repo-only wrappers or patterns when the library already documents an equivalent approach
 - Duplicating long excerpts from official docs here — link them and describe only what this repo chooses when there are multiple valid options
 - Empty stack docs with no “already following” or TODOs — wait until there is something concrete to teach
+- Concern docs named after a vendor (`stripe.md`, `clerk.md`, …) — see [docs index](./README.md)
