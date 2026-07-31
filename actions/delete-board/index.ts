@@ -11,6 +11,7 @@ import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { decrementAvailableCount } from "@/lib/organization-limit";
 import { checkSubscription } from "@/lib/subscription";
+import { paths } from "@/lib/paths";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -46,8 +47,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     return { error: "Failed to delete." };
   }
 
-  revalidatePath(`/organization/${orgId}`);
-  redirect(`/organization/${orgId}`);
+  revalidatePath(paths.organization(orgId));
+  redirect(paths.organization(orgId));
 };
 
 export const deleteBoard = createSafeAction(DeleteBoard, handler);

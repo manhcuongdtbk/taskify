@@ -1,6 +1,7 @@
 import { Logo } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
+import { paths } from "@/lib/paths";
 import Link from "next/link";
 
 export function MarketingNavbar() {
@@ -10,13 +11,13 @@ export function MarketingNavbar() {
         <Logo />
         <div className="flex w-full items-center justify-between space-x-4 md:block md:w-auto">
           <Link
-            href="/sign-in"
+            href={paths.signIn}
             className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             Sign In
           </Link>
           <Link
-            href="/sign-up"
+            href={paths.signUp}
             className={buttonVariants({ variant: "default", size: "sm" })}
           >
             Get {siteConfig.name} for free

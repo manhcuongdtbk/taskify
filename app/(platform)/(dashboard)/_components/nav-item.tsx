@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { paths } from "@/lib/paths";
+import type { Route } from "next";
 
 interface NavItemProps {
   isExpanded: boolean;
@@ -30,30 +32,34 @@ export function NavItem({
   const router = useRouter();
   const pathname = usePathname();
 
-  const routes = [
+  const routes: {
+    label: string;
+    icon: React.ReactNode;
+    href: Route;
+  }[] = [
     {
       label: "Boards",
       icon: <Layout className="mr-2 h-4 w-4" />,
-      href: `/organization/${organization.id}`,
+      href: paths.organization(organization.id),
     },
     {
       label: "Activity",
       icon: <Activity className="mr-2 h-4 w-4" />,
-      href: `/organization/${organization.id}/activity`,
+      href: paths.organizationActivity(organization.id),
     },
     {
       label: "Settings",
       icon: <Settings className="mr-2 h-4 w-4" />,
-      href: `/organization/${organization.id}/settings`,
+      href: paths.organizationSettings(organization.id),
     },
     {
       label: "Billing",
       icon: <CreditCard className="mr-2 h-4 w-4" />,
-      href: `/organization/${organization.id}/billing`,
+      href: paths.organizationBilling(organization.id),
     },
   ];
 
-  const onClick = (href: string) => {
+  const onClick = (href: Route) => {
     router.push(href);
   };
 

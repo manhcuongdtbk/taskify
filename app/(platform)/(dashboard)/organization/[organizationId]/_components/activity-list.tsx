@@ -3,12 +3,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { paths } from "@/lib/paths";
 
 export async function ActivityList() {
   const { orgId } = await auth();
 
   if (!orgId) {
-    redirect("/select-org");
+    redirect(paths.selectOrg);
   }
 
   const auditLogs = await prisma.auditLog.findMany({

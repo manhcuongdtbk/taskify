@@ -6,10 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint && pnpm lint:routes",
+    "lint": "eslint && pnpm lint:routes && pnpm typecheck",
     "lint:fix": "eslint --fix",
     "lint:routes": "node --import tsx scripts/check-route-export-names.ts",
     "lint:routes:fix": "node --import tsx scripts/check-route-export-names.ts --fix",
+    "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "postinstall": "prisma generate"
   },

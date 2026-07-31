@@ -18,6 +18,7 @@ import { FormPicker } from "./form-picker";
 import { type ComponentRef, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useProModal } from "@/hooks/use-pro-modal";
+import { paths } from "@/lib/paths";
 
 interface FormPopoverProps extends BaseUIRenderForwardingProps {
   side?: "top" | "right" | "bottom" | "left";
@@ -42,7 +43,7 @@ export function FormPopover({
         title: "Board created!",
       });
       closeRef.current?.click();
-      router.push(`/board/${data.id}`);
+      router.push(paths.board(data.id));
     },
     onError: (error) => {
       toast.add({

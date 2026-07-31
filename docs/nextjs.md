@@ -20,6 +20,9 @@ These are intentional patterns learners should copy unless a higher-priority off
 - **`PageProps` / `LayoutProps`** when a `page.tsx` / `layout.tsx` (or its `generateMetadata`) declares props — see [Route props helpers](#route-props-helpers-pageprops--layoutprops--routecontext)
 - **`RouteContext`** when a `route.ts` HTTP handler declares a context/`params` argument — same section
 - **`NextRequest` / `NextResponse`** in `route.ts` when the handler takes a request or returns a response — see [Route Handlers: NextRequest / NextResponse](#route-handlers-nextrequest--nextresponse)
+- **`typedRoutes` + slim `lib/paths`** (cast-needed URLs only) for in-app links / redirects — see [Typed routes and env](#typed-routes-and-env)
+- **`Link` for in-app routes; plain `<a>` for external URLs** — see [Link vs `<a>`](#link-vs-a)
+- **`experimental.typedEnv`** so `process.env` keys get IntelliSense from loaded `.env*` — see [Typed routes and env](#typed-routes-and-env)
 - **Server Actions** (`"use server"`) for mutations, with authentication / authorization checks inside the action
 - **`revalidatePath`** after successful mutations
 - **Route Handlers** (`route.ts`) for HTTP endpoints (e.g. Stripe webhook)
@@ -39,7 +42,6 @@ Track gaps so the repo stays a faithful “Next.js way” reference. Check items
 - [ ] **Authorization / `proxy.ts` gating** — framework checklist lives in [`authentication-and-authorization.md`](./authentication-and-authorization.md) (**TODO — authorization**). Link Next [Data security](https://nextjs.org/docs/app/guides/data-security) / [Proxy](https://nextjs.org/docs/app/getting-started/proxy) from there; don’t duplicate the checkbox list here.
 - [ ] **Expected errors as return values** — validation/business failures via returned state (e.g. `{ error }`), not thrown exceptions for expected cases ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling)); align with / extend `createSafeAction` where needed
 - [ ] **Segment `error.tsx` / `not-found.tsx` (and optional `loading.tsx`)** — especially for board / organization routes; we already call `notFound()` in places but lack dedicated segment files ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling), [loading](https://nextjs.org/docs/app/api-reference/file-conventions/loading), production checklist)
-- [ ] **`<Link>` for in-app navigation** — prefer `next/link` over raw `<a>` for internal routes ([Linking and navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating))
 - [ ] **`next/image` where it fits** — review CSS `backgroundImage` board / organization thumbnails vs Image optimization tradeoffs ([Images](https://nextjs.org/docs/app/getting-started/images))
 - [ ] **Don’t call our own Route Handlers from Server Components** — keep server data access in Server Components / `lib/`; Route Handlers for clients/webhooks ([Production checklist](https://nextjs.org/docs/app/guides/production-checklist#data-fetching-and-caching))
 - [ ] **Push `"use client"` boundaries down** — shrink client islands so Server Component trees stay the default ([Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components))
@@ -103,6 +105,57 @@ Prefer Next’s extended APIs over the bare Web [`Request`](https://developer.mo
 
 Skill-template apps under `.agents/` / `.claude/` are not product code; leave them alone.
 
+## Typed routes and env
+
+Official: [Statically Typed Links](https://nextjs.org/docs/app/api-reference/config/typescript#statically-typed-links) · [Type IntelliSense for Environment Variables](https://nextjs.org/docs/app/api-reference/config/typescript#type-intellisense-for-environment-variables). Config lives in `next.config.ts`.
+
+| Flag | Effect |
+| ---- | ------ |
+| `typedRoutes: true` | `Link` `href`, `redirect`, `router.push` / `replace` must be valid app routes (or `Route`) |
+| `experimental.typedEnv: true` | During `next dev`, writes `.next/dev/types/env.d.ts` with keys from loaded `.env*` for `process.env` IntelliSense |
+
+**Repo rules**
+
+1. **`lib/paths.ts` is only for routes that need a `Route` cast** — optional catch-alls (`/sign-in`, `/sign-up`, `/select-org`) and dynamic templates (`paths.board(id)`, …). Don’t add static entries that typecheck as bare literals; use inline `"/"`, `"/protected"`, … instead. Inside the file, cast once via the private `route()` helper — not `as Route` on every entry.
+2. **Use `paths.*` at call sites** when a helper exists (catch-alls / dynamics). Don’t cast with `as Route` outside `lib/paths.ts`.
+3. **External URLs** — use a plain `<a>` ([Link vs `<a>`](#link-vs-a)); do not cast them as `Route` for `Link`.
+4. **`proxy.ts` / `new URL(path, req.url)`** — string paths for middleware redirects are fine; they are not the typed `Link`/`redirect` APIs.
+5. **`typedEnv` is IntelliSense, not runtime validation** — keys are optional `string`s based on whatever `next dev` loaded. Still keep secrets out of `NEXT_PUBLIC_*`. Production-only vars need `NODE_ENV=production` during `next dev` (or equivalent) to appear in the generated `.d.ts`.
+6. **Regenerate types** with `next typegen`, `next dev`, or `next build`. `tsconfig.json` already includes `.next/types/**/*.ts` and `.next/dev/types/**/*.ts`.
+
+**Common practice (path helpers, not a route table)**
+
+Centralizing path strings / builders (`paths.ts`, `routes.ts`, `links.ts`, …) is a widespread frontend habit. You’ll see the same *idea* next to [React Router](https://reactrouter.com/) (path constants + helpers like [`generatePath`](https://api.reactrouter.com/v7/functions/react-router.generatePath.html)) and [Vue Router](https://router.vuejs.org/) (often **named routes** / path constants beside the router config). Some codebases put *every* URL there; **this repo keeps a slim map** — only paths that need a `typedRoutes` cast — so the file doesn’t look like every link must go through `paths`.
+
+**Do not confuse that habit with those libraries’ route tables.** In React Router / Vue Router, a central file often *registers* path → component (the router consumes it). In the App Router, the `app/` tree still owns routing; `lib/paths.ts` only **mirrors** cast-needed URLs for typed links / redirects under [`typedRoutes`](https://nextjs.org/docs/app/api-reference/config/typescript#statically-typed-links).
+
+**Enforcement**
+
+| Check | How |
+| ----- | --- |
+| Valid in-app routes | `typedRoutes` + `pnpm typecheck` (also under `pnpm lint`) |
+| `as Route` only in `lib/paths.ts` | ESLint `no-restricted-syntax` in `eslint.config.mjs` (all files except `lib/paths.ts`) — pushes catch-alls / dynamics through `paths.*` |
+| External `Link` / `target="_blank"` | [Link vs `<a>`](#link-vs-a) |
+
+Static literals (`"/"`) are not forced through `paths` — they don’t need a cast. `proxy.ts` string paths are out of scope for this rule.
+
+## Link vs `<a>`
+
+| Destination | Use | Why |
+| ----------- | --- | --- |
+| In-app route (`/board/…`, `paths.*`, …) | `next/link` (`Link`) | Client navigation + prefetch; `typedRoutes` |
+| External (`https://…`, `mailto:`, `tel:`, `sms:`) | Plain `<a>` | Full browser navigation; no `Route` cast |
+
+Repo example: Unsplash attribution in `components/form/form-picker.tsx` uses `<a href={image.links.html} …>`.
+
+**Enforcement (ESLint in `eslint.config.mjs`)**
+
+1. **Internal `<a>` → `Link`** — `@next/next/no-html-link-for-pages` (error). Official: [Linking and Navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating) · [`no-html-link-for-pages`](https://nextjs.org/docs/messages/no-html-link-for-pages).
+2. **External `Link` → `<a>`** — `no-restricted-syntax` on `Link` `href` literals / templates / `pathname` objects starting with `http(s):` / `mailto:` / `tel:` / `sms:`, and on casting those as `Route`.
+3. **`target="_blank"` → safe `rel`** — `react/jsx-no-target-blank` (error): require `rel` that includes `noopener` and/or `noreferrer` (tabnabbing).
+
+**Gap:** a dynamic string (e.g. `href={image.links.html}`) on `Link` is not AST-detectable as external — still use `<a>` by convention; `typedRoutes` usually still fails unless you cast.
+
 ## Guides we lean on (not duplicated here)
 
 Prefer the official page over re-teaching it in this file:
@@ -111,6 +164,8 @@ Prefer the official page over re-teaching it in this file:
 | -------------- | ---------- |
 | Typed page / layout / route props | [Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers) · [Route Context Helper](https://nextjs.org/docs/app/getting-started/route-handlers#route-context-helper) · [PageProps](https://nextjs.org/docs/app/api-reference/file-conventions/page#page-props-helper) · [LayoutProps](https://nextjs.org/docs/app/api-reference/file-conventions/layout#layout-props-helper) · [RouteContext](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper) · [this section](#route-props-helpers-pageprops--layoutprops--routecontext) |
 | `NextRequest` / `NextResponse` in Route Handlers | [Extended APIs](https://nextjs.org/docs/app/getting-started/route-handlers#extended-nextrequest-and-nextresponse-apis) · [`NextRequest`](https://nextjs.org/docs/app/api-reference/functions/next-request) · [`NextResponse`](https://nextjs.org/docs/app/api-reference/functions/next-response) · [this section](#route-handlers-nextrequest--nextresponse) |
+| Typed `Link` / navigation / env IntelliSense | [Statically Typed Links](https://nextjs.org/docs/app/api-reference/config/typescript#statically-typed-links) · [typedEnv](https://nextjs.org/docs/app/api-reference/config/typescript#type-intellisense-for-environment-variables) · [this section](#typed-routes-and-env) · `lib/paths.ts` |
+| `Link` vs `<a>` (in-app vs external) | [Linking and Navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating) · [`Link`](https://nextjs.org/docs/app/api-reference/components/link) · [this section](#link-vs-a) |
 | Fetching (server + client) | [Fetching Data](https://nextjs.org/docs/app/getting-started/fetching-data) · [`data.md`](./data.md) |
 | Mutating (Server Actions) | [Mutating Data](https://nextjs.org/docs/app/getting-started/mutating-data) · [`data.md`](./data.md) |
 | Forms + Server Actions | [Forms](https://nextjs.org/docs/app/guides/forms) · [Server Actions](https://nextjs.org/docs/app/guides/server-actions) |

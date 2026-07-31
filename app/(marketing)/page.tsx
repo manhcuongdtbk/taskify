@@ -4,6 +4,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { calSansUI, poppins } from "@/fonts";
 import { siteConfig } from "@/config/site";
+import { paths } from "@/lib/paths";
 
 export default function MarketingPage({}: PageProps<"/">) {
   return (
@@ -35,7 +36,7 @@ export default function MarketingPage({}: PageProps<"/">) {
         your team works is unique — accomplish it all with {siteConfig.name}.
       </div>
       <Link
-        href="/sign-up"
+        href={paths.signUp}
         className={buttonVariants({
           variant: "default",
           size: "lg",

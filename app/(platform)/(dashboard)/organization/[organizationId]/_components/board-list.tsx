@@ -9,12 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getAvailableCount } from "@/lib/organization-limit";
 import { FREE_PLAN, PRO_PLAN, hasUnlimitedBoards } from "@/constants/pricing-plans";
 import { checkSubscription } from "@/lib/subscription";
+import { paths } from "@/lib/paths";
 
 export async function BoardList() {
   const { orgId } = await auth();
 
   if (!orgId) {
-    redirect("/select-org");
+    redirect(paths.selectOrg);
   }
 
   const boards = await prisma.board.findMany({
@@ -43,7 +44,7 @@ export async function BoardList() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {boards.map((board) => (
           <Link
-            href={`/board/${board.id}`}
+            href={paths.board(board.id)}
             key={board.id}
             style={{ backgroundImage: `url(${board.imageThumbUrl})` }}
             className="group relative aspect-video h-full w-full overflow-hidden rounded-sm bg-sky-700 bg-cover bg-center bg-no-repeat p-2"

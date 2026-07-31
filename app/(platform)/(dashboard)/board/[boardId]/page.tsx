@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ListContainer } from "./_components/list-container";
+import { paths } from "@/lib/paths";
 
 export default async function BoardIdPage({
   params,
@@ -9,7 +10,7 @@ export default async function BoardIdPage({
   const { orgId } = await auth();
 
   if (!orgId) {
-    redirect("/select-org");
+    redirect(paths.selectOrg);
   }
 
   const { boardId } = await params;

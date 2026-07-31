@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion } from "@/components/ui/accordion";
+import { paths } from "@/lib/paths";
 import { NavItem } from "./nav-item";
 
 interface DashboardSidebarProps {
@@ -72,7 +73,7 @@ export function DashboardSidebar({
       <div className="mb-1 flex items-center text-xs font-medium">
         <span className="pl-4">Workspaces</span>
         <Link
-          href="/select-org"
+          href={paths.selectOrg}
           className={buttonVariants({
             variant: "ghost",
             size: "icon",

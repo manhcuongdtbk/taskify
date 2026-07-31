@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { BoardNavbar } from "./_components/board-navbar";
+import { paths } from "@/lib/paths";
 
 export async function generateMetadata({
   params,
@@ -33,7 +34,7 @@ export default async function BoardIdLayout({
   const { orgId } = await auth();
 
   if (!orgId) {
-    redirect("/select-org");
+    redirect(paths.selectOrg);
   }
 
   const { boardId } = await params;

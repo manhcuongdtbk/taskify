@@ -8,7 +8,6 @@ import { useFormStatus } from "react-dom";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { defaultImages } from "@/constants/images";
-import Link from "next/link";
 import { FormErrors } from "./form-errors";
 
 interface FormPickerProps {
@@ -90,13 +89,14 @@ export function FormPicker({ id, errors }: FormPickerProps) {
                 <Check className="h-4 w-4 text-white" />
               </div>
             )}
-            <Link
+            <a
               href={image.links.html}
               target="_blank"
+              rel="noreferrer"
               className="absolute bottom-0 w-full truncate bg-black/50 p-1 text-[10px] text-white opacity-0 group-hover:opacity-100 hover:underline"
             >
               {image.user.name}
-            </Link>
+            </a>
           </div>
         ))}
       </div>
