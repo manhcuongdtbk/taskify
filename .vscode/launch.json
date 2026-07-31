@@ -1,46 +1,88 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      // https://nextjs.org/docs/app/guides/debugging#debugging-with-vs-code
-      {
-        "name": "Next.js: debug server-side",
-        "type": "node-terminal",
-        "request": "launch",
-        "command": "pnpm dev -- --inspect"
-      },
-      {
-        "name": "Next.js: debug client-side",
-        "type": "chrome",
-        "request": "launch",
-        "url": "http://localhost:3000"
-      },
-      {
-        "name": "Next.js: debug client-side (Firefox)",
-        "type": "firefox",
-        "request": "launch",
-        "url": "http://localhost:3000",
-        "reAttach": true,
-        "pathMappings": [
-          {
-            "url": "webpack://_N_E",
-            "path": "${workspaceFolder}"
-          }
-        ]
-      },
-      {
-        "name": "Next.js: debug full stack",
-        "type": "node",
-        "request": "launch",
-        "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
-        "runtimeArgs": ["--inspect"],
-        "skipFiles": ["<node_internals>/**"],
-        "serverReadyAction": {
-          "action": "debugWithChrome",
-          "killOnServerStop": true,
-          "pattern": "- Local:.+(https?://.+)",
-          "uriFormat": "%s",
-          "webRoot": "${workspaceFolder}"
+  "version": "0.2.0",
+  "configurations": [
+    // https://nextjs.org/docs/app/guides/debugging#debugging-with-vs-code
+    // Client configs assume the Next.js server is already running (e.g. via server-side or full stack).
+    {
+      "name": "Next.js: debug server-side (Node.js)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev -- --inspect"
+    },
+    {
+      "name": "Next.js: debug client-side (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      // Built-in Edge debugger (type msedge).
+      "name": "Next.js: debug client-side (Edge)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      // Needs firefox-devtools.vscode-firefox-debug. reAttach + pathMappings are Firefox-specific (Next.js docs).
+      "name": "Next.js: debug client-side (Firefox)",
+      "type": "firefox",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "reAttach": true,
+      "pathMappings": [
+        {
+          "url": "webpack://_N_E",
+          "path": "${workspaceFolder}"
         }
+      ]
+    },
+    {
+      // serverReadyAction.debugWithChrome opens Chrome with the captured Local URL (uriFormat).
+      "name": "Next.js: debug full stack (Node.js + Chrome)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "runtimeArgs": ["--inspect"],
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "action": "debugWithChrome",
+        "killOnServerStop": true,
+        "pattern": "- Local:.+(https?://.+)",
+        "uriFormat": "%s",
+        "webRoot": "${workspaceFolder}"
       }
-    ]
-  }
+    },
+    {
+      // Same as Chrome full stack, but serverReadyAction.debugWithEdge.
+      "name": "Next.js: debug full stack (Node.js + Edge)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "runtimeArgs": ["--inspect"],
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "action": "debugWithEdge",
+        "killOnServerStop": true,
+        "pattern": "- Local:.+(https?://.+)",
+        "uriFormat": "%s",
+        "webRoot": "${workspaceFolder}"
+      }
+    },
+    {
+      // No debugWithFirefox. startDebugging runs the Firefox client config after the same ready pattern.
+      // Unlike Chrome/Edge, the captured URL is not passed through — Firefox uses its own hardcoded url.
+      "name": "Next.js: debug full stack (Node.js + Firefox)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "runtimeArgs": ["--inspect"],
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "action": "startDebugging",
+        "name": "Next.js: debug client-side (Firefox)",
+        "killOnServerStop": true,
+        "pattern": "- Local:.+(https?://.+)"
+      }
+    }
+  ]
+}
