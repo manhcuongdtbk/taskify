@@ -1,10 +1,10 @@
 import { ENTITY_TYPE } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: RouteContext<"/api/cards/[cardId]/logs">,
 ) {
   try {

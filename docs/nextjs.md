@@ -19,6 +19,7 @@ These are intentional patterns learners should copy unless a higher-priority off
 - **Await `params`** (and similar async request APIs) in pages/layouts/route handlers
 - **`PageProps` / `LayoutProps`** when a `page.tsx` / `layout.tsx` (or its `generateMetadata`) declares props — see [Route props helpers](#route-props-helpers-pageprops--layoutprops--routecontext)
 - **`RouteContext`** when a `route.ts` HTTP handler declares a context/`params` argument — same section
+- **`NextRequest` / `NextResponse`** in `route.ts` when the handler takes a request or returns a response — see [Route Handlers: NextRequest / NextResponse](#route-handlers-nextrequest--nextresponse)
 - **Server Actions** (`"use server"`) for mutations, with authentication / authorization checks inside the action
 - **`revalidatePath`** after successful mutations
 - **Route Handlers** (`route.ts`) for HTTP endpoints (e.g. Stripe webhook)
@@ -83,6 +84,23 @@ Next generates **global** TypeScript helpers for App Router props. Prefer them o
 - Route Handler with params: `app/api/cards/[cardId]/route.ts` → `RouteContext<'/api/cards/[cardId]'>`
 - Route Handler without context: `app/api/webhook/route.ts` (`POST(req)` only) — no `RouteContext` needed
 
+## Route Handlers: `NextRequest` / `NextResponse`
+
+Prefer Next’s extended APIs over the bare Web [`Request`](https://developer.mozilla.org/docs/Web/API/Request) / [`Response`](https://developer.mozilla.org/docs/Web/API/Response) in `route.ts`. Official: [Extended NextRequest and NextResponse](https://nextjs.org/docs/app/getting-started/route-handlers#extended-nextrequest-and-nextresponse-apis) · [`NextRequest`](https://nextjs.org/docs/app/api-reference/functions/next-request) · [`NextResponse`](https://nextjs.org/docs/app/api-reference/functions/next-response).
+
+| API | Use when | Adds |
+| --- | -------- | ---- |
+| `NextRequest` | Handler declares a request parameter | `cookies`, `nextUrl`, … |
+| `NextResponse` | Handler returns a response | `cookies`, `json`, `redirect`, `rewrite`, `next`, … |
+
+**Repo rules**
+
+1. **Request param → `NextRequest`** — if an HTTP method export takes a 1st argument, type it as `NextRequest` (not `Request`). Omit the argument entirely when unused (`export async function GET()`).
+2. **Responses → `NextResponse`** — use `NextResponse.json` / `new NextResponse` / `NextResponse.redirect` (not `Response.json` / `new Response`).
+3. **Still use `RouteContext`** for the 2nd argument when you read `params` ([above](#route-props-helpers-pageprops--layoutprops--routecontext)).
+
+**Enforcement:** same `pnpm lint:routes` / `pnpm lint:routes:fix` script (autofixes `Request` → `NextRequest`, bare `Response` → `NextResponse`, and adds `next/server` imports).
+
 Skill-template apps under `.agents/` / `.claude/` are not product code; leave them alone.
 
 ## Guides we lean on (not duplicated here)
@@ -92,6 +110,7 @@ Prefer the official page over re-teaching it in this file:
 | When you need… | Start here |
 | -------------- | ---------- |
 | Typed page / layout / route props | [Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers) · [Route Context Helper](https://nextjs.org/docs/app/getting-started/route-handlers#route-context-helper) · [PageProps](https://nextjs.org/docs/app/api-reference/file-conventions/page#page-props-helper) · [LayoutProps](https://nextjs.org/docs/app/api-reference/file-conventions/layout#layout-props-helper) · [RouteContext](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper) · [this section](#route-props-helpers-pageprops--layoutprops--routecontext) |
+| `NextRequest` / `NextResponse` in Route Handlers | [Extended APIs](https://nextjs.org/docs/app/getting-started/route-handlers#extended-nextrequest-and-nextresponse-apis) · [`NextRequest`](https://nextjs.org/docs/app/api-reference/functions/next-request) · [`NextResponse`](https://nextjs.org/docs/app/api-reference/functions/next-response) · [this section](#route-handlers-nextrequest--nextresponse) |
 | Fetching (server + client) | [Fetching Data](https://nextjs.org/docs/app/getting-started/fetching-data) · [`data.md`](./data.md) |
 | Mutating (Server Actions) | [Mutating Data](https://nextjs.org/docs/app/getting-started/mutating-data) · [`data.md`](./data.md) |
 | Forms + Server Actions | [Forms](https://nextjs.org/docs/app/guides/forms) · [Server Actions](https://nextjs.org/docs/app/guides/server-actions) |

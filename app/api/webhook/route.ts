@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { stripe, stripeTimestampToDate } from "@/lib/stripe";
 import prisma from "@/lib/prisma";
 
@@ -17,7 +17,7 @@ import prisma from "@/lib/prisma";
  * Stripe docs: https://docs.stripe.com/webhooks
  * Subscription events: https://docs.stripe.com/billing/subscriptions/webhooks
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   // Must use the raw request body for signature verification.
   // If you parse JSON first (req.json()), constructEvent will fail.
   const body = await req.text();

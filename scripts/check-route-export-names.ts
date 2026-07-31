@@ -3,11 +3,11 @@
  * Enforce App Router segment-file conventions:
  * 1. page/layout: route-mirrored default-export names — docs/conventions.md
  * 2. page/layout: PageProps / LayoutProps — docs/nextjs.md § Route props helpers
- * 3. route.ts: RouteContext on handler context arg — docs/nextjs.md § Route props helpers
+ * 3. route.ts: NextRequest / NextResponse / RouteContext — docs/nextjs.md
  *
  * Usage (via package scripts; loads TS with `node --import tsx`):
  *   pnpm lint:routes          # check (exit 1 on mismatch)
- *   pnpm lint:routes:fix     # rewrite names + PageProps/LayoutProps/RouteContext
+ *   pnpm lint:routes:fix     # rewrite names + PageProps/LayoutProps/RouteContext/NextRequest/NextResponse
  */
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
@@ -437,9 +437,76 @@ function findHttpMethodSpans(
   return out;
 }
 
+function isNextRequestArg(arg: string): boolean {
+  return /:\s*NextRequest\b/.test(arg);
+}
+
+function rewriteRequestArg(arg: string): string | null {
+  if (isNextRequestArg(arg)) return arg;
+  // `req: Request` / `request: Request` (not NextRequest)
+  if (/:\s*Request\b/.test(arg)) {
+    return arg.replace(/:\s*Request\b/, ": NextRequest");
+  }
+  // bare `req`
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(arg.trim())) {
+    return `${arg.trim()}: NextRequest`;
+  }
+  return null;
+}
+
+/** Web `Response` constructors/helpers (not `NextResponse`). */
+function findBareResponseUsages(source: string): string[] {
+  const hits: string[] = [];
+  if (/\bnew Response\b/.test(source)) hits.push("new Response");
+  if (/(?<!Next)Response\.json\b/.test(source)) hits.push("Response.json");
+  if (/(?<!Next)Response\.redirect\b/.test(source)) hits.push("Response.redirect");
+  return hits;
+}
+
+function rewriteBareResponses(source: string): string {
+  return source
+    .replace(/\bnew Response\b/g, "new NextResponse")
+    .replace(/(?<!Next)Response\.json\b/g, "NextResponse.json")
+    .replace(/(?<!Next)Response\.redirect\b/g, "NextResponse.redirect");
+}
+
+function ensureNextServerImport(source: string, names: string[]): string {
+  const importRe = /import\s*\{([^}]*)\}\s*from\s*["']next\/server["']\s*;?/;
+  const m = source.match(importRe);
+  if (m && m.index !== undefined) {
+    const existing = m[1]!
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const toAdd = names.filter((n) => !existing.includes(n));
+    if (toAdd.length === 0) return source;
+    const next = [...existing, ...toAdd].join(", ");
+    return (
+      source.slice(0, m.index) +
+      `import { ${next} } from "next/server";` +
+      source.slice(m.index + m[0].length)
+    );
+  }
+
+  const line = `import { ${names.join(", ")} } from "next/server";\n`;
+  const imports = [...source.matchAll(/^import .+$/gm)];
+  const last = imports[imports.length - 1];
+  if (last && last.index !== undefined) {
+    const end = last.index + last[0].length;
+    return source.slice(0, end) + "\n" + line + source.slice(end);
+  }
+  return line + source;
+}
+
 type Failure = {
   file: string;
-  kind: "name" | "props" | "meta-props" | "route-context";
+  kind:
+    | "name"
+    | "props"
+    | "meta-props"
+    | "route-context"
+    | "next-request"
+    | "next-response";
   expected: string;
   actual: string | null;
 };
@@ -586,7 +653,7 @@ for (const file of pageLayoutFiles) {
   }
 }
 
-// --- Route Handlers: RouteContext on 2nd arg when present ---
+// --- Route Handlers: NextRequest / NextResponse / RouteContext ---
 for (const file of routeHandlerFiles) {
   const rel = relative(process.cwd(), file);
   const expectedLiteral = expectedRouteLiteral(file);
@@ -595,9 +662,62 @@ for (const file of routeHandlerFiles) {
   let source = readFileSync(file, "utf8");
   let fileChanged = false;
   const fileFixes: string[] = [];
+  const neededImports = new Set<string>();
 
-  let passSafety = 0;
-  while (passSafety++ < 16) {
+  // NextRequest on 1st arg when present
+  let reqPass = 0;
+  while (reqPass++ < 16) {
+    let pending: {
+      name: string;
+      span: ParenSpan;
+      args: string[];
+    } | null = null;
+
+    for (const method of findHttpMethodSpans(source)) {
+      const args = splitTopLevelArgs(method.span.params);
+      if (args.length < 1) continue;
+      if (isNextRequestArg(args[0]!)) continue;
+      // No typed/named first arg at all shouldn't happen if length >= 1
+      pending = { name: method.name, span: method.span, args };
+      break;
+    }
+
+    if (!pending) break;
+
+    if (fix) {
+      const nextReq = rewriteRequestArg(pending.args[0]!);
+      if (nextReq === null) {
+        failures.push({
+          file: rel,
+          kind: "next-request",
+          expected: `NextRequest on ${pending.name} 1st arg`,
+          actual: `(could not autofix: ${pending.args[0]})`,
+        });
+        break;
+      }
+      const nextParams = [nextReq, ...pending.args.slice(1)].join(", ");
+      source =
+        source.slice(0, pending.span.openIdx + 1) +
+        nextParams +
+        source.slice(pending.span.closeIdx);
+      fileChanged = true;
+      neededImports.add("NextRequest");
+      fileFixes.push(`${pending.name} request → NextRequest`);
+      continue;
+    }
+
+    failures.push({
+      file: rel,
+      kind: "next-request",
+      expected: `NextRequest on ${pending.name} 1st arg`,
+      actual: pending.args[0] ?? null,
+    });
+    break;
+  }
+
+  // RouteContext on 2nd arg when present
+  let ctxPass = 0;
+  while (ctxPass++ < 16) {
     let pending: {
       name: string;
       span: ParenSpan;
@@ -607,7 +727,7 @@ for (const file of routeHandlerFiles) {
 
     for (const method of findHttpMethodSpans(source)) {
       const args = splitTopLevelArgs(method.span.params);
-      if (args.length < 2) continue; // context optional when unused
+      if (args.length < 2) continue;
 
       const contextArg = args[1]!;
       const parsed = parseRouteContext(contextArg);
@@ -640,8 +760,11 @@ for (const file of routeHandlerFiles) {
         });
         break;
       }
-      const nextParams = [pending.args[0], nextContext, ...pending.args.slice(2)]
-        .join(", ");
+      const nextParams = [
+        pending.args[0],
+        nextContext,
+        ...pending.args.slice(2),
+      ].join(", ");
       source =
         source.slice(0, pending.span.openIdx + 1) +
         nextParams +
@@ -658,6 +781,28 @@ for (const file of routeHandlerFiles) {
       actual: pending.actualLabel,
     });
     break;
+  }
+
+  // Prefer NextResponse over Web Response helpers
+  const bareResponses = findBareResponseUsages(source);
+  if (bareResponses.length > 0) {
+    if (fix) {
+      source = rewriteBareResponses(source);
+      fileChanged = true;
+      neededImports.add("NextResponse");
+      fileFixes.push(`${bareResponses.join(", ")} → NextResponse`);
+    } else {
+      failures.push({
+        file: rel,
+        kind: "next-response",
+        expected: "NextResponse (json/new/redirect)",
+        actual: bareResponses.join(", "),
+      });
+    }
+  }
+
+  if (fileChanged && neededImports.size > 0) {
+    source = ensureNextServerImport(source, [...neededImports]);
   }
 
   if (fileChanged) {
