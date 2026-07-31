@@ -8,7 +8,7 @@ const buildEslintCommand = (filenames) =>
  
 const config = {
   '*.{js,jsx,ts,tsx}': [buildEslintCommand],
-  'app/**/{page,layout}.{js,jsx,ts,tsx}': () => 'pnpm lint:routes:fix',
+  'app/**/{page,layout,route}.{js,jsx,ts,tsx}': () => 'pnpm lint:routes:fix',
 };
 
 export default config;

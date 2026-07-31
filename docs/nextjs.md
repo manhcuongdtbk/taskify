@@ -17,7 +17,8 @@ These are intentional patterns learners should copy unless a higher-priority off
 
 - **Server Components by default**; `"use client"` only where interactivity/browser APIs need it
 - **Await `params`** (and similar async request APIs) in pages/layouts/route handlers
-- **`PageProps` / `LayoutProps`** when a `page.tsx` / `layout.tsx` (or its `generateMetadata`) declares props — see [Route props helpers](#route-props-helpers-pageprops--layoutprops)
+- **`PageProps` / `LayoutProps`** when a `page.tsx` / `layout.tsx` (or its `generateMetadata`) declares props — see [Route props helpers](#route-props-helpers-pageprops--layoutprops--routecontext)
+- **`RouteContext`** when a `route.ts` HTTP handler declares a context/`params` argument — same section
 - **Server Actions** (`"use server"`) for mutations, with authentication / authorization checks inside the action
 - **`revalidatePath`** after successful mutations
 - **Route Handlers** (`route.ts`) for HTTP endpoints (e.g. Stripe webhook)
@@ -34,7 +35,6 @@ Official overview: [Production checklist](https://nextjs.org/docs/app/guides/pro
 
 Track gaps so the repo stays a faithful “Next.js way” reference. Check items off when the app (and any related docs) match the linked guidance. Prefer official patterns over new repo-only rules.
 
-- [ ] **`RouteContext` on Route Handlers** — replace handwritten `{ params: Promise<…> }` in `app/api/**/route.ts` with `RouteContext<'/api/…'>` ([Route Handlers](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper)). Do this after `PageProps` / `LayoutProps` are settled ([below](#route-props-helpers-pageprops--layoutprops)).
 - [ ] **Authorization / `proxy.ts` gating** — framework checklist lives in [`authentication-and-authorization.md`](./authentication-and-authorization.md) (**TODO — authorization**). Link Next [Data security](https://nextjs.org/docs/app/guides/data-security) / [Proxy](https://nextjs.org/docs/app/getting-started/proxy) from there; don’t duplicate the checkbox list here.
 - [ ] **Expected errors as return values** — validation/business failures via returned state (e.g. `{ error }`), not thrown exceptions for expected cases ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling)); align with / extend `createSafeAction` where needed
 - [ ] **Segment `error.tsx` / `not-found.tsx` (and optional `loading.tsx`)** — especially for board / organization routes; we already call `notFound()` in places but lack dedicated segment files ([Error handling](https://nextjs.org/docs/app/getting-started/error-handling), [loading](https://nextjs.org/docs/app/api-reference/file-conventions/loading), production checklist)
@@ -53,26 +53,26 @@ Only adopt when we deliberately need them:
 - `instrumentation.ts` / OpenTelemetry
 - Partial Prerendering and other experimental caching modes
 
-## Route props helpers (`PageProps` / `LayoutProps`)
+## Route props helpers (`PageProps` / `LayoutProps` / `RouteContext`)
 
-Next generates **global** TypeScript helpers for App Router props. Prefer them over handwritten `{ params: Promise<{ … }> }` / `Readonly<{ children }>`. Official intro: [Layouts and Pages → Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers). TypeScript overview: [Route-Aware Type Helpers](https://nextjs.org/docs/app/api-reference/config/typescript#route-aware-type-helpers).
+Next generates **global** TypeScript helpers for App Router props. Prefer them over handwritten `{ params: Promise<{ … }> }` / `Readonly<{ children }>`. Official intro: [Layouts and Pages → Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers). Route Handlers: [Route Context Helper](https://nextjs.org/docs/app/getting-started/route-handlers#route-context-helper). TypeScript overview: [Route-Aware Type Helpers](https://nextjs.org/docs/app/api-reference/config/typescript#route-aware-type-helpers).
 
 | Helper | Use on | Types |
 | ------ | ------ | ----- |
 | [`PageProps<'/route'>`](https://nextjs.org/docs/app/api-reference/file-conventions/page#page-props-helper) | `page.tsx` default export; also `generateMetadata` / `generateViewport` in a **page** file when they read `params` / `searchParams` | `params`, `searchParams` |
 | [`LayoutProps<'/route'>`](https://nextjs.org/docs/app/api-reference/file-conventions/layout#layout-props-helper) | `layout.tsx` default export; also `generateMetadata` / `generateViewport` in a **layout** file when they read `params` | `params`, `children`, parallel-route slots |
-| [`RouteContext<'/api/…'>`](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper) | `route.ts` handlers (2nd argument) — **not done yet** ([TODO](#todo--follow-nextjs-recommendations-more-closely)) | `params` |
+| [`RouteContext<'/api/…'>`](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper) | `route.ts` HTTP method handlers — **2nd argument** when you read `params` | `params` |
 
 **Repo rules**
 
-1. **Literal must match generated routes** — use a path from `AppRoutes` / `LayoutRoutes` in `.next/dev/types/routes.d.ts` (regenerated by `next dev`, `next build`, or `next typegen`). Invalid literals fail typecheck.
+1. **Literal must match generated routes** — use a path from `AppRoutes` / `LayoutRoutes` / `AppRouteHandlerRoutes` in `.next/dev/types/routes.d.ts` (regenerated by `next dev`, `next build`, or `next typegen`). Invalid literals fail typecheck.
 2. **Route groups don’t appear in the literal** — `(platform)`, `(dashboard)`, `(clerk)`, `(marketing)` are folders only. Nested layouts that add no URL segment share `LayoutProps<'/'>` (e.g. marketing / platform / dashboard / clerk layouts).
-3. **No hand-rolled `BoardIdPageProps`** — the global helper *is* the props type. Route export **names** still follow [`conventions.md`](./conventions.md#route-mirrored-pagelayout-names) (`BoardIdPage`, `BoardIdLayout`, …).
+3. **No hand-rolled `BoardIdPageProps`** — the global helper *is* the props type. Route export **names** still follow [`conventions.md`](./conventions.md#route-mirrored-pagelayout-names) (`BoardIdPage`, `BoardIdLayout`, …). HTTP method names on `route.ts` stay `GET` / `POST` / … (framework-required).
 4. **Await `params` / `searchParams`** — they are `Promise`s; keep awaiting them (already in [Already following](#already-following-keep-as-examples)).
-5. **Helper only when props are used** — omit the parameter entirely when you don’t read `params` / `searchParams` / `children` (e.g. `function MarketingPage()`). `({}: PageProps<'…'>)` is allowed but optional. **Enforced:** if the default export declares props (or a props type), they must use `PageProps` / `LayoutProps` with the correct literal — not a handwritten shape.
+5. **Helper only when props/context are used** — omit the parameter entirely when you don’t read `params` / `searchParams` / `children` (e.g. `function MarketingPage()`, webhook `POST(req)` with no context). `({}: PageProps<'…'>)` is allowed but optional. **Enforced:** if the default export declares props (or a props type), they must use `PageProps` / `LayoutProps` with the correct literal. If a Route Handler declares a 2nd argument, it must be `RouteContext<'…'>` with the correct literal.
 6. **`generateMetadata` may use the same helper** — even though the getting-started page shows helpers on page/layout components, [`generateMetadata`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata) (and [`generateViewport`](https://nextjs.org/docs/app/api-reference/functions/generate-viewport)) document typing the first argument with `PageProps` / `LayoutProps`. Example: `app/(platform)/(dashboard)/board/[boardId]/layout.tsx`. If metadata needs no params (org layout uses Clerk `auth()` only), omit the props parameter. **Enforced:** if `generateMetadata` / `generateViewport` declares parameters, they must use the same helper + literal as the file.
 
-**Enforcement:** `scripts/check-route-export-names.ts` via `pnpm lint:routes` (also under `pnpm lint` and lint-staged on `app/**/{page,layout}.*`). `pnpm lint:routes:fix` rewrites export names and `PageProps` / `LayoutProps` when props are present (wrong/missing helper or literal; common handwritten `{ … }: { … }` shapes). Unusual signatures that can’t be rewritten safely still fail for a manual fix.
+**Enforcement:** `scripts/check-route-export-names.ts` via `pnpm lint:routes` (also under `pnpm lint` and lint-staged on `app/**/{page,layout,route}.*`). `pnpm lint:routes:fix` rewrites export names, `PageProps` / `LayoutProps`, and `RouteContext` for common shapes. Unusual signatures that can’t be rewritten safely still fail for a manual fix.
 
 **Canonical examples in this repo**
 
@@ -80,8 +80,10 @@ Next generates **global** TypeScript helpers for App Router props. Prefer them o
 - Layout + `generateMetadata` with params: `app/(platform)/(dashboard)/board/[boardId]/layout.tsx` → `LayoutProps<'/board/[boardId]'>`
 - Layout route segment without dynamic params: `app/(platform)/(dashboard)/organization/layout.tsx` → `LayoutProps<'/organization'>`
 - Static / catch-all pages: marketing `PageProps<'/'>`, Clerk `PageProps<'/sign-in/[[...sign-in]]'>`, etc.
+- Route Handler with params: `app/api/cards/[cardId]/route.ts` → `RouteContext<'/api/cards/[cardId]'>`
+- Route Handler without context: `app/api/webhook/route.ts` (`POST(req)` only) — no `RouteContext` needed
 
-Do **not** put `PageProps` / `LayoutProps` on Route Handlers — that is `RouteContext` (TODO above). Skill-template apps under `.agents/` / `.claude/` are not product code; leave them alone.
+Skill-template apps under `.agents/` / `.claude/` are not product code; leave them alone.
 
 ## Guides we lean on (not duplicated here)
 
@@ -89,7 +91,7 @@ Prefer the official page over re-teaching it in this file:
 
 | When you need… | Start here |
 | -------------- | ---------- |
-| Typed page / layout / route props | [Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers) · [PageProps](https://nextjs.org/docs/app/api-reference/file-conventions/page#page-props-helper) · [LayoutProps](https://nextjs.org/docs/app/api-reference/file-conventions/layout#layout-props-helper) · [RouteContext](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper) · [this section](#route-props-helpers-pageprops--layoutprops) |
+| Typed page / layout / route props | [Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers) · [Route Context Helper](https://nextjs.org/docs/app/getting-started/route-handlers#route-context-helper) · [PageProps](https://nextjs.org/docs/app/api-reference/file-conventions/page#page-props-helper) · [LayoutProps](https://nextjs.org/docs/app/api-reference/file-conventions/layout#layout-props-helper) · [RouteContext](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper) · [this section](#route-props-helpers-pageprops--layoutprops--routecontext) |
 | Fetching (server + client) | [Fetching Data](https://nextjs.org/docs/app/getting-started/fetching-data) · [`data.md`](./data.md) |
 | Mutating (Server Actions) | [Mutating Data](https://nextjs.org/docs/app/getting-started/mutating-data) · [`data.md`](./data.md) |
 | Forms + Server Actions | [Forms](https://nextjs.org/docs/app/guides/forms) · [Server Actions](https://nextjs.org/docs/app/guides/server-actions) |

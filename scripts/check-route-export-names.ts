@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * Enforce App Router page.tsx / layout.tsx conventions:
- * 1. Route-mirrored default-export names — docs/conventions.md § Route-mirrored page/layout names
- * 2. PageProps / LayoutProps with the correct route literal — docs/nextjs.md § Route props helpers
+ * Enforce App Router segment-file conventions:
+ * 1. page/layout: route-mirrored default-export names — docs/conventions.md
+ * 2. page/layout: PageProps / LayoutProps — docs/nextjs.md § Route props helpers
+ * 3. route.ts: RouteContext on handler context arg — docs/nextjs.md § Route props helpers
  *
  * Usage (via package scripts; loads TS with `node --import tsx`):
  *   pnpm lint:routes          # check (exit 1 on mismatch)
- *   pnpm lint:routes:fix     # rewrite export names + PageProps/LayoutProps
+ *   pnpm lint:routes:fix     # rewrite names + PageProps/LayoutProps/RouteContext
  */
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
@@ -20,8 +21,13 @@ const EXPORT_RE =
 
 const HELPER_RE = /\b(Page|Layout)Props<\s*(["'])(\/[^"']*)\2\s*>/;
 
+const ROUTE_CONTEXT_RE = /\bRouteContext<\s*(["'])(\/[^"']*)\1\s*>/;
+
 const META_EXPORT_RE =
   /export\s+(?:async\s+)?function\s+(generateMetadata|generateViewport)\s*\(/g;
+
+const HTTP_METHOD_EXPORT_RE =
+  /export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s*\(/g;
 
 type Identity = { value: string; dynamic: boolean };
 type RouteGroupPart = { routeGroup: string };
@@ -127,21 +133,32 @@ function expectedExportName(filePath: string): string {
   return resource + last.value + suffix;
 }
 
-function walkRouteFiles(dir: string): string[] {
+function walkSegmentFiles(
+  dir: string,
+  kinds: RegExp,
+): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     const st = statSync(full);
     if (st.isDirectory()) {
       if (entry.startsWith("_") || entry.startsWith("@")) continue;
-      out.push(...walkRouteFiles(full));
+      out.push(...walkSegmentFiles(full, kinds));
       continue;
     }
-    if (/^(page|layout)\.(tsx|ts|jsx|js)$/.test(entry)) {
+    if (kinds.test(entry)) {
       out.push(full);
     }
   }
   return out;
+}
+
+function walkPageLayoutFiles(dir: string): string[] {
+  return walkSegmentFiles(dir, /^(page|layout)\.(tsx|ts|jsx|js)$/);
+}
+
+function walkRouteHandlerFiles(dir: string): string[] {
+  return walkSegmentFiles(dir, /^route\.(tsx|ts|jsx|js)$/);
 }
 
 function applyNameFix(source: string, actual: string, expected: string): string {
@@ -323,18 +340,116 @@ function needsPropsHelper(params: string): boolean {
   return true;
 }
 
+/** Split a parameter list on top-level commas (respects nested `<>` `{}` `()` and strings). */
+function splitTopLevelArgs(params: string): string[] {
+  const args: string[] = [];
+  let depthParen = 0;
+  let depthBrace = 0;
+  let depthAngle = 0;
+  let inStr: string | null = null;
+  let start = 0;
+
+  for (let i = 0; i < params.length; i++) {
+    const ch = params[i]!;
+    const prev = params[i - 1];
+
+    if (inStr) {
+      if (ch === inStr && prev !== "\\") inStr = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      inStr = ch;
+      continue;
+    }
+    if (ch === "(") depthParen++;
+    else if (ch === ")") depthParen--;
+    else if (ch === "{") depthBrace++;
+    else if (ch === "}") depthBrace--;
+    else if (ch === "<") depthAngle++;
+    else if (ch === ">") depthAngle--;
+    else if (
+      ch === "," &&
+      depthParen === 0 &&
+      depthBrace === 0 &&
+      depthAngle === 0
+    ) {
+      args.push(params.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  const last = params.slice(start).trim();
+  if (last) args.push(last);
+  return args.filter(Boolean);
+}
+
+function parseRouteContext(arg: string): { literal: string } | null {
+  const m = arg.match(ROUTE_CONTEXT_RE);
+  if (!m) return null;
+  return { literal: m[2]! };
+}
+
+function rewriteContextArg(
+  arg: string,
+  expectedContextType: string,
+): string | null {
+  if (parseRouteContext(arg)) {
+    return arg.replace(ROUTE_CONTEXT_RE, expectedContextType);
+  }
+
+  // `{ params }: SomeType`
+  const destructured = arg.match(/^(\{[\s\S]*\})\s*:\s*([\s\S]+)$/);
+  if (destructured) {
+    return `${destructured[1]}: ${expectedContextType}`;
+  }
+
+  // `ctx: SomeType` / `context: SomeType`
+  const named = arg.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([\s\S]+)$/);
+  if (named) {
+    return `${named[1]}: ${expectedContextType}`;
+  }
+
+  // Bare `{ params }`
+  const bare = arg.match(/^(\{[\s\S]*\})$/);
+  if (bare) {
+    return `${bare[1]}: ${expectedContextType}`;
+  }
+
+  // Bare name `ctx`
+  const bareName = arg.match(/^([A-Za-z_][A-Za-z0-9_]*)$/);
+  if (bareName) {
+    return `${bareName[1]}: ${expectedContextType}`;
+  }
+
+  return null;
+}
+
+function findHttpMethodSpans(
+  source: string,
+): { name: string; span: ParenSpan }[] {
+  const out: { name: string; span: ParenSpan }[] = [];
+  HTTP_METHOD_EXPORT_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = HTTP_METHOD_EXPORT_RE.exec(source)) !== null) {
+    const span = extractParenSpan(source, m.index + m[0].length - 1);
+    if (!span) continue;
+    out.push({ name: m[1]!, span });
+  }
+  return out;
+}
+
 type Failure = {
   file: string;
-  kind: "name" | "props" | "meta-props";
+  kind: "name" | "props" | "meta-props" | "route-context";
   expected: string;
   actual: string | null;
 };
 
-const files = walkRouteFiles(APP_DIR);
+const pageLayoutFiles = walkPageLayoutFiles(APP_DIR);
+const routeHandlerFiles = walkRouteHandlerFiles(APP_DIR);
 const failures: Failure[] = [];
 const fixed: string[] = [];
 
-for (const file of files) {
+for (const file of pageLayoutFiles) {
   const rel = relative(process.cwd(), file);
   const kind = routeFileKind(file);
   const expectedHelper = kind === "layout" ? "Layout" : "Page";
@@ -408,7 +523,6 @@ for (const file of files) {
   }
 
   // --- 3) generateMetadata / generateViewport: if they take args, require same helper ---
-  // Re-scan after each rewrite so indices stay valid.
   let metaPassSafety = 0;
   while (metaPassSafety++ < 8) {
     let pending: {
@@ -472,10 +586,91 @@ for (const file of files) {
   }
 }
 
+// --- Route Handlers: RouteContext on 2nd arg when present ---
+for (const file of routeHandlerFiles) {
+  const rel = relative(process.cwd(), file);
+  const expectedLiteral = expectedRouteLiteral(file);
+  const expectedContextType = `RouteContext<"${expectedLiteral}">`;
+
+  let source = readFileSync(file, "utf8");
+  let fileChanged = false;
+  const fileFixes: string[] = [];
+
+  let passSafety = 0;
+  while (passSafety++ < 16) {
+    let pending: {
+      name: string;
+      span: ParenSpan;
+      args: string[];
+      actualLabel: string;
+    } | null = null;
+
+    for (const method of findHttpMethodSpans(source)) {
+      const args = splitTopLevelArgs(method.span.params);
+      if (args.length < 2) continue; // context optional when unused
+
+      const contextArg = args[1]!;
+      const parsed = parseRouteContext(contextArg);
+      if (parsed && parsed.literal === expectedLiteral) continue;
+
+      pending = {
+        name: method.name,
+        span: method.span,
+        args,
+        actualLabel: parsed
+          ? `RouteContext<"${parsed.literal}">`
+          : `(${method.name} context missing RouteContext)`,
+      };
+      break;
+    }
+
+    if (!pending) break;
+
+    if (fix) {
+      const nextContext = rewriteContextArg(
+        pending.args[1]!,
+        expectedContextType,
+      );
+      if (nextContext === null) {
+        failures.push({
+          file: rel,
+          kind: "route-context",
+          expected: `${expectedContextType} on ${pending.name}`,
+          actual: `${pending.actualLabel} (could not autofix)`,
+        });
+        break;
+      }
+      const nextParams = [pending.args[0], nextContext, ...pending.args.slice(2)]
+        .join(", ");
+      source =
+        source.slice(0, pending.span.openIdx + 1) +
+        nextParams +
+        source.slice(pending.span.closeIdx);
+      fileChanged = true;
+      fileFixes.push(`${pending.name} → ${expectedContextType}`);
+      continue;
+    }
+
+    failures.push({
+      file: rel,
+      kind: "route-context",
+      expected: `${expectedContextType} on ${pending.name}`,
+      actual: pending.actualLabel,
+    });
+    break;
+  }
+
+  if (fileChanged) {
+    writeFileSync(file, source, "utf8");
+    fixed.push(rel);
+    console.log(`fixed ${rel}: ${fileFixes.join("; ")}`);
+  }
+}
+
 if (failures.length === 0) {
   const fixedNote = fixed.length ? `, fixed ${fixed.length}` : "";
   console.log(
-    `check-route-export-names: ok (${files.length} page/layout files${fixedNote})`,
+    `check-route-export-names: ok (${pageLayoutFiles.length} page/layout, ${routeHandlerFiles.length} route${fixedNote})`,
   );
   process.exit(0);
 }

@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ cardId: string }> },
+  { params }: RouteContext<"/api/cards/[cardId]/logs">,
 ) {
   try {
     const { orgId, userId } = await auth();

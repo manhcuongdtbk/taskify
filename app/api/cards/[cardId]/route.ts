@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ cardId: string }> },
+  { params }: RouteContext<"/api/cards/[cardId]">,
 ) {
   try {
     const { userId, orgId } = await auth();
