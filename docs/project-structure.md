@@ -88,7 +88,7 @@ Next.js is [unopinionated](https://nextjs.org/docs/app/getting-started/project-s
 | `fixtures/` | Seed / test / Storybook fixtures | When needed | Prefer **`fixtures/`** over vague `data/` or `mocks/` when we add tests |
 | `data/` / `mocks/` | Alternate fixture names | Avoid here | Use `fixtures/` (or MSW handlers next to tests) |
 | `stories/` | Storybook stories | When needed | Prefer colocated `*.stories.tsx`; optional `stories/` only if colocation fails |
-| `e2e/` | Playwright E2E tests | When needed | Prefer **`e2e/`** for Playwright; Vitest files colocated as `*.test.ts` |
+| `e2e/` | Playwright E2E tests | When needed | Prefer **`e2e/`** for Playwright; Vitest companions use mid-suffix `*.test.ts(x)` beside the module — [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names) |
 | `tests/` | Catch-all test tree | Avoid here | Split: colocate unit tests; `e2e/` for Playwright |
 | `factories/` | Test data builders | When needed | With a real test suite |
 | `permissions/` | Authorization rules beyond Clerk roles | When needed | Prefer **`permissions/`** over `policies/` / `abilities/` for plain product language |
@@ -111,7 +111,7 @@ When you adopt a **When needed** row: update this table, the [quick map](#in-thi
 | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Route groups](https://nextjs.org/docs/app/getting-started/project-structure#route-groups)                                               | Next.js convention     | e.g. `(marketing)`, `(platform)` organize layouts without changing URLs                                                                                                                         |
 | [Store project files outside of `app`](https://nextjs.org/docs/app/getting-started/project-structure#store-project-files-outside-of-app) | Next.js recommendation | `app/` is primarily routing; shared code lives at the repo root                                                                                                                                 |
-| [Private folders](https://nextjs.org/docs/app/getting-started/project-structure#private-folders) + colocation                            | Next.js recommendation | Route-specific UI under `app/.../_components/` (not routable)                                                                                                                                   |
+| [Private folders](https://nextjs.org/docs/app/getting-started/project-structure#private-folders) + colocation                            | Next.js recommendation | Route-specific UI under `app/.../_components/` (not routable). **Folder colocation** + what to export from each file: [`conventions.md`](./conventions.md#colocation-and-public-exports) |
 | [Font definitions file](https://nextjs.org/docs/app/api-reference/components/font#using-a-font-definitions-file)                         | Next.js recommendation | Load shared `next/font` instances once (docs use `styles/fonts.ts` as the example path; alias `@/fonts` in `tsconfig.json`). The `styles/` folder name itself has no special framework meaning. |
 
 We do **not** use a `src/` folder. Global CSS follows the App Router pattern in [app/globals.css](https://nextjs.org/docs/app/getting-started/css#tailwind-css) (not a root `styles/` CSS tree).
@@ -201,7 +201,7 @@ Full shipped map: [`features.md`](./features.md). Vision / audience: [`product.m
 
 Only the extras that aren’t covered by Next.js / React / common practice:
 
-1. **Server Actions folder shape** — each action under `actions/<name>/` with `index.ts` (`"use server"`), `schema.ts` (Zod), `types.ts`, and a shared validation wrapper in `lib/` (`create-safe-action`).
+1. **Server Actions folder shape** — each action under `actions/<name>/` with bare `index.ts` (`"use server"`), `schema.ts` (Zod), `types.ts` (not `create-board.schema.ts` mid-suffixes). Shared validation wrapper in `lib/` (`create-safe-action`). Companion mid-suffix vs bare-name rules: [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names).
 2. **`components/ui/` is shadcn-only** — primitives from the shadcn CLI/registry live here; other shared UI goes under `components/` (e.g. `form/`, `modals/`, `providers/`) or route `_components/`.
 3. **Prose / naming words** — organization, authentication, authorization, billing vs pricing plan: follow [`vocabulary.md`](./vocabulary.md) (keep Clerk identifiers such as `orgId`, `auth()`).
 4. **Product name in `config/site.ts`** — app UI / metadata use `siteConfig.name` (not hardcoded brand strings). Docs and external dashboards are outside that file.

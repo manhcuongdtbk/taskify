@@ -16,6 +16,7 @@ Prefer official Next.js docs for the version in `package.json`; for agents, also
 These are intentional patterns learners should copy unless a higher-priority official doc says otherwise:
 
 - **Server Components by default**; `"use client"` only where interactivity/browser APIs need it
+- **`export default [async] function`** on App Router special files (`page`, `layout`, …); **`export const` + arrow** for other module function exports — see [`conventions.md`](./conventions.md)
 - **Await `params`** (and similar async request APIs) in pages/layouts/route handlers
 - **`PageProps` / `LayoutProps`** when a `page.tsx` / `layout.tsx` (or its `generateMetadata`) declares props — see [Route props helpers](#route-props-helpers-pageprops--layoutprops--routecontext)
 - **`RouteContext`** when a `route.ts` HTTP handler declares a context/`params` argument — same section

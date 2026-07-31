@@ -71,10 +71,14 @@ Within the same kind, prefer the **current official docs** for the version this 
 | File names for UI: **kebab-case** (e.g. `activity-item.tsx`) | Adopted | Widespread in Next/React codebases; no single sealed rule — stay consistent with neighbors |
 | Server Action folders: **kebab-case** under `actions/<name>/` | Adopted | Repo shape; mirrors common “one folder per mutation” habit |
 | App Router `page.tsx` / `layout.tsx` default exports: **route-mirrored `*Page` / `*Layout`** | Adopted | Common `*Page` suffix; **route mirroring is a repo rule** — see [Route-mirrored page/layout names](#route-mirrored-pagelayout-names). Enforced by `scripts/check-route-export-names.ts` (`pnpm lint:routes`; autofix with `pnpm lint:routes:fix`) |
+| App Router special files: default export is **`export default [async] function`** (not `const` / arrow); named Next exports (`generateMetadata`, `GET`/`POST`, …) stay **`export [async] function`** | Adopted | Matches [Layouts and Pages](https://nextjs.org/docs/app/getting-started/layouts-and-pages) / file-convention docs; at-a-glance “Next entry”. Enforced by ESLint (`eslint.config.mjs`) |
+| Non-Next modules (components, `_components`, `lib`, …): named functions use **`export const Name = () =>`** / **`async () =>`** (not `export [async] function` or `export default [async] function`); **`memo` / `forwardRef` take a named identifier only** (no inline arrow/`function`) | Adopted | Reserves `export [async] function` for Next specials; define-before-use; arrows for app fns. Wrappers: `const Foo = () => …; memo(Foo)` keeps DevTools `.name` without `displayName`. Value defaults (`export default prisma`, configs) are fine. See [Export keyword shape](#component-export-names). **`components/ui/`** excluded (shadcn). Enforced by ESLint |
 | App Router `page` / `layout` props: global **`PageProps` / `LayoutProps`** with correct route literal | Adopted | [Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers) · [`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext). Same script (`pnpm lint:routes` / `pnpm lint:routes:fix`) |
 | App Router `route.ts` context: global **`RouteContext`** when the handler takes a 2nd arg | Adopted | [Route Context Helper](https://nextjs.org/docs/app/getting-started/route-handlers#route-context-helper) · [`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext). Same script |
 | App Router `route.ts`: **`NextRequest` / `NextResponse`** (not bare Web `Request` / `Response`) | Adopted | [Extended APIs](https://nextjs.org/docs/app/getting-started/route-handlers#extended-nextrequest-and-nextresponse-apis) · [`nextjs.md`](./nextjs.md#route-handlers-nextrequest--nextresponse). Same script |
 | App UI components: **filename ↔ export**, **generics denylist**, **`Form*` in `components/form/`**, **`Component` → `ComponentProps`** | Adopted | See [Component export names](#component-export-names). Enforced via ESLint (`eslint-plugin-filename-match-export`, `@noctcore/eslint-plugin-react` `component-props-naming`, `@typescript-eslint/naming-convention` / `no-restricted-syntax`). **`components/ui/` excluded** (shadcn) |
+| App UI: **folder colocation** + **one main named export per component file** (props local unless a consumer needs them) | Adopted | Folder layout: [`project-structure.md`](./project-structure.md). Public-surface rules + examples: [Colocation and public exports](#colocation-and-public-exports). Keeps filename ↔ export enforceable |
+| **Companion files:** feature folders use bare `schema.ts` / `types.ts`; flat peers use role mid-suffixes (`*.test.tsx`, `*.stories.tsx`, `*.types.ts`, …) | Adopted / When needed | See [Companion files: role mid-suffixes vs bare names](#companion-files-role-mid-suffixes-vs-bare-names). Don’t mix both for the same concern |
 | Env vars: **`SCREAMING_SNAKE_CASE`**; client-exposed only via `NEXT_PUBLIC_*` | Adopted | [Next.js Environment Variables](https://nextjs.org/docs/app/guides/environment-variables) |
 | Don’t put secrets in `NEXT_PUBLIC_*` or git | Adopted | Same Next.js guide · [Vercel Environment Variables](https://vercel.com/docs/environment-variables) |
 
@@ -102,12 +106,190 @@ Applies to `components/**` **except** `components/ui/**`, and to `app/**/_compon
 
 Use **named** exports for these components (Next `page` / `layout` stay **default** — required by the framework). Named exports make route files vs UI obvious at a glance, and they support compound components on the same binding (e.g. `CardModalActivity.Skeleton`), in the spirit of [Base UI](https://base-ui.com/)-style composition.
 
-1. **Filename ↔ export** — `board-title-form.tsx` → `BoardTitleForm`. Enforced by `eslint-plugin-filename-match-export` (skips multi-export files and `index.*`). For `index.tsx`, name the export after the parent folder (`card-modal/index.tsx` → `CardModal`) — convention only; the plugin ignores `index`.
-2. **Props type** — when the first parameter uses a named type, call it **`{Component}Props`** (e.g. `BoardTitleForm` → `BoardTitleFormProps`). **App Router `page` / `layout` are exempt** — use `PageProps` / `LayoutProps` ([`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext)), not `BoardIdPageProps`. Enforced by [`@noctcore/eslint-plugin-react`](https://github.com/noctcore/eslint-plugins/tree/main/packages/eslint-plugin-react) `component-props-naming` (not in stock `eslint-plugin-react`) for UI components. Inline object types and wrappers like `PropsWithChildren<…>` / `React.ComponentProps<…>` are left alone. **Watch this dependency:** it is new and low-adoption; we only enable this one rule (not their full recommended set). Revisit if the package goes unmaintained, breaks on ESLint upgrades, or an official/typescript-eslint equivalent appears — then swap to a small local rule.
+**Export keyword shape** (enforced by ESLint; see catalog rows above):
+
+- Next special files (`page`, `layout`, `route`, `proxy`, …): `export default [async] function …` and `export [async] function generateMetadata` / `GET` / …
+- Everything else in app UI / `lib` / …: `export const Name = () =>` / `export const Name = async () =>` (not `export [async] function`, `export default [async] function`, or `export const Name = function Name`). For wrappers: **only** a named identifier — `const Foo = () => { … }; memo(Foo)` / `forwardRef(Foo)` — not inline `memo(() => …)` or `memo(function …)`. `components/ui/` ignored. Non-function defaults (e.g. `export default prisma`, `next.config`) are allowed.
+
+**Why this split:** Reserves `export [async] function` / `export default [async] function` for Next specials (at-a-glance framework entries) and prefers define-before-use + arrows for app modules.
+
+**DevTools / `memo` / `forwardRef`:** Plain `export const Foo = () =>` already has `.name`. Inline `memo(() => …)` / `memo(function …)` is anonymous → DevTools **Anonymous**. Require a named binding first (`const Foo = () => { … }; export const FooMemo = memo(Foo)`) so the inner keeps `.name` with no `displayName`. Enforced by ESLint (`no-restricted-syntax`); Next’s `react/display-name` is a backstop. `components/ui/` ignored.
+
+1. **Filename ↔ export** — `board-title-form.tsx` → `BoardTitleForm`. Enforced by `eslint-plugin-filename-match-export` (skips multi-export files and `index.*`). For `index.tsx`, name the export after the parent folder (`card-modal/index.tsx` → `CardModal`) — convention only; the plugin ignores `index`. Prefer **one** main named export so this check stays on — see [Colocation and public exports](#colocation-and-public-exports).
+2. **Props type** — when the first parameter uses a named type, call it **`{Component}Props`** (e.g. `BoardTitleForm` → `BoardTitleFormProps`). Keep it **file-local** (non-exported) unless something outside must import it. **App Router `page` / `layout` are exempt** — use `PageProps` / `LayoutProps` ([`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext)), not `BoardIdPageProps`. Enforced by [`@noctcore/eslint-plugin-react`](https://github.com/noctcore/eslint-plugins/tree/main/packages/eslint-plugin-react) `component-props-naming` (not in stock `eslint-plugin-react`) for UI components. Inline object types and wrappers like `PropsWithChildren<…>` / `React.ComponentProps<…>` are left alone. **Watch this dependency:** it is new and low-adoption; we only enable this one rule (not their full recommended set). Revisit if the package goes unmaintained, breaks on ESLint upgrades, or an official/typescript-eslint equivalent appears — then swap to a small local rule.
 3. **Generics denylist** — do not export these bare names as components: `Header`, `Footer`, `Navbar`, `Sidebar`, `Actions`, `Activity`, `Description`, `Info`, `Content`, `Item`. Qualify with the nearest useful segment (folder / route / feature), e.g. `CardModalHeader`, `OrganizationInfo`, `MarketingNavbar`, `DashboardSidebar`.
 4. **`components/form/**`** — exported components must be prefixed **`Form`** (`FormInput`, `FormSubmit`, …); files stay `form-*.tsx`.
 5. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`.
-6. **Not enforced** — full path→name mirroring for `_components`, global uniqueness of every symbol across the repo.
+6. **Not enforced** — full path→name mirroring for `_components`, global uniqueness of every symbol across the repo. Filename ↔ export is also skipped when a file has **0 or 2+** named exports (plugin limitation) — avoid casual co-exports; see below.
+
+#### Colocation and public exports
+
+Two different meanings of **colocation** (don’t mix them up):
+
+| Sense | Meaning | This repo |
+| ----- | ------- | --------- |
+| **Folder colocation** | Related files live in the **same folder** (Angular-style: component + test + siblings) | **Adopted** — route `_components/`, feature folders like `components/modals/card-modal/`, `actions/<name>/`. Layout map: [`project-structure.md`](./project-structure.md) |
+| **Same-file (local) types** | Props/`type`s sit **in the component file**, usually **not** exported | **Adopted default** for app UI — keeps one named export so filename ↔ export still runs |
+
+**Repo rule:** use **both**. Folder-colocate features; keep each component file’s **public surface small** (one main named export). **Co-export** a second symbol only when another module must import it.
+
+**Why avoid casual co-exports on UI files:** `eslint-plugin-filename-match-export` only checks files with **exactly one** named export. `export const Foo` + `export type FooProps` (or a second helper) turns the check **off**. Compounds like `Foo.Skeleton = …` are fine — they are not a second named export.
+
+##### Companion files: role mid-suffixes vs bare names
+
+**Companion** (or **sidecar**) files sit next to a primary module. A **role mid-suffix** is the conventional mark *before* the real extension (still `.ts` / `.tsx` / `.css`):
+
+```text
+board-title-form.tsx              ← primary
+board-title-form.test.tsx         ← role mid-suffix: test
+board-title-form.stories.tsx      ← role mid-suffix: stories
+board-title-form.types.ts         ← role mid-suffix: types (only when needed)
+FormInput.module.css              ← role mid-suffix: module (CSS Modules)
+```
+
+Tools match these with globs (`*.test.tsx`, `*.stories.tsx`). `eslint-plugin-filename-match-export` skips `*.test.*` / `*.spec.*` / `*.stories.*`.
+
+**Bare names in a feature folder** — when the **folder** is the unit, use short fixed filenames instead of repeating the folder name as a mid-suffix:
+
+```text
+actions/create-board/
+  index.ts      ← primary
+  schema.ts     ← bare name (not create-board.schema.ts)
+  types.ts      ← bare name (not create-board.types.ts)
+```
+
+| Shape | Prefer | Example |
+| ----- | ------ | ------- |
+| **Feature / action folder** (one concern per directory) | Bare `schema.ts`, `types.ts`, `index.ts` | `actions/create-board/` (Adopted) |
+| **Flat folder** with many peer primaries | Mid-suffix companions | `form-input.tsx` + `form-input.test.tsx` / `form-input.types.ts` |
+| Same concern | **Don’t** use both | Avoid `create-board/types.ts` *and* a loose `create-board.types.ts` outside |
+
+**This repo’s lean**
+
+| Kind | Convention | Status |
+| ---- | ---------- | ------ |
+| Server actions | Folder + bare `index.ts` / `schema.ts` / `types.ts` | Adopted |
+| Unit / component tests | Mid-suffix `*.test.tsx` (or `*.test.ts`) next to the module | When needed |
+| Storybook | Mid-suffix `*.stories.tsx` next to the component | When needed |
+| CSS Modules | Mid-suffix `*.module.css` (if we use CSS Modules) | When needed |
+| UI props types file | Mid-suffix `*.types.ts` only if a second file must `import type` | When needed — [below](#when-sibling-types-files-are-needed) |
+| E2E | `e2e/` tree (not a mid-suffix on every component) | When needed |
+
+Don’t invent new mid-suffixes unless a tool (Vitest, Storybook, bundler) will match them. Prefer `.test` over `.spec` for new Vitest files here (both are fine industry-wide; stay consistent).
+
+##### Do this (examples already in tree)
+
+**Folder colocation — feature UI**
+
+```text
+components/modals/card-modal/
+  index.tsx                      → CardModal
+  card-modal-header.tsx          → CardModalHeader
+  card-modal-description.tsx
+  …
+```
+
+**Folder colocation — server action** (types *are* co-exported because callers import them)
+
+```text
+actions/create-board/
+  index.ts     → createBoard
+  schema.ts    → CreateBoard
+  types.ts     → InputType, ReturnType
+```
+
+**Same file, local props (app UI default)**
+
+```ts
+// board-title-form.tsx / card-modal-header.tsx pattern
+interface BoardTitleFormProps {
+  data: Board;
+}
+
+export const BoardTitleForm = ({ data }: BoardTitleFormProps) => { /* … */ };
+```
+
+**Compound on the same binding** (still one named export)
+
+```ts
+export const CardModalHeader = (/* … */) => { /* … */ };
+CardModalHeader.Skeleton = function HeaderSkeleton() { /* … */ };
+// usage: <CardModalHeader.Skeleton />
+```
+
+**Folder-colocated unit tests** (When needed — Vitest; none in tree yet). Prefer next to the module, not a catch-all `tests/` tree ([`project-structure.md`](./project-structure.md)):
+
+```text
+components/modals/card-modal/
+  card-modal-header.tsx
+  card-modal-header.test.tsx     ← Vitest + Testing Library
+
+actions/create-board/
+  schema.ts
+  schema.test.ts
+```
+
+In the test, **import the component** and pass props **inline** in JSX — you do **not** need an exported props type:
+
+```tsx
+import { render, screen } from "@testing-library/react";
+import { BoardTitleForm } from "./board-title-form";
+
+render(
+  <BoardTitleForm data={{ id: "b1", title: "Roadmap" /* … */ }} />,
+);
+```
+
+Playwright E2E stays under `e2e/` (whole-app flows), not beside every component.
+
+##### When co-export (or a sibling types file) is right
+
+- Another module must import the type/helper (wrappers, shared kits, action `InputType` / `ReturnType`).
+- Design-system / `components/ui/` style public API (e.g. `export { Button, buttonVariants }`) — `ui/` is ESLint-exempt for shadcn.
+- Prefer a **sibling** `*.types.ts` (or `actions/<name>/types.ts`) over `export type` on the component file when you want filename ↔ export to stay on.
+
+##### When sibling types files are needed
+
+Use `*.types.ts` next to UI, or `actions/<name>/types.ts` for actions — same idea.
+
+**Default:** do **not** add a types file. Keep props as a **non-exported** `interface` / `type` in the component module (`BoardTitleFormProps` in `board-title-form.tsx`, `FormInputProps` in `form-input.tsx`, …).
+
+**Trigger:** will a **second file** need `import type { … }` for this symbol? If no → stay local. If yes → make it importable.
+
+| Need | Do | Example in / near this repo |
+| ---- | -- | --------------------------- |
+| Props only used by that component | Local, unexported — **no** `*.types.ts` | `BoardTitleFormProps`, `CardItemProps`, `NavItemProps` |
+| Test passes props in JSX | Still **no** types file — props **inline** | `render(<BoardTitleForm data={{ … }} />)` |
+| Domain entity shared widely | Shared module — **not** `card-item.types.ts` | `CardWithList` in `types.ts`; Prisma `Board` |
+| Action I/O imported by callers | `actions/<name>/types.ts` | `create-board/types.ts` → `InputType`, `ReturnType` |
+| Wrapper / sibling must import component props | Sibling `foo.types.ts` (or co-export) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx` |
+| Several siblings share one shape | One types module in the **same folder** | Hypothetical: `list-dnd.types.ts` used by `list-item.tsx` + `list-container.tsx` |
+
+**Sibling UI example** (only when the import is real):
+
+```text
+components/form/
+  form-input.tsx           → export const FormInput   (single named export)
+  form-input.types.ts      → export type FormInputProps
+  form-input-with-hint.tsx → import type { FormInputProps } from "./form-input.types"
+```
+
+**Rule of thumb:** the only “importer” would be a test that can pass props inline → **no** `*.types.ts`. Prefer sibling `*.types.ts` over co-exporting from the component file when you care about filename ↔ export.
+
+##### Cheat sheet
+
+| Situation | Do |
+| --------- | -- |
+| Several UI pieces for one feature | Folder (`card-modal/`, route `_components/`) |
+| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts` |
+| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css` |
+| Props only used by that component | Same file, **don’t** export — **no** `*.types.ts` |
+| Types imported by actions / callers | `actions/…/types.ts` (or intentional co-export) |
+| Types imported by a UI wrapper / siblings | Sibling `*.types.ts` (keep component file single-export) |
+| Shared domain model | `@/types` / Prisma — not per-component `*.types.ts` |
+| Second UI under the same component | `.Skeleton` (etc.) on the export |
+| Unit / component test | Colocate `*.test.tsx`; props inline; don’t export props “for tests” |
+| E2E | `e2e/`, not next to every UI file |
 
 ### React / UI
 
@@ -139,6 +321,7 @@ Use **named** exports for these components (Next `page` / `layout` stay **defaul
 | Prefer TypeScript for app code | Adopted | [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) · Next.js TS defaults |
 | Validate **boundaries** (forms, Server Actions, webhooks) with a schema lib (Zod here) | Adopted | [Zod](https://zod.dev) · common “parse at the edge” habit |
 | Co-locate types with the module that owns them; avoid a giant dumping-ground `types/` unless it earns its keep | Adopted | Common TS habit; this repo also has a root `types.ts` for a few shared shapes — don’t grow it blindly |
+| Sibling **`*.types.ts`** / `actions/<name>/types.ts` when another file must `import type` | When needed | Default stays local unexported props on the component. Split only when a real importer exists — see [When sibling types files are needed](#when-sibling-types-files-are-needed) |
 | Path alias `@/` → repo root | Adopted | [Next.js Absolute Imports](https://nextjs.org/docs/app/getting-started/installation#set-up-absolute-imports-and-module-path-aliases) |
 | Shared `schemas/` when the same Zod types are imported across many features | When needed | Same as folder catalog — extract only after duplication hurts |
 | Branded / opaque IDs for domain entities | When needed | Common TS hardening habit; optional |
@@ -195,7 +378,7 @@ These are **common ways people use Next.js**, distinct from hard [file conventio
 | **Prettier** for formatting; ESLint for code quality (via `eslint-config-prettier`) | Adopted | [Prettier](https://prettier.io) · [eslint-config-prettier](https://github.com/prettier/eslint-config-prettier) · `prettier-plugin-tailwindcss` · editor default formatter in `.vscode/settings.json` |
 | Lint-staged (or equivalent) on commit | Adopted | Repo `lint-staged.config.mjs` |
 | `.env.example` (or documented env list) without secrets | When needed | Common onboarding habit · [Next.js env docs](https://nextjs.org/docs/app/guides/environment-variables) |
-| Co-located unit/component tests with **Vitest** + Testing Library | When needed | Prefer Vitest for new suites in this repo — [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest) · [Vitest](https://vitest.dev/guide/). Next also documents [Jest](https://nextjs.org/docs/app/guides/testing/jest); don’t add both. Async Server Components → E2E, not unit runners |
+| Co-located unit/component tests with **Vitest** + Testing Library | When needed | Prefer Vitest for new suites in this repo — [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest) · [Vitest](https://vitest.dev/guide/). Next also documents [Jest](https://nextjs.org/docs/app/guides/testing/jest); don’t add both. Async Server Components → E2E, not unit runners. Place `*.test.tsx` next to the module; pass props inline — see [Colocation and public exports](./conventions.md#colocation-and-public-exports) |
 | E2E tests with **Playwright** for critical flows | When needed | Prefer Playwright for new E2E here — [Next.js Playwright guide](https://nextjs.org/docs/app/guides/testing/playwright) · [Playwright](https://playwright.dev) · [Clerk testing](https://clerk.com/docs/testing/overview). Next also documents [Cypress](https://nextjs.org/docs/app/guides/testing/cypress); don’t add both |
 | HTTP mocking in tests with **MSW** | When needed | Prefer [MSW](https://mswjs.io) over ad-hoc fetch mocks / nock |
 | Conventional Commits | When needed | [Conventional Commits](https://www.conventionalcommits.org/) — only if the team agrees; not required today |
