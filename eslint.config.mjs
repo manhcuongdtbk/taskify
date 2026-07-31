@@ -132,37 +132,77 @@ const nonNextExportConstMustBeArrowRestriction = {
     "Use an arrow function: `export const Name = () =>` / `export const Name = async () =>` (not `function Name`). See docs/conventions.md.",
 };
 
-/** memo/forwardRef: no inline function/arrow — wrap a named `const` (keeps .name, no displayName). */
-const memoForwardRefNamedIdentifierMessage =
-  "Pass a named component identifier to memo/forwardRef: `const Foo = () => { … }; export const FooMemo = memo(Foo)` (same for forwardRef). No inline `() =>` or `function` — those are Anonymous in DevTools / fail `react/display-name`. See docs/conventions.md.";
+/**
+ * `memo`: no inline function/arrow — wrap a named `const` (keeps `.name`).
+ * Prefer React 19 `ref` as a prop over `forwardRef` (banned via `no-restricted-imports` on app UI).
+ */
+const memoNamedIdentifierMessage =
+  "Pass a named component identifier to memo: `const Foo = () => { … }; export const FooMemo = memo(Foo)`. No inline `() =>` or `function` — those are Anonymous in DevTools / fail `react/display-name`. See docs/conventions.md.";
 
-const memoForwardRefNamedIdentifierRestrictions = [
+const memoNamedIdentifierRestrictions = [
   {
-    selector:
-      "CallExpression[callee.name=/^(memo|forwardRef)$/] > ArrowFunctionExpression",
-    message: memoForwardRefNamedIdentifierMessage,
+    selector: "CallExpression[callee.name='memo'] > ArrowFunctionExpression",
+    message: memoNamedIdentifierMessage,
   },
   {
     selector:
-      "CallExpression[callee.property.name=/^(memo|forwardRef)$/] > ArrowFunctionExpression",
-    message: memoForwardRefNamedIdentifierMessage,
+      "CallExpression[callee.property.name='memo'] > ArrowFunctionExpression",
+    message: memoNamedIdentifierMessage,
+  },
+  {
+    selector: "CallExpression[callee.name='memo'] > FunctionExpression",
+    message: memoNamedIdentifierMessage,
   },
   {
     selector:
-      "CallExpression[callee.name=/^(memo|forwardRef)$/] > FunctionExpression",
-    message: memoForwardRefNamedIdentifierMessage,
-  },
-  {
-    selector:
-      "CallExpression[callee.property.name=/^(memo|forwardRef)$/] > FunctionExpression",
-    message: memoForwardRefNamedIdentifierMessage,
+      "CallExpression[callee.property.name='memo'] > FunctionExpression",
+    message: memoNamedIdentifierMessage,
   },
 ];
 
 const nonNextExportStyleRestrictions = [
   ...nonNextFunctionDeclarationRestrictions,
   nonNextExportConstMustBeArrowRestriction,
-  ...memoForwardRefNamedIdentifierRestrictions,
+  ...memoNamedIdentifierRestrictions,
+];
+
+/** Prefer React 19 ref-as-prop; `forwardRef` is legacy (will be deprecated). */
+const noForwardRefImport = {
+  "no-restricted-imports": [
+    "error",
+    {
+      paths: [
+        {
+          name: "react",
+          importNames: ["forwardRef"],
+          message:
+            "Pass `ref` as a normal prop (React 19). Do not use forwardRef. See docs/conventions.md.",
+        },
+      ],
+    },
+  ],
+};
+
+/** App UI: no co-exported types — keep props local or use sibling `*.types.ts`. */
+const appUiNoExportedTypeMessage =
+  "Do not export types/interfaces from app UI component files (keeps filename ↔ export on). Keep props file-local, or move importable types to a sibling `*.types.ts`. See docs/conventions.md.";
+
+const appUiNoExportedTypeRestrictions = [
+  {
+    selector:
+      "ExportNamedDeclaration[declaration.type='TSTypeAliasDeclaration']",
+    message: appUiNoExportedTypeMessage,
+  },
+  {
+    selector:
+      "ExportNamedDeclaration[declaration.type='TSInterfaceDeclaration']",
+    message: appUiNoExportedTypeMessage,
+  },
+  {
+    // `export type { Foo }` / `export type { Foo } from '…'` (no inline declaration)
+    selector: "ExportNamedDeclaration[exportKind='type']:not([declaration])",
+    message: appUiNoExportedTypeMessage,
+  },
 ];
 
 const eslintConfig = defineConfig([
@@ -228,6 +268,7 @@ const eslintConfig = defineConfig([
     files: ["**/*.{js,jsx,ts,tsx}"],
     ignores: ["components/ui/**", "lib/paths.ts", ...NEXT_SPECIAL_FILES],
     rules: {
+      ...noForwardRefImport,
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
@@ -241,6 +282,7 @@ const eslintConfig = defineConfig([
   {
     files: ["lib/paths.ts"],
     rules: {
+      ...noForwardRefImport,
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
@@ -252,9 +294,10 @@ const eslintConfig = defineConfig([
   // Filename ↔ export, generics denylist, ComponentProps naming for app UI (not shadcn).
   // Pages stay out of this block: non-Next `export const` bans would forbid
   // `export async function generateMetadata`. See the page-only block below.
+  // `*.types.ts` is the allowed place for importable UI types (see no-exported-type rules).
   {
     files: ["components/**/*.{ts,tsx}", "app/**/_components/**/*.{ts,tsx}"],
-    ignores: ["components/ui/**"],
+    ignores: ["components/ui/**", "**/*.types.ts"],
     plugins: {
       "filename-match-export": filenameMatchExport,
       "noctcore-react": noctcoreReact,
@@ -266,6 +309,7 @@ const eslintConfig = defineConfig([
         "error",
         { requireExported: true },
       ],
+      ...noForwardRefImport,
       // Re-include prior no-restricted-syntax entries — flat config replaces, does not merge.
       "no-restricted-syntax": [
         "error",
@@ -273,6 +317,7 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
+        ...appUiNoExportedTypeRestrictions,
       ],
     },
   },

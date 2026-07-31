@@ -72,12 +72,12 @@ Within the same kind, prefer the **current official docs** for the version this 
 | Server Action folders: **kebab-case** under `actions/<name>/` | Adopted | Repo shape; mirrors common “one folder per mutation” habit |
 | App Router `page.tsx` / `layout.tsx` default exports: **route-mirrored `*Page` / `*Layout`** | Adopted | Common `*Page` suffix; **route mirroring is a repo rule** — see [Route-mirrored page/layout names](#route-mirrored-pagelayout-names). Enforced by `scripts/check-route-export-names.ts` (`pnpm lint:routes`; autofix with `pnpm lint:routes:fix`) |
 | App Router special files: default export is **`export default [async] function`** (not `const` / arrow); named Next exports (`generateMetadata`, `GET`/`POST`, …) stay **`export [async] function`** | Adopted | Matches [Layouts and Pages](https://nextjs.org/docs/app/getting-started/layouts-and-pages) / file-convention docs; at-a-glance “Next entry”. Enforced by ESLint (`eslint.config.mjs`) |
-| Non-Next modules (components, `_components`, `lib`, …): named functions use **`export const Name = () =>`** / **`async () =>`** (not `export [async] function` or `export default [async] function`); **`memo` / `forwardRef` take a named identifier only** (no inline arrow/`function`) | Adopted | Reserves `export [async] function` for Next specials; define-before-use; arrows for app fns. Wrappers: `const Foo = () => …; memo(Foo)` keeps DevTools `.name` without `displayName`. Value defaults (`export default prisma`, configs) are fine. See [Export keyword shape](#component-export-names). **`components/ui/`** excluded (shadcn). Enforced by ESLint |
+| Non-Next modules (components, `_components`, `lib`, …): named functions use **`export const Name = () =>`** / **`async () =>`** (not `export [async] function` or `export default [async] function`); **`memo` takes a named identifier only** (no inline arrow/`function`); **`ref` as a prop** (no `forwardRef`) | Adopted | Reserves `export [async] function` for Next specials; define-before-use; arrows for app fns. `memo(Foo)` keeps DevTools `.name`. React 19: pass `ref` on props — [`forwardRef`](https://react.dev/reference/react/forwardRef) is unnecessary / will be deprecated. Value defaults (`export default prisma`, configs) are fine. See [Export keyword shape](#component-export-names). **`components/ui/`** excluded (shadcn). Enforced by ESLint |
 | App Router `page` / `layout` props: global **`PageProps` / `LayoutProps`** with correct route literal | Adopted | [Route Props Helpers](https://nextjs.org/docs/app/getting-started/layouts-and-pages#route-props-helpers) · [`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext). Same script (`pnpm lint:routes` / `pnpm lint:routes:fix`) |
 | App Router `route.ts` context: global **`RouteContext`** when the handler takes a 2nd arg | Adopted | [Route Context Helper](https://nextjs.org/docs/app/getting-started/route-handlers#route-context-helper) · [`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext). Same script |
 | App Router `route.ts`: **`NextRequest` / `NextResponse`** (not bare Web `Request` / `Response`) | Adopted | [Extended APIs](https://nextjs.org/docs/app/getting-started/route-handlers#extended-nextrequest-and-nextresponse-apis) · [`nextjs.md`](./nextjs.md#route-handlers-nextrequest--nextresponse). Same script |
 | App UI components: **filename ↔ export**, **generics denylist**, **`Form*` in `components/form/`**, **`Component` → `ComponentProps`** | Adopted | See [Component export names](#component-export-names). Enforced via ESLint (`eslint-plugin-filename-match-export`, `@noctcore/eslint-plugin-react` `component-props-naming`, `@typescript-eslint/naming-convention` / `no-restricted-syntax`). **`components/ui/` excluded** (shadcn) |
-| App UI: **folder colocation** + **one main named export per component file** (props local unless a consumer needs them) | Adopted | Folder layout: [`project-structure.md`](./project-structure.md). Public-surface rules + examples: [Colocation and public exports](#colocation-and-public-exports). Keeps filename ↔ export enforceable |
+| App UI: **folder colocation** + **one main named export per component file** (props local unless a consumer needs them); **no `export type` / `export interface` in component files** | Adopted | Folder layout: [`project-structure.md`](./project-structure.md). Public-surface rules: [Colocation and public exports](#colocation-and-public-exports). Importable UI types go in sibling `*.types.ts`. ESLint bans type co-exports in `components/**` + `app/**/_components/**` (not `ui/`, not `*.types.ts`) |
 | **Companion files:** feature folders use bare `schema.ts` / `types.ts`; flat peers use role mid-suffixes (`*.test.tsx`, `*.stories.tsx`, `*.types.ts`, …) | Adopted / When needed | See [Companion files: role mid-suffixes vs bare names](#companion-files-role-mid-suffixes-vs-bare-names). Don’t mix both for the same concern |
 | Env vars: **`SCREAMING_SNAKE_CASE`**; client-exposed only via `NEXT_PUBLIC_*` | Adopted | [Next.js Environment Variables](https://nextjs.org/docs/app/guides/environment-variables) |
 | Don’t put secrets in `NEXT_PUBLIC_*` or git | Adopted | Same Next.js guide · [Vercel Environment Variables](https://vercel.com/docs/environment-variables) |
@@ -109,18 +109,48 @@ Use **named** exports for these components (Next `page` / `layout` stay **defaul
 **Export keyword shape** (enforced by ESLint; see catalog rows above):
 
 - Next special files (`page`, `layout`, `route`, `proxy`, …): `export default [async] function …` and `export [async] function generateMetadata` / `GET` / …
-- Everything else in app UI / `lib` / …: `export const Name = () =>` / `export const Name = async () =>` (not `export [async] function`, `export default [async] function`, or `export const Name = function Name`). For wrappers: **only** a named identifier — `const Foo = () => { … }; memo(Foo)` / `forwardRef(Foo)` — not inline `memo(() => …)` or `memo(function …)`. `components/ui/` ignored. Non-function defaults (e.g. `export default prisma`, `next.config`) are allowed.
+- Everything else in app UI / `lib` / …: `export const Name = () =>` / `export const Name = async () =>` (not `export [async] function`, `export default [async] function`, or `export const Name = function Name`). For `memo`: **only** a named identifier — `const Foo = () => { … }; export const FooMemo = memo(Foo)` — not inline `memo(() => …)` or `memo(function …)`. `components/ui/` ignored. Non-function defaults (e.g. `export default prisma`, `next.config`) are allowed.
 
 **Why this split:** Reserves `export [async] function` / `export default [async] function` for Next specials (at-a-glance framework entries) and prefers define-before-use + arrows for app modules.
 
-**DevTools / `memo` / `forwardRef`:** Plain `export const Foo = () =>` already has `.name`. Inline `memo(() => …)` / `memo(function …)` is anonymous → DevTools **Anonymous**. Require a named binding first (`const Foo = () => { … }; export const FooMemo = memo(Foo)`) so the inner keeps `.name` with no `displayName`. Enforced by ESLint (`no-restricted-syntax`); Next’s `react/display-name` is a backstop. `components/ui/` ignored.
+**Refs:** React 19 — `ref` as a normal prop (no `forwardRef`). Details: [Refs (React 19)](#refs-react-19-ref-as-a-prop).
+
+**DevTools / `memo`:** Plain `export const Foo = () =>` already has `.name`. Inline `memo(() => …)` / `memo(function …)` is anonymous → DevTools **Anonymous**. Require a named binding first (`const Foo = () => { … }; export const FooMemo = memo(Foo)`) so the inner keeps `.name` with no `displayName`. Enforced by ESLint (`no-restricted-syntax`); Next’s `react/display-name` is a backstop. `components/ui/` ignored.
+
+##### Refs (React 19: `ref` as a prop)
+
+A `ref` is a **handle** to a rendered DOM node (or a child that forwards to one). Parents use it for **imperative** work — focus, measure, `requestSubmit` — not for values that drive UI (those stay in props / state). Updating a ref does **not** re-render; putting a DOM node in `useState` would, and is the wrong tool.
+
+**React 19 change:** `ref` is a normal prop. App components declare it on the props type and pass it down. Do **not** use [`forwardRef`](https://react.dev/reference/react/forwardRef) in app UI / `lib` (legacy; will be deprecated). ESLint bans importing it (`no-restricted-imports`). Call sites stay `<Child ref={…} />`. **`components/ui/`** (shadcn) may still ship `forwardRef` until regenerated — leave those alone.
+
+**Why `ref?` (optional):** Same as with old `forwardRef`. React’s `RefAttributes` types `ref` as optional — most callers never need a handle. Only parents that focus/measure pass one (e.g. list → card form). Do not make `ref` required.
+
+**Typing the prop** (pick one style and stay consistent in the file):
+
+| Situation | Prefer |
+| --------- | ------ |
+| Custom props + forward to a known host node | `ref?: Ref<HTMLInputElement>` or `ref?: Ref<ComponentRef<"input">>` (same idea; DOM type is clearer when you’re sure) |
+| Forward to a specific component | `ref?: Ref<ComponentRef<typeof Input>>` |
+| Inherit / wrap a host element’s full props | `ComponentProps<"input">` / `ComponentPropsWithRef<"input">` — not needed just to add a single `ref` field |
+
+Do **not** reach for `ComponentPropsWithRef` only to type `ref` on a hand-written props interface — declare `ref?: Ref<…>` explicitly.
+
+**Forwarding chain** (custom components are not DOM nodes — each hop must pass `ref` until a host element):
+
+1. Parent owns the box: `const textareaRef = useRef<HTMLTextAreaElement>(null)` then `<CardForm ref={textareaRef} />` and later `textareaRef.current?.focus()`.
+2. Middle child accepts `ref` on props and passes it: `<FormTextarea ref={ref} />`.
+3. Inner child puts it on the real node: `<Textarea ref={ref} />` → `<textarea>`.
+
+**Examples in this repo:** `list-item.tsx` → `card-form.tsx` → `components/form/form-textarea.tsx` (and `form-input.tsx`).
+
+**No `displayName`:** `export const FormInput = (…) =>` already has `.name === "FormInput"`. `displayName` was a workaround for anonymous `forwardRef((props, ref) => …)` wrappers. Named `export const` + ref-as-prop does not need it.
 
 1. **Filename ↔ export** — `board-title-form.tsx` → `BoardTitleForm`. Enforced by `eslint-plugin-filename-match-export` (skips multi-export files and `index.*`). For `index.tsx`, name the export after the parent folder (`card-modal/index.tsx` → `CardModal`) — convention only; the plugin ignores `index`. Prefer **one** main named export so this check stays on — see [Colocation and public exports](#colocation-and-public-exports).
-2. **Props type** — when the first parameter uses a named type, call it **`{Component}Props`** (e.g. `BoardTitleForm` → `BoardTitleFormProps`). Keep it **file-local** (non-exported) unless something outside must import it. **App Router `page` / `layout` are exempt** — use `PageProps` / `LayoutProps` ([`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext)), not `BoardIdPageProps`. Enforced by [`@noctcore/eslint-plugin-react`](https://github.com/noctcore/eslint-plugins/tree/main/packages/eslint-plugin-react) `component-props-naming` (not in stock `eslint-plugin-react`) for UI components. Inline object types and wrappers like `PropsWithChildren<…>` / `React.ComponentProps<…>` are left alone. **Watch this dependency:** it is new and low-adoption; we only enable this one rule (not their full recommended set). Revisit if the package goes unmaintained, breaks on ESLint upgrades, or an official/typescript-eslint equivalent appears — then swap to a small local rule.
+2. **Props type** — when the first parameter uses a named type, call it **`{Component}Props`** (e.g. `BoardTitleForm` → `BoardTitleFormProps`). Keep it **file-local** (non-exported) unless something outside must import it — then use sibling `*.types.ts`, not `export type` on the component file. **App Router `page` / `layout` are exempt** — use `PageProps` / `LayoutProps` ([`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext)), not `BoardIdPageProps`. Naming enforced by [`@noctcore/eslint-plugin-react`](https://github.com/noctcore/eslint-plugins/tree/main/packages/eslint-plugin-react) `component-props-naming`; **no type co-export** enforced by ESLint `no-restricted-syntax` on app UI files (see [Colocation and public exports](#colocation-and-public-exports)). Inline object types and wrappers like `PropsWithChildren<…>` / `React.ComponentProps<…>` are left alone. **Watch noctcore:** it is new and low-adoption; we only enable this one rule. Revisit if the package goes unmaintained, breaks on ESLint upgrades, or an official/typescript-eslint equivalent appears — then swap to a small local rule.
 3. **Generics denylist** — do not export these bare names as components: `Header`, `Footer`, `Navbar`, `Sidebar`, `Actions`, `Activity`, `Description`, `Info`, `Content`, `Item`. Qualify with the nearest useful segment (folder / route / feature), e.g. `CardModalHeader`, `OrganizationInfo`, `MarketingNavbar`, `DashboardSidebar`.
 4. **`components/form/**`** — exported components must be prefixed **`Form`** (`FormInput`, `FormSubmit`, …); files stay `form-*.tsx`.
 5. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`.
-6. **Not enforced** — full path→name mirroring for `_components`, global uniqueness of every symbol across the repo. Filename ↔ export is also skipped when a file has **0 or 2+** named exports (plugin limitation) — avoid casual co-exports; see below.
+6. **Not enforced (automation)** — see [Enforcement status](#enforcement-status-colocation--companions) (folder layout scripts, test/story colocation checks, feature-folder triggers, …).
 
 #### Colocation and public exports
 
@@ -246,7 +276,7 @@ Playwright E2E stays under `e2e/` (whole-app flows), not beside every component.
 
 - Another module must import the type/helper (wrappers, shared kits, action `InputType` / `ReturnType`).
 - Design-system / `components/ui/` style public API (e.g. `export { Button, buttonVariants }`) — `ui/` is ESLint-exempt for shadcn.
-- Prefer a **sibling** `*.types.ts` (or `actions/<name>/types.ts`) over `export type` on the component file when you want filename ↔ export to stay on.
+- Prefer a **sibling** `*.types.ts` (or `actions/<name>/types.ts`) over `export type` on the component file. App UI component files **must not** `export type` / `export interface` (ESLint); `*.types.ts` and `components/ui/` are exempt.
 
 ##### When sibling types files are needed
 
@@ -262,7 +292,7 @@ Use `*.types.ts` next to UI, or `actions/<name>/types.ts` for actions — same i
 | Test passes props in JSX | Still **no** types file — props **inline** | `render(<BoardTitleForm data={{ … }} />)` |
 | Domain entity shared widely | Shared module — **not** `card-item.types.ts` | `CardWithList` in `types.ts`; Prisma `Board` |
 | Action I/O imported by callers | `actions/<name>/types.ts` | `create-board/types.ts` → `InputType`, `ReturnType` |
-| Wrapper / sibling must import component props | Sibling `foo.types.ts` (or co-export) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx` |
+| Wrapper / sibling must import component props | Sibling `foo.types.ts` (not `export type` on the component file) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx` |
 | Several siblings share one shape | One types module in the **same folder** | Hypothetical: `list-dnd.types.ts` used by `list-item.tsx` + `list-container.tsx` |
 
 **Sibling UI example** (only when the import is real):
@@ -274,7 +304,7 @@ components/form/
   form-input-with-hint.tsx → import type { FormInputProps } from "./form-input.types"
 ```
 
-**Rule of thumb:** the only “importer” would be a test that can pass props inline → **no** `*.types.ts`. Prefer sibling `*.types.ts` over co-exporting from the component file when you care about filename ↔ export.
+**Rule of thumb:** the only “importer” would be a test that can pass props inline → **no** `*.types.ts`. For app UI, use sibling `*.types.ts` — do not co-export types from the component file (ESLint).
 
 ##### Cheat sheet
 
@@ -284,12 +314,26 @@ components/form/
 | Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts` |
 | Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css` |
 | Props only used by that component | Same file, **don’t** export — **no** `*.types.ts` |
-| Types imported by actions / callers | `actions/…/types.ts` (or intentional co-export) |
-| Types imported by a UI wrapper / siblings | Sibling `*.types.ts` (keep component file single-export) |
+| Types imported by actions / callers | `actions/…/types.ts` |
+| Types imported by a UI wrapper / siblings | Sibling `*.types.ts` (ESLint forbids `export type` on the component file) |
 | Shared domain model | `@/types` / Prisma — not per-component `*.types.ts` |
 | Second UI under the same component | `.Skeleton` (etc.) on the export |
 | Unit / component test | Colocate `*.test.tsx`; props inline; don’t export props “for tests” |
 | E2E | `e2e/`, not next to every UI file |
+
+##### Enforcement status (colocation & companions)
+
+| Rule | Status |
+| ---- | ------ |
+| No `export type` / `export interface` in app UI component files (`components/**`, `app/**/_components/**`; not `ui/`; not `*.types.ts`) | **Enforced** (ESLint) |
+| Export keyword shape / `memo` identifier-only / no `forwardRef` (ref-as-prop) / filename ↔ export / `Form*` / generics denylist | **Enforced** (ESLint) — see above |
+| Action folder shape (`actions/<name>/` bare `index.ts` + `schema.ts` + `types.ts`) | **Docs only** — candidate for a `lint:routes`-style script later |
+| Colocated `*.test.tsx` / `*.stories.tsx` must sit next to the primary module | **Docs only** — add checks when Vitest / Storybook land |
+| Mid-suffix allowlist (forbid inventing `*.foo.tsx`) | **Docs only** |
+| Feature-folder migration when triggers fire | **Docs only** ([`project-structure.md`](./project-structure.md)) |
+| Create `*.types.ts` only when a real importer exists | **Docs only** (judgment) |
+| `index.tsx` export named after parent folder | **Docs only** (plugin skips `index.*`) |
+| Full path→name mirroring for `_components`; global symbol uniqueness | **Not enforced** |
 
 ### React / UI
 
@@ -297,6 +341,7 @@ components/form/
 | -------- | ------ | ------------------ |
 | Think in components; compose small pieces | Adopted | [Thinking in React](https://react.dev/learn/thinking-in-react) |
 | Prefer deriving state / skip unnecessary Effects | Adopted | [You Might Not Need an Effect](https://react.dev/learn/you-might-not-need-an-effect) |
+| **`ref` as a prop** (no `forwardRef` in app UI); optional `ref?: Ref<…>`; forward until a host node | Adopted | [Refs (React 19)](#refs-react-19-ref-as-a-prop) · [react.dev `forwardRef`](https://react.dev/reference/react/forwardRef) · [Referencing values with refs](https://react.dev/learn/referencing-values-with-refs). Enforced: no `forwardRef` import in app UI / `lib` (`components/ui/` excluded) |
 | `"use client"` only where client APIs are required | Adopted | [React Server Components](https://react.dev/reference/rsc/server-components) · [Next.js Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components) |
 | Shared providers under `components/providers/` (or similar) | Adopted | Common React habit; not a framework special folder |
 | shadcn primitives only under `components/ui/` | Adopted (repo rule on top of habit) | [shadcn/ui docs](https://ui.shadcn.com/docs) · [project-structure](./project-structure.md) |
