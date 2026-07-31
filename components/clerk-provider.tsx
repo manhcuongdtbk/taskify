@@ -3,11 +3,11 @@ import { shadcn } from "@clerk/ui/themes";
 
 type ClerkProviderProps = React.ComponentProps<typeof ClerkNextJSProvider>;
 
-export function ClerkProvider({
+export const ClerkProvider = ({
   children,
   appearance,
   ...props
-}: ClerkProviderProps) {
+}: ClerkProviderProps) => {
   return (
     <ClerkNextJSProvider
       appearance={{
@@ -19,4 +19,4 @@ export function ClerkProvider({
       {children}
     </ClerkNextJSProvider>
   );
-}
+};

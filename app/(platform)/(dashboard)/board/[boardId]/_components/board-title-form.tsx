@@ -12,7 +12,7 @@ interface BoardTitleFormProps {
   data: Board;
 }
 
-export function BoardTitleForm({ data }: BoardTitleFormProps) {
+export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
   const { execute } = useAction(updateBoard, {
     onSuccess: (data) => {
       toast.add({
@@ -84,4 +84,4 @@ export function BoardTitleForm({ data }: BoardTitleFormProps) {
       {title}
     </Button>
   );
-}
+};

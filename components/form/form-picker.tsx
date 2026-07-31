@@ -15,7 +15,7 @@ interface FormPickerProps {
   errors?: Record<string, string[] | undefined>;
 }
 
-export function FormPicker({ id, errors }: FormPickerProps) {
+export const FormPicker = ({ id, errors }: FormPickerProps) => {
   const { pending } = useFormStatus();
   const [images, setImages] = useState<AssetBasic[]>(defaultImages);
   const [isLoading, setIsLoading] = useState(true);
@@ -103,4 +103,4 @@ export function FormPicker({ id, errors }: FormPickerProps) {
       <FormErrors id="image" errors={errors} />
     </div>
   );
-}
+};

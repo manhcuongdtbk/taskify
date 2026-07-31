@@ -11,7 +11,7 @@ import { FREE_PLAN, PRO_PLAN, hasUnlimitedBoards } from "@/constants/pricing-pla
 import { checkSubscription } from "@/lib/subscription";
 import { paths } from "@/lib/paths";
 
-export async function BoardList() {
+export const BoardList = async () => {
   const { orgId } = await auth();
 
   if (!orgId) {
@@ -74,7 +74,7 @@ export async function BoardList() {
       </div>
     </div>
   );
-}
+};
 
 BoardList.Skeleton = function BoardListSkeleton() {
   return (

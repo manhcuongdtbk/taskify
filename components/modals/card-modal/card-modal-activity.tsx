@@ -9,7 +9,7 @@ interface CardModalActivityProps {
   items: AuditLog[];
 }
 
-export function CardModalActivity({ items }: CardModalActivityProps) {
+export const CardModalActivity = ({ items }: CardModalActivityProps) => {
   return (
     <div className="flex w-full items-start gap-x-3">
       <ActivityIcon className="mt-0.5 h-5 w-5 text-neutral-700" />
@@ -23,7 +23,7 @@ export function CardModalActivity({ items }: CardModalActivityProps) {
       </div>
     </div>
   );
-}
+};
 
 CardModalActivity.Skeleton = function ActivitySkeleton() {
   return (

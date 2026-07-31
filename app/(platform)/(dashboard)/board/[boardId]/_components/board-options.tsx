@@ -16,7 +16,7 @@ interface BoardOptionsProps {
   id: string;
 }
 
-export function BoardOptions({ id }: BoardOptionsProps) {
+export const BoardOptions = ({ id }: BoardOptionsProps) => {
   const { execute, isLoading } = useAction(deleteBoard, {
     onError: (error) => {
       toast.add({
@@ -64,4 +64,4 @@ export function BoardOptions({ id }: BoardOptionsProps) {
       </PopoverContent>
     </Popover>
   );
-}
+};

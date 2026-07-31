@@ -13,7 +13,7 @@ interface ListItemProps {
   data: ListWithCards;
 }
 
-export function ListItem({ index, data }: ListItemProps) {
+export const ListItem = ({ index, data }: ListItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef<ComponentRef<"textarea">>(null);
 
@@ -70,4 +70,4 @@ export function ListItem({ index, data }: ListItemProps) {
       )}
     </Draggable>
   );
-}
+};

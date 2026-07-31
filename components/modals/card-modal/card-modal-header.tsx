@@ -15,7 +15,7 @@ interface CardModalHeaderProps {
   data: CardWithList;
 }
 
-export function CardModalHeader({ data }: CardModalHeaderProps) {
+export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
   const queryClient = useQueryClient();
   const params = useParams();
   const { execute } = useAction(updateCard, {
@@ -74,7 +74,7 @@ export function CardModalHeader({ data }: CardModalHeaderProps) {
       </div>
     </div>
   );
-}
+};
 
 CardModalHeader.Skeleton = function HeaderSkeleton() {
   return (

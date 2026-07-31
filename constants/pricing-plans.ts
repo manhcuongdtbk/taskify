@@ -97,19 +97,19 @@ export const PRO_PLAN = PLANS.pro;
  * Whether a pricing plan allows unlimited boards.
  * True iff `maxBoards === null` (see module header “maxBoards”).
  */
-export function hasUnlimitedBoards(plan: {
+export const hasUnlimitedBoards = (plan: {
   maxBoards: number | null;
-}): boolean {
+}): boolean => {
   return plan.maxBoards === null;
-}
+};
 
 /**
  * UI copy for a pricing plan’s board cap.
  * `null` → “Unlimited boards”; otherwise “Up to N boards”.
  */
-export function formatBoardLimit(maxBoards: number | null): string {
+export const formatBoardLimit = (maxBoards: number | null): string => {
   if (maxBoards === null) {
     return "Unlimited boards";
   }
   return `Up to ${maxBoards} boards`;
-}
+};

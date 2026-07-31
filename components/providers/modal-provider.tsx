@@ -4,7 +4,7 @@ import { CardModal } from "@/components/modals/card-modal";
 import { ProModal } from "@/components/modals/pro-modal";
 import { useEffect, useState } from "react";
 
-export function ModalProvider() {
+export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -23,4 +23,4 @@ export function ModalProvider() {
       <ProModal />
     </>
   );
-}
+};

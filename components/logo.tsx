@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { calSansUI } from "@/fonts";
 import { siteConfig } from "@/config/site";
 
-export function Logo() {
+export const Logo = () => {
   return (
     <Link href="/">
       <div className="hidden items-center gap-x-2 transition hover:opacity-75 md:flex">
@@ -15,4 +15,4 @@ export function Logo() {
       </div>
     </Link>
   );
-}
+};

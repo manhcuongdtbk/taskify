@@ -66,6 +66,105 @@ const routeCastOnlyInPathsRestriction = {
     "Cast to Route only in lib/paths.ts; use paths.* at call sites (or an inline literal for static routes). External URLs: use <a>, not Route. See docs/nextjs.md.",
 };
 
+/** Next.js special files — default export must be `export default [async] function` (docs style). */
+const NEXT_SPECIAL_FILES = [
+  "app/**/page.{ts,tsx}",
+  "app/**/layout.{ts,tsx}",
+  "app/**/template.{ts,tsx}",
+  "app/**/loading.{ts,tsx}",
+  "app/**/error.{ts,tsx}",
+  "app/**/global-error.{ts,tsx}",
+  "app/**/not-found.{ts,tsx}",
+  "app/**/global-not-found.{ts,tsx}",
+  "app/**/forbidden.{ts,tsx}",
+  "app/**/unauthorized.{ts,tsx}",
+  "app/**/default.{ts,tsx}",
+  "app/**/sitemap.{ts,js}",
+  "app/**/robots.{ts,js}",
+  "app/**/manifest.{ts,js}",
+  "app/**/icon.{ts,tsx,js,jsx}",
+  "app/**/apple-icon.{ts,tsx,js,jsx}",
+  "app/**/opengraph-image.{ts,tsx,js,jsx}",
+  "app/**/twitter-image.{ts,tsx,js,jsx}",
+  "app/**/route.{ts,tsx}",
+  "proxy.ts",
+];
+
+const nextDefaultFunctionMessage =
+  "Use `export default function Name` or `export default async function Name` (Next.js doc style). See docs/conventions.md.";
+
+const nextSpecialExportRestrictions = [
+  {
+    selector: "ExportDefaultDeclaration > ArrowFunctionExpression",
+    message: nextDefaultFunctionMessage,
+  },
+  {
+    selector: "ExportDefaultDeclaration > Identifier",
+    message: nextDefaultFunctionMessage,
+  },
+  {
+    selector:
+      "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name=/^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|generateMetadata|generateViewport|generateStaticParams|generateImageMetadata|generateSitemaps|proxy)$/]",
+    message:
+      "Use `export async function Name` / `export function Name` for Next.js special named exports (not `export const`). See docs/conventions.md.",
+  },
+];
+
+/** Non-Next modules — no `export [async] function` (named or default); use `export const` + arrow. */
+const nonNextFunctionDeclarationMessage =
+  "Use `export const Name = () =>` / `export const Name = async () =>` for non-Next.js modules (keep `export [async] function` / `export default [async] function` for Next.js special files). See docs/conventions.md.";
+
+const nonNextFunctionDeclarationRestrictions = [
+  {
+    selector: "ExportNamedDeclaration > FunctionDeclaration",
+    message: nonNextFunctionDeclarationMessage,
+  },
+  {
+    selector: "ExportDefaultDeclaration > FunctionDeclaration",
+    message: nonNextFunctionDeclarationMessage,
+  },
+];
+
+const nonNextExportConstMustBeArrowRestriction = {
+  selector:
+    "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > FunctionExpression",
+  message:
+    "Use an arrow function: `export const Name = () =>` / `export const Name = async () =>` (not `function Name`). See docs/conventions.md.",
+};
+
+/** memo/forwardRef: no inline function/arrow — wrap a named `const` (keeps .name, no displayName). */
+const memoForwardRefNamedIdentifierMessage =
+  "Pass a named component identifier to memo/forwardRef: `const Foo = () => { … }; export const FooMemo = memo(Foo)` (same for forwardRef). No inline `() =>` or `function` — those are Anonymous in DevTools / fail `react/display-name`. See docs/conventions.md.";
+
+const memoForwardRefNamedIdentifierRestrictions = [
+  {
+    selector:
+      "CallExpression[callee.name=/^(memo|forwardRef)$/] > ArrowFunctionExpression",
+    message: memoForwardRefNamedIdentifierMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.property.name=/^(memo|forwardRef)$/] > ArrowFunctionExpression",
+    message: memoForwardRefNamedIdentifierMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.name=/^(memo|forwardRef)$/] > FunctionExpression",
+    message: memoForwardRefNamedIdentifierMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.property.name=/^(memo|forwardRef)$/] > FunctionExpression",
+    message: memoForwardRefNamedIdentifierMessage,
+  },
+];
+
+const nonNextExportStyleRestrictions = [
+  ...nonNextFunctionDeclarationRestrictions,
+  nonNextExportConstMustBeArrowRestriction,
+  ...memoForwardRefNamedIdentifierRestrictions,
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -82,6 +181,7 @@ const eslintConfig = defineConfig([
     ".agents/**",
     ".claude/**",
     ".windsurf/**",
+    "app/generated/**",
   ]),
 
   // Link = in-app; <a> = external. Inverse of @next/next/no-html-link-for-pages.
@@ -109,14 +209,52 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Filename ↔ export, generics denylist, ComponentProps naming for app UI (not shadcn).
+  // Next.js special files: default/`generate*`/HTTP handlers use `export [async] function`.
   {
-    files: [
-      "components/**/*.{ts,tsx}",
-      "app/**/_components/**/*.{ts,tsx}",
-      "app/**/page.tsx",
-    ],
-    ignores: ["components/ui/**", "lib/paths.ts"],
+    files: NEXT_SPECIAL_FILES,
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...linkVsAnchorRestrictions,
+        routeCastOnlyInPathsRestriction,
+        ...nextSpecialExportRestrictions,
+      ],
+    },
+  },
+
+  // Non-Next app modules: `export const` + arrow, not `export [async] function` (named or default).
+  // `lib/paths.ts` is handled below — this block re-includes the `as Route` ban.
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    ignores: ["components/ui/**", "lib/paths.ts", ...NEXT_SPECIAL_FILES],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...linkVsAnchorRestrictions,
+        routeCastOnlyInPathsRestriction,
+        ...nonNextExportStyleRestrictions,
+      ],
+    },
+  },
+
+  // Sole `as Route` cast site: enforce export style here, but do not ban casts.
+  {
+    files: ["lib/paths.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...linkVsAnchorRestrictions,
+        ...nonNextExportStyleRestrictions,
+      ],
+    },
+  },
+
+  // Filename ↔ export, generics denylist, ComponentProps naming for app UI (not shadcn).
+  // Pages stay out of this block: non-Next `export const` bans would forbid
+  // `export async function generateMetadata`. See the page-only block below.
+  {
+    files: ["components/**/*.{ts,tsx}", "app/**/_components/**/*.{ts,tsx}"],
+    ignores: ["components/ui/**"],
     plugins: {
       "filename-match-export": filenameMatchExport,
       "noctcore-react": noctcoreReact,
@@ -134,6 +272,25 @@ const eslintConfig = defineConfig([
         ...genericComponentRestrictions,
         ...linkVsAnchorRestrictions,
         routeCastOnlyInPathsRestriction,
+        ...nonNextExportStyleRestrictions,
+      ],
+    },
+  },
+
+  // App Router pages: keep ComponentProps naming if someone invents a handwritten
+  // props alias (prefer Next `PageProps` — docs/conventions.md). Separate from the
+  // UI block so Next named exports stay `export [async] function`.
+  // Omits filename-match-export: default export ≠ `page`; a sole `generateMetadata`
+  // named export would false-positive against the filename.
+  {
+    files: ["app/**/page.tsx"],
+    plugins: {
+      "noctcore-react": noctcoreReact,
+    },
+    rules: {
+      "noctcore-react/component-props-naming": [
+        "error",
+        { requireExported: true },
       ],
     },
   },

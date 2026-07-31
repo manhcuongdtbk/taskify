@@ -11,7 +11,7 @@ import { CardModalActions } from "./card-modal-actions";
 import { type AuditLog } from "@/app/generated/prisma/client";
 import { CardModalActivity } from "./card-modal-activity";
 
-export function CardModal() {
+export const CardModal = () => {
   const id = useCardModal((state) => state.id);
   const isOpen = useCardModal((state) => state.isOpen);
   const onClose = useCardModal((state) => state.onClose);
@@ -54,4 +54,4 @@ export function CardModal() {
       </DialogContent>
     </Dialog>
   );
-}
+};

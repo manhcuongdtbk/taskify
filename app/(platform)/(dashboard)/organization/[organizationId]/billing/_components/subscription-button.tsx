@@ -18,7 +18,7 @@ interface SubscriptionButtonProps {
  * `isPro` here is feature access (checkSubscription), not the same as
  * “has stripeCustomerId” inside stripe-redirect — see docs/billing.md.
  */
-export function SubscriptionButton({ isPro }: SubscriptionButtonProps) {
+export const SubscriptionButton = ({ isPro }: SubscriptionButtonProps) => {
   const proModal = useProModal();
 
   const { execute, isLoading } = useAction(stripeRedirect, {
@@ -46,4 +46,4 @@ export function SubscriptionButton({ isPro }: SubscriptionButtonProps) {
       {isPro ? "Manage Subscription" : `Upgrade to ${PRO_PLAN.name}`}
     </Button>
   );
-}
+};

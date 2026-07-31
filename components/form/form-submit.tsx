@@ -12,12 +12,12 @@ interface FormSubmitProps {
     "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"; // All variants in components/ui/button.tsx
 }
 
-export function FormSubmit({
+export const FormSubmit = ({
   children,
   disabled,
   className,
   variant,
-}: FormSubmitProps) {
+}: FormSubmitProps) => {
   const { pending } = useFormStatus();
 
   return (
@@ -31,4 +31,4 @@ export function FormSubmit({
       {children}
     </Button>
   );
-}
+};

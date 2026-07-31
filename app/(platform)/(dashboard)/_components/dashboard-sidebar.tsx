@@ -17,9 +17,9 @@ interface DashboardSidebarProps {
   storageKey?: string;
 }
 
-export function DashboardSidebar({
+export const DashboardSidebar = ({
   storageKey = "taskify-sidebar-expanded",
-}: DashboardSidebarProps) {
+}: DashboardSidebarProps) => {
   const [expanded, setExpanded] = useLocalStorage<Record<string, boolean>>(
     storageKey,
     {},
@@ -100,4 +100,4 @@ export function DashboardSidebar({
       </Accordion>
     </>
   );
-}
+};

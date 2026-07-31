@@ -18,7 +18,7 @@ interface CardModalDescriptionProps {
   data: CardWithList;
 }
 
-export function CardModalDescription({ data }: CardModalDescriptionProps) {
+export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
   const queryClient = useQueryClient();
   const params = useParams();
   const [isEditing, setIsEditing] = useState(false);
@@ -117,7 +117,7 @@ export function CardModalDescription({ data }: CardModalDescriptionProps) {
       </div>
     </div>
   );
-}
+};
 
 CardModalDescription.Skeleton = function DescriptionSkeleton() {
   return (

@@ -15,7 +15,7 @@ interface CardModalActionsProps {
   data: CardWithList;
 }
 
-export function CardModalActions({ data }: CardModalActionsProps) {
+export const CardModalActions = ({ data }: CardModalActionsProps) => {
   const params = useParams();
   const cardModal = useCardModal();
 
@@ -93,7 +93,7 @@ export function CardModalActions({ data }: CardModalActionsProps) {
       </Button>
     </div>
   );
-}
+};
 
 CardModalActions.Skeleton = function ActionsSkeleton() {
   return (

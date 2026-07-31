@@ -10,7 +10,7 @@ interface OrganizationInfoProps {
   isPro: boolean;
 }
 
-export function OrganizationInfo({ isPro }: OrganizationInfoProps) {
+export const OrganizationInfo = ({ isPro }: OrganizationInfoProps) => {
   const { organization, isLoaded } = useOrganization();
 
   if (!isLoaded) {
@@ -38,7 +38,7 @@ export function OrganizationInfo({ isPro }: OrganizationInfoProps) {
       </div>
     </div>
   );
-}
+};
 
 OrganizationInfo.Skeleton = function InfoSkeleton() {
   return (

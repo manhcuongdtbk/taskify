@@ -26,12 +26,12 @@ interface FormPopoverProps extends BaseUIRenderForwardingProps {
   sideOffset?: number;
 }
 
-export function FormPopover({
+export const FormPopover = ({
   children,
   side = "bottom",
   align,
   sideOffset = 0,
-}: FormPopoverProps) {
+}: FormPopoverProps) => {
   const proModal = useProModal();
   const router = useRouter();
   const closeRef = useRef<ComponentRef<"button">>(null);
@@ -101,4 +101,4 @@ export function FormPopover({
       </PopoverContent>
     </Popover>
   );
-}
+};

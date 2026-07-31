@@ -11,12 +11,12 @@ interface HintProps extends BaseUIRenderForwardingProps {
   sideOffset?: number;
 }
 
-export function Hint({
+export const Hint = ({
   children,
   description,
   side = "bottom",
   sideOffset = 0,
-}: HintProps) {
+}: HintProps) => {
   return (
     <Tooltip>
       <TooltipTrigger delay={0} render={children} />
@@ -29,4 +29,4 @@ export function Hint({
       </TooltipContent>
     </Tooltip>
   );
-}
+};

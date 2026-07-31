@@ -9,7 +9,7 @@ interface CardItemProps {
   data: Card;
 }
 
-export function CardItem({ index, data }: CardItemProps) {
+export const CardItem = ({ index, data }: CardItemProps) => {
   const cardModal = useCardModal();
 
   return (
@@ -28,4 +28,4 @@ export function CardItem({ index, data }: CardItemProps) {
       )}
     </Draggable>
   );
-}
+};

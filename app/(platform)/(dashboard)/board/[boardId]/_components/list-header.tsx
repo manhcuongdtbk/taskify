@@ -14,7 +14,7 @@ interface ListHeaderProps {
   onAddCard: () => void;
 }
 
-export function ListHeader({ data, onAddCard }: ListHeaderProps) {
+export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
   const [title, setTitle] = useState(data.title);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -102,4 +102,4 @@ export function ListHeader({ data, onAddCard }: ListHeaderProps) {
       <ListOptions data={data} onAddCard={onAddCard} />
     </div>
   );
-}
+};

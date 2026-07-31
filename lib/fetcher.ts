@@ -4,7 +4,7 @@
  * Throws on HTTP error (Query expects that):
  * https://tanstack.com/query/latest/docs/framework/react/guides/query-functions
  */
-export async function fetcher<T = unknown>(url: string): Promise<T> {
+export const fetcher = async <T = unknown>(url: string): Promise<T> => {
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -12,4 +12,4 @@ export async function fetcher<T = unknown>(url: string): Promise<T> {
   }
 
   return res.json() as Promise<T>;
-}
+};

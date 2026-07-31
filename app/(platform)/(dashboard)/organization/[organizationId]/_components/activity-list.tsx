@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { paths } from "@/lib/paths";
 
-export async function ActivityList() {
+export const ActivityList = async () => {
   const { orgId } = await auth();
 
   if (!orgId) {
@@ -31,7 +31,7 @@ export async function ActivityList() {
       ))}
     </ol>
   );
-}
+};
 
 ActivityList.Skeleton = function ActivityListSkeleton() {
   return (

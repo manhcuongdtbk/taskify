@@ -22,7 +22,7 @@ function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
   return result;
 }
 
-export function ListContainer({ boardId, data }: ListContainerProps) {
+export const ListContainer = ({ boardId, data }: ListContainerProps) => {
   const [orderedData, setOrderedData] = useState(data);
   const { execute: executeUpdateListOrder } = useAction(updateListOrder, {
     onSuccess: (data) => {
@@ -178,4 +178,4 @@ export function ListContainer({ boardId, data }: ListContainerProps) {
       </Droppable>
     </DragDropContext>
   );
-}
+};

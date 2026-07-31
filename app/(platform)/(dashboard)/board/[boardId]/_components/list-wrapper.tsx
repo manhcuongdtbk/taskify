@@ -2,6 +2,6 @@ interface ListWrapperProps {
   children: React.ReactNode;
 }
 
-export function ListWrapper({ children }: ListWrapperProps) {
+export const ListWrapper = ({ children }: ListWrapperProps) => {
   return <li className="h-full w-68 shrink-0 select-none">{children}</li>;
-}
+};

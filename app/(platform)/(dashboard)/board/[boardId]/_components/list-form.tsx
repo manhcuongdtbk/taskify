@@ -12,7 +12,7 @@ import { useAction } from "@/hooks/use-action";
 import { createList } from "@/actions/create-list";
 import { toast } from "@/components/ui/toast";
 
-export function ListForm() {
+export const ListForm = () => {
   const router = useRouter();
   const params = useParams<{ boardId: string }>();
   const [isEditing, setIsEditing] = useState(false);
@@ -100,4 +100,4 @@ export function ListForm() {
       </button>
     </ListWrapper>
   );
-}
+};

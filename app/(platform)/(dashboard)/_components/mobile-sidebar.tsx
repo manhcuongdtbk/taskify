@@ -8,7 +8,7 @@ import { Menu } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
-export function MobileSidebar() {
+export const MobileSidebar = () => {
   const pathname = usePathname();
 
   // Helps prevent hydration errors. TODO: figure out why this is needed and whether there's a better way to handle this.
@@ -51,4 +51,4 @@ export function MobileSidebar() {
       </Sheet>
     </>
   );
-}
+};
