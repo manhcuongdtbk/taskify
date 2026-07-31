@@ -3,7 +3,7 @@ import { OrganizationInfo } from "../_components/organization-info";
 import { Separator } from "@/components/ui/separator";
 import { SubscriptionButton } from "./_components/subscription-button";
 
-export default async function OrganizationBillingPage() {
+export default async function OrganizationBillingPage({}: PageProps<"/organization/[organizationId]/billing">) {
   const isPro = await checkSubscription();
 
   return (

@@ -1,11 +1,7 @@
 import { MarketingNavbar } from "./_components/marketing-navbar";
 import { MarketingFooter } from "./_components/marketing-footer";
 
-export default function MarketingLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="h-full bg-slate-100">
       <MarketingNavbar />

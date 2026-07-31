@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 
-export default async function ProtectedPage() {
+export default async function ProtectedPage({}: PageProps<"/protected">) {
   await auth.protect();
 
   const user = await currentUser();

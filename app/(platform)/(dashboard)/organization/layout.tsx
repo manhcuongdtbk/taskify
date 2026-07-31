@@ -2,9 +2,7 @@ import { DashboardSidebar } from "../_components/dashboard-sidebar";
 
 export default function OrganizationLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: LayoutProps<"/organization">) {
   return (
     <div className="mx-auto max-w-6xl px-4 pt-20 md:pt-24 2xl:max-w-7xl">
       <div className="flex gap-x-7">

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { calSansUI, poppins } from "@/fonts";
 import { siteConfig } from "@/config/site";
 
-export default function MarketingPage() {
+export default function MarketingPage({}: PageProps<"/">) {
   return (
     <div className="flex flex-col items-center justify-center">
       <div

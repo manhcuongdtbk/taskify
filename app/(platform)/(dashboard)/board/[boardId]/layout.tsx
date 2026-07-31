@@ -6,9 +6,7 @@ import { BoardNavbar } from "./_components/board-navbar";
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ boardId: string }>;
-}): Promise<Metadata> {
+}: LayoutProps<"/board/[boardId]">): Promise<Metadata> {
   const { orgId } = await auth();
 
   if (!orgId) {
@@ -31,10 +29,7 @@ export async function generateMetadata({
 export default async function BoardIdLayout({
   children,
   params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ boardId: string }>;
-}) {
+}: LayoutProps<"/board/[boardId]">) {
   const { orgId } = await auth();
 
   if (!orgId) {

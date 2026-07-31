@@ -1,6 +1,6 @@
 import { OrganizationProfile } from "@clerk/nextjs";
 
-export default function OrganizationSettingsPage() {
+export default function OrganizationSettingsPage({}: PageProps<"/organization/[organizationId]/settings">) {
   return (
     <div className="w-full">
       <OrganizationProfile

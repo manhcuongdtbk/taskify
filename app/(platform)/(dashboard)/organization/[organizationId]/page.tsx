@@ -4,7 +4,7 @@ import { BoardList } from "./_components/board-list";
 import { Suspense } from "react";
 import { checkSubscription } from "@/lib/subscription";
 
-export default async function OrganizationIdPage() {
+export default async function OrganizationIdPage({}: PageProps<"/organization/[organizationId]">) {
   const isPro = await checkSubscription();
 
   return (

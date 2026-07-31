@@ -17,11 +17,7 @@ export const metadata: Metadata = {
   icons: [{ url: "/logo.svg", href: "/logo.svg" }],
 };
 
-export default function PlatformLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function PlatformLayout({ children }: LayoutProps<"/">) {
   return (
     <ClerkProvider>
       <ThemeProvider // https://ui.shadcn.com/docs/dark-mode/next#wrap-your-root-layout

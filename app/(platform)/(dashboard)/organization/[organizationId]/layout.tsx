@@ -13,9 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function OrganizationIdLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: LayoutProps<"/organization/[organizationId]">) {
   return (
     <>
       <OrganizationControl />

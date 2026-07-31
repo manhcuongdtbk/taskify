@@ -3,11 +3,9 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ListContainer } from "./_components/list-container";
 
-interface BoardIdPageProps {
-  params: Promise<{ boardId: string }>;
-}
-
-export default async function BoardIdPage({ params }: BoardIdPageProps) {
+export default async function BoardIdPage({
+  params,
+}: PageProps<"/board/[boardId]">) {
   const { orgId } = await auth();
 
   if (!orgId) {
