@@ -170,6 +170,34 @@ const nonNextExportStyleRestrictions = [
 ];
 
 /** Prefer React 19 ref-as-prop; `forwardRef` is legacy (will be deprecated). */
+const preferEsToolkitMessage =
+  "Use es-toolkit instead of Lodash/Underscore. See docs/conventions.md (TypeScript / JavaScript).";
+
+const noLodashImportPaths = [
+  { name: "lodash", message: preferEsToolkitMessage },
+  { name: "lodash-es", message: preferEsToolkitMessage },
+  { name: "underscore", message: preferEsToolkitMessage },
+];
+
+const noLodashImportPatterns = [
+  {
+    group: ["lodash/*", "lodash.*", "lodash-es/*"],
+    message: preferEsToolkitMessage,
+  },
+];
+
+/** Lodash/Underscore banned everywhere we lint (es-toolkit is the utility lib). */
+const noLodashImport = {
+  "no-restricted-imports": [
+    "error",
+    {
+      paths: noLodashImportPaths,
+      patterns: noLodashImportPatterns,
+    },
+  ],
+};
+
+/** Prefer React 19 ref-as-prop; also re-state Lodash ban (flat config replaces the rule). */
 const noForwardRefImport = {
   "no-restricted-imports": [
     "error",
@@ -181,7 +209,9 @@ const noForwardRefImport = {
           message:
             "Pass `ref` as a normal prop (React 19). Do not use forwardRef. See docs/conventions.md.",
         },
+        ...noLodashImportPaths,
       ],
+      patterns: noLodashImportPatterns,
     },
   ],
 };
@@ -255,6 +285,7 @@ const eslintConfig = defineConfig([
   {
     files: NEXT_SPECIAL_FILES,
     rules: {
+      ...noLodashImport,
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
@@ -290,6 +321,14 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
+    },
+  },
+
+  // shadcn may use `forwardRef`; still ban Lodash (es-toolkit only).
+  {
+    files: ["components/ui/**/*.{ts,tsx}"],
+    rules: {
+      ...noLodashImport,
     },
   },
 
