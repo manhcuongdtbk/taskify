@@ -1,14 +1,37 @@
 {
   "js/ts.tsdk.path": "node_modules/typescript/lib", // https://nextjs.org/docs/app/api-reference/config/typescript#ide-plugin
 
-  "[jsonc]": {
+  // Same formatter as `pnpm lint:prettier` / lint-staged — Prettier everywhere it supports.
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+
+  // Pin languages so user-level formatter overrides don’t steal Prettier / Tombi / Prisma.
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "[typescriptreact]": {
+  "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "tombi-toml.tombi"
   },
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
@@ -18,14 +41,20 @@
   "files.associations": {
     "*.css": "tailwindcss"
   },
+  // `*.css` → language id `tailwindcss`; still format with Prettier (plugin sorts classes).
+  "[tailwindcss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
   "editor.quickSuggestions": {
     "strings": "on"
   },
 
-  // https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode#using-code-actions-on-save
+  // ESLint autofix on save (quality) — "always" = manual save and autosave (not "explicit").
+  // Formatting is Prettier via formatOnSave — do not also `source.formatAll.prettier`
+  // or Prettier runs twice. Order: code actions (ESLint) then formatOnSave (Prettier).
   "editor.codeActionsOnSave": {
-    "source.fixAll.prettier": "explicit",
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll.eslint": "always"
   },
 
   "editor.linkedEditing": true,

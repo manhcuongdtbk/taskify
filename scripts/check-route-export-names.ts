@@ -11,13 +11,17 @@
  */
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { compact, difference } from "es-toolkit";
 import { pascalCase } from "es-toolkit/string";
+import {
+  PAGE_LAYOUT_BASENAME_RE,
+  ROUTE_HANDLER_BASENAME_RE,
+} from "./app-router-segment-files.ts";
 
 const APP_DIR = join(process.cwd(), "app");
 const fix = process.argv.includes("--fix");
 
-const EXPORT_RE =
-  /export\s+default\s+(?:async\s+)?function\s+([A-Za-z0-9_]+)/;
+const EXPORT_RE = /export\s+default\s+(?:async\s+)?function\s+([A-Za-z0-9_]+)/;
 
 const HELPER_RE = /\b(Page|Layout)Props<\s*(["'])(\/[^"']*)\2\s*>/;
 
@@ -133,10 +137,7 @@ function expectedExportName(filePath: string): string {
   return resource + last.value + suffix;
 }
 
-function walkSegmentFiles(
-  dir: string,
-  kinds: RegExp,
-): string[] {
+function walkSegmentFiles(dir: string, kinds: RegExp): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
@@ -153,15 +154,21 @@ function walkSegmentFiles(
   return out;
 }
 
+/** Basename matchers — see `scripts/app-router-segment-files.ts` (shared with lint-staged). */
+
 function walkPageLayoutFiles(dir: string): string[] {
-  return walkSegmentFiles(dir, /^(page|layout)\.(tsx|ts|jsx|js)$/);
+  return walkSegmentFiles(dir, PAGE_LAYOUT_BASENAME_RE);
 }
 
 function walkRouteHandlerFiles(dir: string): string[] {
-  return walkSegmentFiles(dir, /^route\.(tsx|ts|jsx|js)$/);
+  return walkSegmentFiles(dir, ROUTE_HANDLER_BASENAME_RE);
 }
 
-function applyNameFix(source: string, actual: string, expected: string): string {
+function applyNameFix(
+  source: string,
+  actual: string,
+  expected: string,
+): string {
   let next = source.replace(EXPORT_RE, (full) =>
     full.replace(new RegExp(`\\b${actual}\\b`), expected),
   );
@@ -379,7 +386,7 @@ function splitTopLevelArgs(params: string): string[] {
   }
   const last = params.slice(start).trim();
   if (last) args.push(last);
-  return args.filter(Boolean);
+  return compact(args);
 }
 
 function parseRouteContext(arg: string): { literal: string } | null {
@@ -459,7 +466,8 @@ function findBareResponseUsages(source: string): string[] {
   const hits: string[] = [];
   if (/\bnew Response\b/.test(source)) hits.push("new Response");
   if (/(?<!Next)Response\.json\b/.test(source)) hits.push("Response.json");
-  if (/(?<!Next)Response\.redirect\b/.test(source)) hits.push("Response.redirect");
+  if (/(?<!Next)Response\.redirect\b/.test(source))
+    hits.push("Response.redirect");
   return hits;
 }
 
@@ -474,11 +482,8 @@ function ensureNextServerImport(source: string, names: string[]): string {
   const importRe = /import\s*\{([^}]*)\}\s*from\s*["']next\/server["']\s*;?/;
   const m = source.match(importRe);
   if (m && m.index !== undefined) {
-    const existing = m[1]!
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const toAdd = names.filter((n) => !existing.includes(n));
+    const existing = compact(m[1]!.split(",").map((s) => s.trim()));
+    const toAdd = difference(names, existing);
     if (toAdd.length === 0) return source;
     const next = [...existing, ...toAdd].join(", ");
     return (

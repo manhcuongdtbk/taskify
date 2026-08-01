@@ -1,3 +1,26 @@
-# Ignore artifacts:
+# Prettier ignore (when this file exists, Prettier does not use .gitignore).
+# Keep this short: only tracked paths we commit but never format, plus build
+# outputs Prettier would otherwise walk. Prefer changing tool defaults / ESLint
+# ignores over growing this list.
+#
+# See docs/conventions.md § Lint & format: one contract · `pnpm lint:file-support`
+
+# build / deps / env (also in .gitignore — listed because this file replaces gitignore for Prettier)
+node_modules
+.next
+out
 build
 coverage
+.vercel
+.env*
+*.tsbuildinfo
+next-env.d.ts
+
+# tracked / generated — never format
+.agents
+.claude
+.windsurf
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+app/generated

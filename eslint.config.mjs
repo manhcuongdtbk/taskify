@@ -8,6 +8,9 @@ import filenameMatchExport from "eslint-plugin-filename-match-export";
 // Community-only (new, niche). We use a single rule — watch releases / health; replace with a local rule if it stalls. See docs/conventions.md § Component export names.
 import noctcoreReact from "@noctcore/eslint-plugin-react";
 
+/** Matches eslint-config-next’s JS/TS family — one place for custom `files` globs. */
+const JS_TS_FILES = ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"];
+
 /** One-word generics that must be qualified — docs/conventions.md § Component export names */
 const GENERIC_COMPONENT_NAMES =
   "Header|Footer|Navbar|Sidebar|Actions|Activity|Description|Info|Content|Item";
@@ -209,7 +212,6 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   ...pluginQuery.configs["flat/recommended-strict"],
-  prettier,
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -227,7 +229,7 @@ const eslintConfig = defineConfig([
   // Link = in-app; <a> = external. Inverse of @next/next/no-html-link-for-pages.
   // Flat config: later `no-restricted-syntax` for overlapping files must re-include these.
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: JS_TS_FILES,
     rules: {
       "@next/next/no-html-link-for-pages": "error",
       // Tabnabbing: target="_blank" requires rel with noopener/noreferrer (off in Next’s defaults).
@@ -238,7 +240,7 @@ const eslintConfig = defineConfig([
 
   // typedRoutes casts live only in lib/paths.ts (ignored here).
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: JS_TS_FILES,
     ignores: ["lib/paths.ts"],
     rules: {
       "no-restricted-syntax": [
@@ -265,7 +267,7 @@ const eslintConfig = defineConfig([
   // Non-Next app modules: `export const` + arrow, not `export [async] function` (named or default).
   // `lib/paths.ts` is handled below — this block re-includes the `as Route` ban.
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: JS_TS_FILES,
     ignores: ["components/ui/**", "lib/paths.ts", ...NEXT_SPECIAL_FILES],
     rules: {
       ...noForwardRefImport,
@@ -361,6 +363,11 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+
+  // Last: turn off stylistic rules that conflict with Prettier (must follow every
+  // shareable / local config that might enable them).
+  // https://github.com/prettier/eslint-config-prettier#installation
+  prettier,
 ]);
 
 export default eslintConfig;

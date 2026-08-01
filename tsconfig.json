@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true, // Needed for explicit `.mts` imports (lint-staged → config/lint-files.mts); OK because `noEmit` is set
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",

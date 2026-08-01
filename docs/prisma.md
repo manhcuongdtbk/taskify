@@ -2,10 +2,10 @@
 
 Learning reference for **Prisma ORM** as used in this app (Postgres + Next.js).
 
-| | |
-| - | - |
+|                 |                                                                                                                              |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | **Owner / SoT** | This file — schema/Client/migrations patterns and Prisma TODOs (not App Router fetch/mutate — that’s [`data.md`](./data.md)) |
-| **Open when** | Changing schema, Client setup, migrations, or org-scoped query patterns |
+| **Open when**   | Changing schema, Client setup, migrations, or org-scoped query patterns                                                      |
 
 Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.json`. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` help with CLI/Client. Index: [`README.md`](./README.md).
 
@@ -18,6 +18,7 @@ Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.jso
 - **Next.js singleton Client** in `lib/prisma.ts` with `@prisma/adapter-pg` and `DATABASE_URL` ([Prisma + Next.js](https://www.prisma.io/docs/guides/frameworks/nextjs))
 - **`prisma.config.ts`** for schema/migrations/datasource URL wiring
 - **`postinstall`: `prisma generate`** so Client stays in sync after install
+- **Schema format / validate on the lint contract** — editor uses the Prisma VS Code formatter; `pnpm lint:prisma` / `lint:prisma:fix` (`scripts/check-prisma-schema.ts`); staged `*.prisma` via lint-staged. Do **not** use Prettier on `.prisma`. SQL migrations are left unformatted. See [`conventions.md`](./conventions.md#lint--format-one-contract).
 - **Domain models** for boards/lists/cards, audit logs, organization limits, and Stripe subscription mirror (`OrganizationSubscription`)
 - **Organization scoping** — queries/mutations typically filter by Clerk `orgId` (tenant id), not a Prisma multi-tenant plugin
 - **Cascade deletes** on list/card relations where the schema defines them
