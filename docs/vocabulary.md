@@ -16,11 +16,11 @@ We use **different words** for each side, and some words appear on both sides wi
 
 ## Product and app
 
-| Word | Meaning |
-| ---- | ------- |
-| **Product** | The thing users use — this project management app as a whole |
-| **App** | Same thing, more technical angle — the running software |
-| **Repo / codebase** | The source code that makes the app |
+| Word                | Meaning                                                      |
+| ------------------- | ------------------------------------------------------------ |
+| **Product**         | The thing users use — this project management app as a whole |
+| **App**             | Same thing, more technical angle — the running software      |
+| **Repo / codebase** | The source code that makes the app                           |
 
 These are not three separate things. They're three ways of talking about the same thing depending on context.
 
@@ -42,41 +42,41 @@ These are **domain objects in the app's UI** — the things users interact with 
 - **List** — a column on a board (e.g. "To Do", "In Progress", "Done")
 - **Card** — a work item on a list
 
-These live *inside* features. "Board canvas" is a feature; "board" is the object. "Card detail" is a feature; "card" is the object.
+These live _inside_ features. "Board canvas" is a feature; "board" is the object. "Card detail" is a feature; "card" is the object.
 
 ## Framework (two meanings)
 
-| Context | "Framework" means | Examples |
-| ------- | ----------------- | -------- |
-| Engineering ([`conventions.md`](./conventions.md)) | A **web/app framework** or language ecosystem | Next.js, React |
-| Domain ([`product.md`](./product.md)) | A **project-management body of knowledge** tied to a certification | Scrum (PSM/PSPO), PMI (PMP/PMI-ACP) |
+| Context                                            | "Framework" means                                                  | Examples                            |
+| -------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------- |
+| Engineering ([`conventions.md`](./conventions.md)) | A **web/app framework** or language ecosystem                      | Next.js, React                      |
+| Domain ([`product.md`](./product.md))              | A **project-management body of knowledge** tied to a certification | Scrum (PSM/PSPO), PMI (PMP/PMI-ACP) |
 
 Always check which doc you're reading. When ambiguous, say "web framework" or "PM framework."
 
 ## Rule, recommendation, common practice, best practice
 
-These words describe **how strongly something is required**. They work the same way on both sides (engineering and domain), but the *authorities* are different.
+These words describe **how strongly something is required**. They work the same way on both sides (engineering and domain), but the _authorities_ are different.
 
-| Word | What it means | What it does NOT mean |
-| ---- | ------------- | --------------------- |
-| **Rule / convention** | An authority **requires** it. You must follow it. | Not "whatever most people do" |
-| **Recommendation** | An authority **encourages** it, but it's not a hard requirement | Not guaranteed to be the best outcome in every case |
-| **Common practice** | What many people **actually do** — a widespread **habit** | NOT the same as best practice. Common ≠ good. |
-| **Best practice** | A **recommended better way** — we teach it in the product because it leads to better outcomes | NOT "what everyone already does" (that's common practice) |
-| **Anti-pattern** | A common or tempting approach that **causes problems**. We call it out and show a better way | Not a banned-by-law rule |
+| Word                  | What it means                                                                                 | What it does NOT mean                                     |
+| --------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **Rule / convention** | An authority **requires** it. You must follow it.                                             | Not "whatever most people do"                             |
+| **Recommendation**    | An authority **encourages** it, but it's not a hard requirement                               | Not guaranteed to be the best outcome in every case       |
+| **Common practice**   | What many people **actually do** — a widespread **habit**                                     | NOT the same as best practice. Common ≠ good.             |
+| **Best practice**     | A **recommended better way** — we teach it in the product because it leads to better outcomes | NOT "what everyone already does" (that's common practice) |
+| **Anti-pattern**      | A common or tempting approach that **causes problems**. We call it out and show a better way  | Not a banned-by-law rule                                  |
 
 ### The key distinction
 
 > **Common practice** answers: "What do people usually do?"  
-> **Best practice** answers: "What *should* people do?"  
+> **Best practice** answers: "What _should_ people do?"  
 > These are often **different things**. That gap is where this product teaches.
 
 ### Who is the "authority"?
 
-| Side | Authority examples |
-| ---- | ------------------ |
-| Engineering | Next.js docs, React docs, TypeScript handbook, Prisma docs, Stripe docs |
-| Domain | Scrum Guide (Scrum.org), PMBOK / PMI standards, official cert study guides |
+| Side        | Authority examples                                                         |
+| ----------- | -------------------------------------------------------------------------- |
+| Engineering | Next.js docs, React docs, TypeScript handbook, Prisma docs, Stripe docs    |
+| Domain      | Scrum Guide (Scrum.org), PMBOK / PMI standards, official cert study guides |
 
 For engineering, living catalogs of common practice (with status + source links) are:
 
@@ -96,13 +96,13 @@ These are **separate lists** for **separate decisions**. Don't mix them.
 
 ## Billing terms
 
-| Word | Meaning |
-| ---- | ------- |
-| **Billing** | Umbrella **feature** — how customers pay and how paid access is granted/managed |
-| **subscription** | **Recurring** charge under billing (e.g. monthly Pro) |
-| **one-off payment** | **One-time** charge under billing (e.g. lifetime unlock, pack) — not a name for the whole billing feature |
-| **pricing plan** | An **access / commercial tier** we sell or default to (Free, Pro, …): limits, price, entitlements. Source: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) |
-| **billing provider** | External PSP that implements charging. **Stripe** is current; may be replaced or joined by others. Details: [`billing.md`](./billing.md) |
+| Word                        | Meaning                                                                                                                                                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Billing**                 | Umbrella **feature** — how customers pay and how paid access is granted/managed                                                                                                                                                                                           |
+| **subscription**            | **Recurring** charge under billing (e.g. monthly Pro)                                                                                                                                                                                                                     |
+| **one-off payment**         | **One-time** charge under billing (e.g. lifetime unlock, pack) — not a name for the whole billing feature                                                                                                                                                                 |
+| **pricing plan**            | An **access / commercial tier** we sell or default to (Free, Pro, …): limits, price, entitlements. Source: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts)                                                                                                  |
+| **billing provider**        | External PSP that implements charging. **Stripe** is current; may be replaced or joined by others. Details: [`billing.md`](./billing.md)                                                                                                                                  |
 | **authentication provider** | How we implement sign-in / sessions. **Clerk** is current (hosted). May later move to a **library we run** (e.g. Better Auth) — not hand-rolled crypto. See [`product.md`](./product.md) · [`authentication-and-authorization.md`](./authentication-and-authorization.md) |
 
 **Billing** covers both **subscriptions** and **one-off payments**.  
@@ -112,11 +112,11 @@ These are **separate lists** for **separate decisions**. Don't mix them.
 
 In a project-management product, bare **plan** is easy to confuse with a **project plan** (PMI / everyday planning).
 
-| Say | When |
-| --- | ---- |
-| **pricing plan** (or **Free** / **Pro** by name) | Commercial tier, limits, upgrade — especially next to PM/domain copy |
-| **project plan** (or the cert term in use) | Planning artifacts in the PM domain — only once those capabilities ship |
-| **plan** alone | OK only when the billing / pricing context is already obvious (e.g. inside `billing.md` or the billing settings UI) |
+| Say                                              | When                                                                                                                |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **pricing plan** (or **Free** / **Pro** by name) | Commercial tier, limits, upgrade — especially next to PM/domain copy                                                |
+| **project plan** (or the cert term in use)       | Planning artifacts in the PM domain — only once those capabilities ship                                             |
+| **plan** alone                                   | OK only when the billing / pricing context is already obvious (e.g. inside `billing.md` or the billing settings UI) |
 
 Prefer **pricing plan** in docs and UI when a reader could mean either. Do **not** invent “billing plan” as a third label — use **pricing plan** + **subscription** or **one-off payment** for the charge shape.
 
@@ -124,17 +124,17 @@ Code keeps short identifiers (`FREE_PLAN`, `PRO_PLAN`, `PLANS`) in [`constants/p
 
 ## Other terms
 
-| Word | Where defined | Quick meaning |
-| ---- | ------------- | ------------- |
-| **billing** / **pricing plan** / … | [Billing terms](#billing-terms) above | Do not confuse pricing plans with project plans. Flows: [`billing.md`](./billing.md) |
-| **Organization** | Clerk concept, used throughout | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code |
-| **Authentication** | Sign-in / session identity | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md) |
-| **Authorization** | Whether an identity may do a specific action or see a resource | Write **authorization** in prose — do not abbreviate. Different from authentication. Same doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md) |
-| **Cache** | Overloaded — Redis/CDN vs Next framework caching vs TanStack Query | Disambiguate in [`data.md`](./data.md#cache-means-different-things-traditional-be-vs-next-vs-client). Do not invent a separate cache doc |
-| **DAL** (Data Access Layer) | Server module(s) that control **how/when** data is read/mutated and run **authorization** | Not a Next API — a pattern. Solid explanation + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only). Next snippets: [Data Security](https://nextjs.org/docs/app/guides/data-security#data-access-layer), [Authentication](https://nextjs.org/docs/app/guides/authentication#creating-a-data-access-layer-dal) |
-| **DTO** (Data Transfer Object) | Safe, minimal return shape across a boundary (not a raw DB row) | Produced by a DAL. Same idea as NestJS response DTOs. Teach + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only) |
-| **Repo convention** | [`conventions.md`](./conventions.md) | A rare rule this repo invents when no higher authority covers it |
-| **Product choice** | [`product.md`](./product.md) | UX/copy we invent when no higher domain authority decides |
+| Word                               | Where defined                                                                             | Quick meaning                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **billing** / **pricing plan** / … | [Billing terms](#billing-terms) above                                                     | Do not confuse pricing plans with project plans. Flows: [`billing.md`](./billing.md)                                                                                                                                                                                                                                 |
+| **Organization**                   | Clerk concept, used throughout                                                            | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code                                                                                                                                                                                                                                     |
+| **Authentication**                 | Sign-in / session identity                                                                | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                       |
+| **Authorization**                  | Whether an identity may do a specific action or see a resource                            | Write **authorization** in prose — do not abbreviate. Different from authentication. Same doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                                        |
+| **Cache**                          | Overloaded — Redis/CDN vs Next framework caching vs TanStack Query                        | Disambiguate in [`data.md`](./data.md#cache-means-different-things-traditional-be-vs-next-vs-client). Do not invent a separate cache doc                                                                                                                                                                             |
+| **DAL** (Data Access Layer)        | Server module(s) that control **how/when** data is read/mutated and run **authorization** | Not a Next API — a pattern. Solid explanation + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only). Next snippets: [Data Security](https://nextjs.org/docs/app/guides/data-security#data-access-layer), [Authentication](https://nextjs.org/docs/app/guides/authentication#creating-a-data-access-layer-dal) |
+| **DTO** (Data Transfer Object)     | Safe, minimal return shape across a boundary (not a raw DB row)                           | Produced by a DAL. Same idea as NestJS response DTOs. Teach + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only)                                                                                                                                                                                             |
+| **Repo convention**                | [`conventions.md`](./conventions.md)                                                      | A rare rule this repo invents when no higher authority covers it                                                                                                                                                                                                                                                     |
+| **Product choice**                 | [`product.md`](./product.md)                                                              | UX/copy we invent when no higher domain authority decides                                                                                                                                                                                                                                                            |
 
 ## Keeping this current
 

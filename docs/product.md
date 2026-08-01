@@ -37,16 +37,16 @@ Today the codebase is still primarily a board-style foundation plus billing. Tre
 ## Billing vs billing provider
 
 - **Billing** is the product feature (subscriptions, one-off payments, plan gating) — see [`features.md`](./features.md).
-- **Stripe** is the current **billing provider** (PSP). Chosen for docs, tutorials, and speed of integration — not because billing *is* Stripe.
+- **Stripe** is the current **billing provider** (PSP). Chosen for docs, tutorials, and speed of integration — not because billing _is_ Stripe.
 - Provider limits (e.g. regional / payment-method coverage such as Vietnam) may later mean replacing Stripe or supporting **more than one** provider. Product language stays **billing** / **pricing plans**; integration details stay in [`billing.md`](./billing.md) until a second provider exists.
 - **Pricing plan** (Free / Pro) ≠ **project plan** — see [`vocabulary.md`](./vocabulary.md).
 
 ## Authentication vs authentication provider
 
 - **Authentication** is the product capability (sign-in, sign-up, session) — see [`features.md`](./features.md).
-- **Clerk** is the current **authentication provider** (hosted SaaS). Chosen because it is the fastest way to ship a solid authentication UX (UI, Organizations, dashboard) while learning the product — not because authentication *must* stay on a paid third party forever.
-- Unlike a **billing provider** / PSP (hard to replace with “we run card networks ourselves”), authentication is something we *can* move in-house later: stop paying a host when cost ≫ value, keep users in **our** database.
-- **Do not** write cryptography / session protocols from scratch. The usual 2026 alternative to hosted Clerk is a **library you run** (sessions + users in your DB) — today that conversation is dominated by **[Better Auth](https://www.better-auth.com)** (TypeScript, Next.js App Router support, orgs/plugins; Auth.js / NextAuth guidance for *new* projects also points people there). Other options (Supabase Auth if already on Supabase, etc.) exist; pick one library stack, don’t invent a fourth.
+- **Clerk** is the current **authentication provider** (hosted SaaS). Chosen because it is the fastest way to ship a solid authentication UX (UI, Organizations, dashboard) while learning the product — not because authentication _must_ stay on a paid third party forever.
+- Unlike a **billing provider** / PSP (hard to replace with “we run card networks ourselves”), authentication is something we _can_ move in-house later: stop paying a host when cost ≫ value, keep users in **our** database.
+- **Do not** write cryptography / session protocols from scratch. The usual 2026 alternative to hosted Clerk is a **library you run** (sessions + users in your DB) — today that conversation is dominated by **[Better Auth](https://www.better-auth.com)** (TypeScript, Next.js App Router support, orgs/plugins; Auth.js / NextAuth guidance for _new_ projects also points people there). Other options (Supabase Auth if already on Supabase, etc.) exist; pick one library stack, don’t invent a fourth.
 - Migration is a **product decision** with real cost (UI rewrite, `orgId` / tenant model, Stripe `metadata` coupling). Stay on Clerk until triggers fire; document the exit in [`authentication-and-authorization.md`](./authentication-and-authorization.md). Product language stays **authentication**; implementation details stay in [`authentication-and-authorization.md`](./authentication-and-authorization.md) until a provider change ships.
 
 ## Domain priority (highest first)
@@ -55,13 +55,13 @@ Today the codebase is still primarily a board-style foundation plus billing. Tre
 
 When two domain ideas disagree, use the highest row that **owns** the decision. Expand this list only as cert-specific features ship.
 
-| Priority | Kind | Meaning |
-| -------- | ---- | ------- |
-| 1 | **Framework rule** | Official source **requires** it (e.g. Scrum Guide, PMI / PMBOK standards) |
-| 2 | **Framework recommendation** | Official source **encourages** it, but does not hard-require it |
-| 3 | **Common practice** | Widespread habit in industry / across frameworks — not the same as best practice |
-| 4 | **Best practice** | What **we teach** in the product (better approaches, anti-pattern callouts, exam vs workplace) |
-| 5 | **Product choice** | UX/copy we invent only when the rows above don’t decide |
+| Priority | Kind                         | Meaning                                                                                        |
+| -------- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1        | **Framework rule**           | Official source **requires** it (e.g. Scrum Guide, PMI / PMBOK standards)                      |
+| 2        | **Framework recommendation** | Official source **encourages** it, but does not hard-require it                                |
+| 3        | **Common practice**          | Widespread habit in industry / across frameworks — not the same as best practice               |
+| 4        | **Best practice**            | What **we teach** in the product (better approaches, anti-pattern callouts, exam vs workplace) |
+| 5        | **Product choice**           | UX/copy we invent only when the rows above don’t decide                                        |
 
 **“Framework’s way”** = rows 1–2 first (what the cert’s authorities expect), then row 3 (how people often work). Row 4 teaches; it must **not** silently override rows 1–2.
 
@@ -85,7 +85,7 @@ Audience members already study formal vocabulary (Sprint, backlog, …). Use it 
 4. **Don’t dump unused glossary words** before the capability ships — vocabulary follows features, not the other way around.
 5. **Plain words are fine** for UI chrome and engineering docs when no cert concept is in play (e.g. “board”, “billing”, “organization”).
 
-Meta-words like *common practice* / *best practice* are defined in [`vocabulary.md`](./vocabulary.md), not here.
+Meta-words like _common practice_ / _best practice_ are defined in [`vocabulary.md`](./vocabulary.md), not here.
 
 ## Keeping this current
 

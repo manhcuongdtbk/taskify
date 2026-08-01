@@ -57,10 +57,7 @@ export const CardForm = ({
     }
   };
 
-  useOnClickOutside(
-    formRef as RefObject<ComponentRef<"form">>,
-    disableEditing,
-  );
+  useOnClickOutside(formRef as RefObject<ComponentRef<"form">>, disableEditing);
   useEventListener("keydown", onKeyDown);
 
   const onTextareaKeyDown: KeyboardEventHandler<ComponentRef<"textarea">> = (

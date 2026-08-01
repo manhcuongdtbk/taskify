@@ -33,7 +33,11 @@ export const CardModal = () => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl">
-        {!cardData ? <CardModalHeader.Skeleton /> : <CardModalHeader data={cardData} />}
+        {!cardData ? (
+          <CardModalHeader.Skeleton />
+        ) : (
+          <CardModalHeader data={cardData} />
+        )}
         <div className="grid grid-cols-1 md:grid-cols-4 md:gap-4">
           <div className="col-span-3">
             <div className="w-full space-y-6">
@@ -49,7 +53,11 @@ export const CardModal = () => {
               )}
             </div>
           </div>
-          {!cardData ? <CardModalActions.Skeleton /> : <CardModalActions data={cardData} />}
+          {!cardData ? (
+            <CardModalActions.Skeleton />
+          ) : (
+            <CardModalActions data={cardData} />
+          )}
         </div>
       </DialogContent>
     </Dialog>

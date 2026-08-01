@@ -7,7 +7,11 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAvailableCount } from "@/lib/organization-limit";
-import { FREE_PLAN, PRO_PLAN, hasUnlimitedBoards } from "@/constants/pricing-plans";
+import {
+  FREE_PLAN,
+  PRO_PLAN,
+  hasUnlimitedBoards,
+} from "@/constants/pricing-plans";
 import { checkSubscription } from "@/lib/subscription";
 import { paths } from "@/lib/paths";
 

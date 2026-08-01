@@ -1,13 +1,13 @@
 # Billing
 
-How **billing** works for the **Pro** pricing plan. **Stripe** is the current **billing provider** (swappable later). Inline comments explain *why* a line exists; this page is the bird’s-eye view. Update diagrams when user-visible flows change.
+How **billing** works for the **Pro** pricing plan. **Stripe** is the current **billing provider** (swappable later). Inline comments explain _why_ a line exists; this page is the bird’s-eye view. Update diagrams when user-visible flows change.
 
-| | |
-| - | - |
-| **Owner / SoT** | This file — Checkout / Portal / webhooks / `checkSubscription` map, hardening backlog, growth doors |
-| **Open when** | Stripe Checkout, Customer Portal, webhooks, Pro gating, pricing-plan entitlements, or monetization backlog |
+|                 |                                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Owner / SoT** | This file — Checkout / Portal / webhooks / `checkSubscription` map, hardening backlog, growth doors        |
+| **Open when**   | Stripe Checkout, Customer Portal, webhooks, Pro gating, pricing-plan entitlements, or monetization backlog |
 
-Index: [`README.md`](./README.md). Terms: [`vocabulary.md`](./vocabulary.md). Pricing numbers: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts). Provider *why*: [`product.md`](./product.md). Official Stripe later: [Checkout](https://docs.stripe.com/payments/checkout) · [Customer Portal](https://docs.stripe.com/customer-management) · [Webhooks](https://docs.stripe.com/webhooks) · [Subscription webhooks](https://docs.stripe.com/billing/subscriptions/webhooks).
+Index: [`README.md`](./README.md). Terms: [`vocabulary.md`](./vocabulary.md). Pricing numbers: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts). Provider _why_: [`product.md`](./product.md). Official Stripe later: [Checkout](https://docs.stripe.com/payments/checkout) · [Customer Portal](https://docs.stripe.com/customer-management) · [Webhooks](https://docs.stripe.com/webhooks) · [Subscription webhooks](https://docs.stripe.com/billing/subscriptions/webhooks).
 
 **Page shape:** Already following → TODO (harden) → Out of scope (growth) → deep detail (concepts, flows, file map).
 
@@ -30,7 +30,7 @@ Multi-plan, annual, trials, seats, usage billing, embedded Checkout, tax, etc. �
 
 ## Why Stripe (for now)
 
-**Stripe** is the current **billing provider** (easy Checkout / Portal / webhooks path). Product *why*, regional limits, and multi-provider direction live in [`product.md`](./product.md) (**Billing vs billing provider**). This file is the integration, flows, and backlog.
+**Stripe** is the current **billing provider** (easy Checkout / Portal / webhooks path). Product _why_, regional limits, and multi-provider direction live in [`product.md`](./product.md) (**Billing vs billing provider**). This file is the integration, flows, and backlog.
 
 Read **Stripe concepts** below before diving into Stripe’s own docs — it maps their vocabulary onto what this project actually does.
 
@@ -40,17 +40,17 @@ Read **Stripe concepts** below before diving into Stripe’s own docs — it map
 
 Stripe is a ledger of objects. This app only uses a few:
 
-| Stripe object | Plain English | In this project |
-| ------------- | ------------- | --------------- |
-| **Customer** | Who pays (`cus_…`) | Saved as `stripeCustomerId` so we can open the Customer Portal later |
-| **Product** | What you sell (Checkout product name = `PRO_PLAN.name`) | Created inline via Checkout `price_data.product_data` (demo style) |
-| **Price** | How you charge for it ($20 / month) | Dinero → `unit_amount`; id stored as `stripePriceId` |
-| **Subscription** | Ongoing agreement to bill on a schedule (`sub_…`) | Saved as `stripeSubscriptionId`; renewals look this up |
-| **Invoice** | A bill for a period (first charge or renewal) | Webhook listens for successful payment |
-| **Checkout Session** | One hosted **pay / subscribe** page | Created when the organization has **no** Stripe customer yet |
-| **Customer Portal Session** | Hosted **manage subscription** page (same product as “Billing Portal”) | Created when the organization **already** has a `stripeCustomerId` |
+| Stripe object               | Plain English                                                          | In this project                                                      |
+| --------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Customer**                | Who pays (`cus_…`)                                                     | Saved as `stripeCustomerId` so we can open the Customer Portal later |
+| **Product**                 | What you sell (Checkout product name = `PRO_PLAN.name`)                | Created inline via Checkout `price_data.product_data` (demo style)   |
+| **Price**                   | How you charge for it ($20 / month)                                    | Dinero → `unit_amount`; id stored as `stripePriceId`                 |
+| **Subscription**            | Ongoing agreement to bill on a schedule (`sub_…`)                      | Saved as `stripeSubscriptionId`; renewals look this up               |
+| **Invoice**                 | A bill for a period (first charge or renewal)                          | Webhook listens for successful payment                               |
+| **Checkout Session**        | One hosted **pay / subscribe** page                                    | Created when the organization has **no** Stripe customer yet         |
+| **Customer Portal Session** | Hosted **manage subscription** page (same product as “Billing Portal”) | Created when the organization **already** has a `stripeCustomerId`   |
 
-Clerk’s `orgId` is *our* tenant id. Stripe never knows about Clerk unless we put
+Clerk’s `orgId` is _our_ tenant id. Stripe never knows about Clerk unless we put
 `orgId` in Checkout `metadata` so the webhook can link them.
 
 How objects connect after a successful first Checkout:
@@ -68,30 +68,30 @@ flowchart LR
 ### Vocabulary: page, portal, session
 
 **Page (everyday English)** — any web screen the user sees. Your Next.js routes
-(`/organization/.../billing`) are *your* pages. Stripe also hosts pages
+(`/organization/.../billing`) are _your_ pages. Stripe also hosts pages
 (Checkout pay UI, Customer Portal manage UI).
 
 **Portal (Stripe product name)** — specifically the **Customer Portal** (SDK:
-`billingPortal`): a multi-purpose Stripe-hosted area for *existing* customers to
+`billingPortal`): a multi-purpose Stripe-hosted area for _existing_ customers to
 self-serve billing. “Portal” here is branding for that manage product — not a
 generic word for “any Stripe page.”
 
 So:
 
-| Phrase | Means |
-| ------ | ----- |
-| Checkout **page** | The pay/subscribe UI Stripe shows for a Checkout Session |
-| Customer / Billing **Portal** | The manage-subscription product (and its UI) |
-| Your billing **page** | This app’s `/billing` route (buttons that *start* Checkout or Portal) |
+| Phrase                        | Means                                                                 |
+| ----------------------------- | --------------------------------------------------------------------- |
+| Checkout **page**             | The pay/subscribe UI Stripe shows for a Checkout Session              |
+| Customer / Billing **Portal** | The manage-subscription product (and its UI)                          |
+| Your billing **page**         | This app’s `/billing` route (buttons that _start_ Checkout or Portal) |
 
 **Session** — a **short-lived API object** your server creates that represents
 “this user may use that hosted UI **once / for a short time**.” Creating a
 session returns a URL; you redirect the browser there.
 
-| Session type | Creates | Returns |
-| ------------ | ------- | ------- |
-| **Checkout Session** | `checkout.sessions.create` | Pay URL (`cs_…` id) |
-| **Customer Portal Session** | `billingPortal.sessions.create` | Manage URL |
+| Session type                | Creates                         | Returns             |
+| --------------------------- | ------------------------------- | ------------------- |
+| **Checkout Session**        | `checkout.sessions.create`      | Pay URL (`cs_…` id) |
+| **Customer Portal Session** | `billingPortal.sessions.create` | Manage URL          |
 
 Sessions are **ephemeral** (Portal sessions expire quickly if unused). The lasting
 objects are Customer, Subscription, Invoice, etc. Think:
@@ -110,9 +110,9 @@ hosted “manage my subscription” UI, not two portals.
 
 This app only uses **two** Stripe-hosted pages:
 
-| Hosted UI | Job | API |
-| --------- | --- | --- |
-| **Checkout** | First-time pay / start subscription | `checkout.sessions.create` |
+| Hosted UI                              | Job                                 | API                             |
+| -------------------------------------- | ----------------------------------- | ------------------------------- |
+| **Checkout**                           | First-time pay / start subscription | `checkout.sessions.create`      |
 | **Customer Portal** (= Billing Portal) | Manage card, cancel, invoices, plan | `billingPortal.sessions.create` |
 
 Checkout is **not** a portal. Ignore other Stripe “dashboards” (e.g. Connect
@@ -144,11 +144,11 @@ that redirect**. Stripe notifies us via **webhooks**; `app/api/webhook` writes
 
 When creating a Checkout Session you must set `mode`:
 
-| `mode` | Meaning | Recurring? | Used here? |
-| ------ | ------- | ---------- | ---------- |
-| **`subscription`** | Start a Subscription; Stripe invoices now and on each interval | Yes | **Yes** — Pro |
-| **`payment`** | One-time charge (buy once) | No | No — would be e.g. a one-off pack |
-| **`setup`** | Save a payment method **without** charging yet | No | No — e.g. collect card for later |
+| `mode`             | Meaning                                                        | Recurring? | Used here?                        |
+| ------------------ | -------------------------------------------------------------- | ---------- | --------------------------------- |
+| **`subscription`** | Start a Subscription; Stripe invoices now and on each interval | Yes        | **Yes** — Pro                     |
+| **`payment`**      | One-time charge (buy once)                                     | No         | No — would be e.g. a one-off pack |
+| **`setup`**        | Save a payment method **without** charging yet                 | No         | No — e.g. collect card for later  |
 
 This app uses only `mode: "subscription"` because **Pro** is monthly plan access, not a
 one-time fee.
@@ -288,19 +288,19 @@ Paths change — treat this as a starting index, not a contract. Prefer searchin
 the repo (`checkSubscription`, `stripeRedirect`, `organizationSubscription`) when
 in doubt.
 
-| Piece | Path | Role |
-| ----- | ---- | ---- |
-| Free-plan limit trigger | `components/form/form-popover.tsx` | Opens Pro modal on create-board errors |
-| Billing page | `organization/[organizationId]/billing/` | Shows plan via `Info` + `SubscriptionButton` |
-| Subscription CTA | `billing/_components/subscription-button.tsx` | **Free** plan → Pro modal; **Pro** → Customer Portal (`billingPortal`) |
-| Modal store | `hooks/use-pro-modal.ts` | Client open/close state |
-| Upgrade UI | `components/modals/pro-modal.tsx` | Calls `stripeRedirect`, navigates to Stripe URL |
-| Server action | `actions/stripe-redirect/index.ts` | Checkout (new) or Customer Portal / billingPortal (existing) |
-| Stripe client | `lib/stripe.ts` | SDK instance + `stripeTimestampToDate` |
-| Webhook | `app/api/webhook/route.ts` | Verifies signature; creates/updates DB row |
-| Authentication gate | `proxy.ts` | `/api/webhook` is public (Stripe has no Clerk session) |
-| Plan access check | `lib/subscription.ts` | `checkSubscription` / `isPro` — billing UI, board limits, organization pages |
-| Persistence | `prisma/schema.prisma` → `OrganizationSubscription` | Links Clerk `orgId` ↔ Stripe IDs |
+| Piece                   | Path                                                | Role                                                                         |
+| ----------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Free-plan limit trigger | `components/form/form-popover.tsx`                  | Opens Pro modal on create-board errors                                       |
+| Billing page            | `organization/[organizationId]/billing/`            | Shows plan via `Info` + `SubscriptionButton`                                 |
+| Subscription CTA        | `billing/_components/subscription-button.tsx`       | **Free** plan → Pro modal; **Pro** → Customer Portal (`billingPortal`)       |
+| Modal store             | `hooks/use-pro-modal.ts`                            | Client open/close state                                                      |
+| Upgrade UI              | `components/modals/pro-modal.tsx`                   | Calls `stripeRedirect`, navigates to Stripe URL                              |
+| Server action           | `actions/stripe-redirect/index.ts`                  | Checkout (new) or Customer Portal / billingPortal (existing)                 |
+| Stripe client           | `lib/stripe.ts`                                     | SDK instance + `stripeTimestampToDate`                                       |
+| Webhook                 | `app/api/webhook/route.ts`                          | Verifies signature; creates/updates DB row                                   |
+| Authentication gate     | `proxy.ts`                                          | `/api/webhook` is public (Stripe has no Clerk session)                       |
+| Plan access check       | `lib/subscription.ts`                               | `checkSubscription` / `isPro` — billing UI, board limits, organization pages |
+| Persistence             | `prisma/schema.prisma` → `OrganizationSubscription` | Links Clerk `orgId` ↔ Stripe IDs                                             |
 
 ## Data we store
 
@@ -329,10 +329,10 @@ Put the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET` (CLI secret ≠ Dashboa
 
 ### `isPro` vs `stripeCustomerId` (not the same)
 
-| Check | Where | Means |
-| ----- | ----- | ----- |
+| Check                             | Where                                                     | Means                                                                                                                                  |
+| --------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | **`isPro`** (`checkSubscription`) | UI (Billing button label, board limits, Free / Pro badge) | “Does this organization have **Pro** access right now?” — needs `stripePriceId` + `stripeCurrentPeriodEnd` still valid (+ 1-day grace) |
-| **`stripeCustomerId`** | `stripe-redirect` branch | “Do we already have a Stripe Customer so we open **Customer Portal** instead of Checkout?” |
+| **`stripeCustomerId`**            | `stripe-redirect` branch                                  | “Do we already have a Stripe Customer so we open **Customer Portal** instead of Checkout?”                                             |
 
 Usually they agree after a successful Checkout + webhook. They can diverge briefly
 (webhook lag) or if you later add free trials, past-due grace, etc. Don’t replace
@@ -375,12 +375,12 @@ and multiple tiers without redeploying amount constants.
 
 ### Test mode vs live mode
 
-| | Test | Live |
-| - | ---- | ---- |
-| Keys | `sk_test_…` / `pk_test_…` | `sk_live_…` / `pk_live_…` |
-| Dashboard | Test mode toggle | Live mode |
-| Cards | [Test card numbers](https://docs.stripe.com/testing) (e.g. `4242…`) | Real cards |
-| Money | No real charges | Real charges |
+|           | Test                                                                | Live                      |
+| --------- | ------------------------------------------------------------------- | ------------------------- |
+| Keys      | `sk_test_…` / `pk_test_…`                                           | `sk_live_…` / `pk_live_…` |
+| Dashboard | Test mode toggle                                                    | Live mode                 |
+| Cards     | [Test card numbers](https://docs.stripe.com/testing) (e.g. `4242…`) | Real cards                |
+| Money     | No real charges                                                     | Real charges              |
 
 Never mix test webhook secrets with live keys. Local `stripe listen` is almost
 always against **test** mode.
@@ -396,27 +396,27 @@ fidelity, and small UX polish. **Do this backlog before Opening more doors.**
 
 ### P0 — harden / make reliable
 
-| Item | Why | Where |
-| ---- | --- | ----- |
-| **First-payment race** | `invoice.payment_succeeded` can arrive before `checkout.session.completed` creates the row → update fails → Stripe retries (often recovers, still flaky) | `app/api/webhook/route.ts` |
-| **Log errors** | Catch blocks return generic `"Something went wrong"` / `"Webhook Error"` and discard the real Stripe/Prisma error — hard to debug | `actions/stripe-redirect`, `app/api/webhook` |
-| **Webhook idempotency** | Replayed `checkout.session.completed` can try to **create** again and blow up on unique `orgId` | `app/api/webhook/route.ts` + Prisma unique on `orgId` |
+| Item                    | Why                                                                                                                                                      | Where                                                 |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **First-payment race**  | `invoice.payment_succeeded` can arrive before `checkout.session.completed` creates the row → update fails → Stripe retries (often recovers, still flaky) | `app/api/webhook/route.ts`                            |
+| **Log errors**          | Catch blocks return generic `"Something went wrong"` / `"Webhook Error"` and discard the real Stripe/Prisma error — hard to debug                        | `actions/stripe-redirect`, `app/api/webhook`          |
+| **Webhook idempotency** | Replayed `checkout.session.completed` can try to **create** again and blow up on unique `orgId`                                                          | `app/api/webhook/route.ts` + Prisma unique on `orgId` |
 
 ### P1 — subscription lifecycle fidelity
 
-| Item | Why | Notes |
-| ---- | --- | ----- |
-| **`invoice.payment_failed`** (or past-due) | Failed renewals leave the organization looking like **Pro** until period end with no status sync / UX | Also overlaps dunning in growth table — handle the event here first |
-| **`customer.subscription.updated` / `deleted`** | Cancel-at-period-end, plan changes, immediate cancel aren’t mirrored beyond renewals + period end | Instant lockout on cancel is a **product** decision; period-end gating already works |
+| Item                                            | Why                                                                                                   | Notes                                                                                |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **`invoice.payment_failed`** (or past-due)      | Failed renewals leave the organization looking like **Pro** until period end with no status sync / UX | Also overlaps dunning in growth table — handle the event here first                  |
+| **`customer.subscription.updated` / `deleted`** | Cancel-at-period-end, plan changes, immediate cancel aren’t mirrored beyond renewals + period end     | Instant lockout on cancel is a **product** decision; period-end gating already works |
 
 ### P2 — polish (same integration, not new doors)
 
-| Item | Why | Where |
-| ---- | --- | ----- |
-| Board-list Hint | Still describes the Free-plan 5-board limit when the organization is on **Pro** | `board-list.tsx` |
-| Omit `payment_method_types: ["card"]` | Stripe prefers unset so Dashboard dynamic methods apply | `actions/stripe-redirect` |
-| Pro modal external redirect | Confirm Next.js-friendly navigation to Stripe URLs | `components/modals/pro-modal.tsx` |
-| Unused action `data` | Empty schema today; prefix `_` or use when Checkout needs input | `actions/stripe-redirect` |
+| Item                                  | Why                                                                             | Where                             |
+| ------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------- |
+| Board-list Hint                       | Still describes the Free-plan 5-board limit when the organization is on **Pro** | `board-list.tsx`                  |
+| Omit `payment_method_types: ["card"]` | Stripe prefers unset so Dashboard dynamic methods apply                         | `actions/stripe-redirect`         |
+| Pro modal external redirect           | Confirm Next.js-friendly navigation to Stripe URLs                              | `components/modals/pro-modal.tsx` |
+| Unused action `data`                  | Empty schema today; prefix `_` or use when Checkout needs input                 | `actions/stripe-redirect`         |
 
 **Out of scope for this backlog** (growth / later): multi-plan, annual, trials, tax,
 seats, usage billing, embedded Checkout — see **Opening more doors**. Switching
@@ -432,20 +432,20 @@ What we ship today is **billing** for a **single monthly Pro** subscription via 
 webhooks (plus the default **Free** plan). That’s a solid base — not a ceiling. Natural next monetization and
 product moves (each opens Stripe/docs doors):
 
-| Direction | Why it makes money / improves UX | Stripe / product hooks |
-| --------- | -------------------------------- | ---------------------- |
-| **Multiple paid plans** (e.g. Starter / Pro / Business) | Price discrimination; upsell | Extend [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) (new `*Plan` type + `PLANS` entry — see file header); Dashboard Prices + Portal plan switching; store which `price_` is active |
-| **Annual billing** | Higher commitment, often higher LTV | Second Price on the same Product (`interval: year`) |
-| **Trials** | Lower signup friction → more conversions | `subscription_data.trial_period_days` on Checkout; handle trial-end events |
-| **One-time packs** | Add-ons without a subscription | Checkout `mode: "payment"` (credits, lifetime unlock, etc.) |
-| **Per-seat / per-member pricing** | Grows with organization size | Quantity on subscription items; sync with Clerk organization membership |
-| **Usage-based** (API calls, AI tokens, storage) | Align price with value | [Metronome](https://docs.stripe.com/billing/usage-based) / meters — not required for simple **Pro** |
-| **Coupons & promotion codes** | Campaigns, win-back, influencer deals | Checkout `allow_promotion_codes` / Coupons API; Portal retention offers |
-| **Embedded Checkout / Payment Element** | Stay on-site, higher control/branding | Still Checkout Sessions under the hood; more frontend work |
-| **Customer emails & dunning** | Recover failed renewals | Stripe Billing automations + richer failed-pay UX (after P1 `invoice.payment_failed`) |
-| **Tax (VAT/GST)** | Compliance in more countries | Stripe Tax + registrations — enable carefully |
-| **Customer Portal deep links** | One-click “update card” from emails | Portal configuration + session deep links |
-| **Entitlements / feature flags by plan** | Sell features, not just “unlimited boards” | Map `stripePriceId` (or product metadata) → feature gates beyond board limits |
+| Direction                                               | Why it makes money / improves UX           | Stripe / product hooks                                                                                                                                                                              |
+| ------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Multiple paid plans** (e.g. Starter / Pro / Business) | Price discrimination; upsell               | Extend [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) (new `*Plan` type + `PLANS` entry — see file header); Dashboard Prices + Portal plan switching; store which `price_` is active |
+| **Annual billing**                                      | Higher commitment, often higher LTV        | Second Price on the same Product (`interval: year`)                                                                                                                                                 |
+| **Trials**                                              | Lower signup friction → more conversions   | `subscription_data.trial_period_days` on Checkout; handle trial-end events                                                                                                                          |
+| **One-time packs**                                      | Add-ons without a subscription             | Checkout `mode: "payment"` (credits, lifetime unlock, etc.)                                                                                                                                         |
+| **Per-seat / per-member pricing**                       | Grows with organization size               | Quantity on subscription items; sync with Clerk organization membership                                                                                                                             |
+| **Usage-based** (API calls, AI tokens, storage)         | Align price with value                     | [Metronome](https://docs.stripe.com/billing/usage-based) / meters — not required for simple **Pro**                                                                                                 |
+| **Coupons & promotion codes**                           | Campaigns, win-back, influencer deals      | Checkout `allow_promotion_codes` / Coupons API; Portal retention offers                                                                                                                             |
+| **Embedded Checkout / Payment Element**                 | Stay on-site, higher control/branding      | Still Checkout Sessions under the hood; more frontend work                                                                                                                                          |
+| **Customer emails & dunning**                           | Recover failed renewals                    | Stripe Billing automations + richer failed-pay UX (after P1 `invoice.payment_failed`)                                                                                                               |
+| **Tax (VAT/GST)**                                       | Compliance in more countries               | Stripe Tax + registrations — enable carefully                                                                                                                                                       |
+| **Customer Portal deep links**                          | One-click “update card” from emails        | Portal configuration + session deep links                                                                                                                                                           |
+| **Entitlements / feature flags by plan**                | Sell features, not just “unlimited boards” | Map `stripePriceId` (or product metadata) → feature gates beyond board limits                                                                                                                       |
 
 When you add a door, update this doc’s diagrams and the webhook event list — and
 prefer **Dashboard Price ids** once you leave the single inline `price_data` demo.
