@@ -186,19 +186,56 @@ const noLodashImportPatterns = [
   },
 ];
 
+const zustandCreateOnlyInStoreMessage =
+  "Define Zustand stores only in hooks/use-*-store.ts exporting use*Store. See docs/conventions.md.";
+
+const noZustandImportPaths = [
+  {
+    name: "zustand",
+    message: zustandCreateOnlyInStoreMessage,
+  },
+];
+
+const noZustandImportPatterns = [
+  {
+    group: ["zustand/*"],
+    message: zustandCreateOnlyInStoreMessage,
+  },
+];
+
 /** Lodash/Underscore banned everywhere we lint (es-toolkit is the utility lib). */
 const noLodashImport = {
   "no-restricted-imports": [
     "error",
     {
-      paths: noLodashImportPaths,
-      patterns: noLodashImportPatterns,
+      paths: [...noLodashImportPaths, ...noZustandImportPaths],
+      patterns: [...noLodashImportPatterns, ...noZustandImportPatterns],
     },
   ],
 };
 
-/** Prefer React 19 ref-as-prop; also re-state Lodash ban (flat config replaces the rule). */
+/** Prefer React 19 ref-as-prop; also re-state Lodash + Zustand-location bans. */
 const noForwardRefImport = {
+  "no-restricted-imports": [
+    "error",
+    {
+      paths: [
+        {
+          name: "react",
+          importNames: ["forwardRef"],
+          message:
+            "Pass `ref` as a normal prop (React 19). Do not use forwardRef. See docs/conventions.md.",
+        },
+        ...noLodashImportPaths,
+        ...noZustandImportPaths,
+      ],
+      patterns: [...noLodashImportPatterns, ...noZustandImportPatterns],
+    },
+  ],
+};
+
+/** Store modules may import zustand; still ban forwardRef + Lodash. */
+const noForwardRefImportAllowZustand = {
   "no-restricted-imports": [
     "error",
     {
@@ -306,6 +343,23 @@ const zustandSelectorRequiredRestrictions = [
   },
 ];
 
+/** Exported bindings in store modules must be named use*Store. */
+const zustandStoreExportNameMessage =
+  "Zustand store hooks must be named use*Store (e.g. useProModalStore). See docs/conventions.md.";
+
+const zustandStoreExportNameRestrictions = [
+  {
+    selector:
+      "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name=/^(?!use[A-Z]\\w*Store$)\\w+/]",
+    message: zustandStoreExportNameMessage,
+  },
+  {
+    selector:
+      "ExportNamedDeclaration > FunctionDeclaration[id.name=/^(?!use[A-Z]\\w*Store$)\\w+/]",
+    message: zustandStoreExportNameMessage,
+  },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -390,18 +444,20 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Zustand stores: hooks/**/*-store.ts — ban React-style on*/handle* action keys.
+  // Zustand stores: hooks/use-*-store.ts — allow zustand import; require use*Store
+  // export; ban React-style on*/handle* action keys.
   // Re-includes Non-Next syntax rules — flat config replaces, does not merge.
   {
     files: ["hooks/**/*-store.ts", "hooks/**/*-store.tsx"],
     rules: {
-      ...noForwardRefImport,
+      ...noForwardRefImportAllowZustand,
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...zustandStoreActionNamingRestrictions,
+        ...zustandStoreExportNameRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
