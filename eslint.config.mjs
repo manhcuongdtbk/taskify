@@ -267,6 +267,29 @@ const eventHandlerNamingRestrictions = [
   },
 ];
 
+/**
+ * Zustand store action keys — docs/conventions.md.
+ * Ban React-style `on*` / `handle*` on store APIs; prefer domain verbs (`open`).
+ * Scoped to Zustand hook modules only (`hooks/use-action.ts` excluded).
+ */
+const zustandStoreActionMessage =
+  "Zustand store keys must not use React `on*` / `handle*` names — use domain verbs (e.g. open, close). See docs/conventions.md.";
+
+const zustandStoreActionNamingRestrictions = [
+  {
+    selector: "Property[key.name=/^(on|handle)[A-Z]/]",
+    message: zustandStoreActionMessage,
+  },
+  {
+    selector: "TSPropertySignature[key.name=/^(on|handle)[A-Z]/]",
+    message: zustandStoreActionMessage,
+  },
+  {
+    selector: "TSMethodSignature[key.name=/^(on|handle)[A-Z]/]",
+    message: zustandStoreActionMessage,
+  },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -341,6 +364,25 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        routeCastOnlyInPathsRestriction,
+        ...nonNextExportStyleRestrictions,
+      ],
+    },
+  },
+
+  // Zustand stores in hooks/: ban React-style on*/handle* action keys (domain verbs instead).
+  // Re-includes Non-Next syntax rules — flat config replaces, does not merge.
+  // use-action is not a store (options use onSuccess/onError callbacks).
+  {
+    files: ["hooks/**/*.{ts,tsx}"],
+    ignores: ["hooks/use-action.ts"],
+    rules: {
+      ...noForwardRefImport,
+      "no-restricted-syntax": [
+        "error",
+        ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
+        ...zustandStoreActionNamingRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
