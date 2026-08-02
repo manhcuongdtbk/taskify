@@ -29,6 +29,7 @@ Official Zustand docs cover the API well but say little about _how we compose it
 ## Out of scope for now
 
 - Redux, Jotai, or a second global-state library beside Zustand
+- React Context as a store for ephemeral UI flags (see [One tool per job](#one-tool-per-job-zustand--context) — Providers today are Query / Clerk / theme injection, not UI flags)
 - Persisting UI stores to `localStorage` / session (Zustand `persist`) until product needs it
 - Moving server cache into Zustand (use Query / RSC instead)
 
@@ -66,7 +67,35 @@ flowchart LR
 | Mobile sidebar open/close                             | Auth session (Clerk)                              |
 | Other ephemeral UI flags that several trees need      | Server Action results (Query / RSC / `useAction`) |
 
-If only **one** component tree needs the flag, prefer local `useState`. Reach for a store when **prop drilling or Context would otherwise couple distant UI**.
+If only **one** component tree needs the flag, prefer local `useState`. Reach for a store when several distant trees need the same flag (not when you’d invent a Context for that flag).
+
+## One tool per job (Zustand ≠ Context)
+
+Do **not** treat Context and Zustand as interchangeable “shared state” options. Pick by **job**, then stick to that tool every time that job shows up.
+
+### In this repo today
+
+| Job                                                         | Tool                              | Where                                                                                    |
+| ----------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
+| Shared ephemeral UI (modal open, sidebar, selected card id) | **Zustand**                       | `stores/use-*-store.ts`                                                                  |
+| Local / single-subtree UI                                   | **`useState`**                    | e.g. form fields; `ModalProvider` mount gate                                             |
+| Query client for the tree                                   | **TanStack `QueryProvider`**      | `components/providers/query-provider.tsx`                                                |
+| Auth SDK for the tree                                       | **Clerk provider**                | platform shell                                                                           |
+| Theme for the tree                                          | **`ThemeProvider`** (next-themes) | `components/theme-provider.tsx`                                                          |
+| Mount card/pro modals once (hydration)                      | **`ModalProvider`**               | `components/providers/modal-provider.tsx` — **not** Context state; open/close is Zustand |
+| Server / domain data                                        | Prisma / Actions / Query          | [`data.md`](./data.md)                                                                   |
+
+**Rule:** app UI memory that changes and many components subscribe to → Zustand. “Here is the client/SDK/config for this subtree” → that library’s Provider. Never both for the same concern.
+
+### Same rule later
+
+If we add another **injection** job (e.g. i18n), use that library’s Provider — not Zustand. If we add another **shared UI flag**, use a Zustand store in `stores/` — not a new Context. Don’t add Redux/Jotai for either job.
+
+**Anti-patterns**
+
+- `CardModalContext` for `isOpen` / `id` while `useCardModalStore` exists (or instead of it)
+- Putting Query/Clerk/theme clients into Zustand “so we only have one library”
+- Using Context for a new sidebar/modal flag “because providers already exist”
 
 ## Ground up (Zustand → this repo)
 
