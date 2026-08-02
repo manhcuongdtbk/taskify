@@ -23,7 +23,7 @@ Official Zustand docs cover the API well but say little about _how we compose it
 
 ## TODO
 
-- [ ] **Zustand slices** (compose parts into _one_ store) only if a single store file grows huge and must stay one store — see [Stores vs slices](#stores-vs-slices-not-redux-default)
+- [ ] **Zustand slices** — only path **A** in [Stores vs slices](#stores-vs-slices-not-redux-default) (split one oversized store; never merge our small stores into one)
 - [ ] Nested `actions: { … }` only if TkDodo’s split helps a large store ([Working with Zustand](https://tkdodo.eu/blog/working-with-zustand))
 - [ ] `shallow` / multi-field object selectors only when selecting objects that would break referential equality
 
@@ -131,9 +131,31 @@ Contributors from Redux often assume **one app store** and **slices** as pieces 
 
 **Default here:** one concern → one store file → `use*Store`. Card modal, Pro modal, and mobile sidebar are three stores on purpose.
 
-**When (if ever) to use Zustand slices:** only if you deliberately keep **one** store and it becomes too large to maintain in one file — then split with slice functions and compose them in `create` ([TkDodo](https://tkdodo.eu/blog/working-with-zustand)). Do **not** rename our small stores “slices” or merge unrelated UI into one mega-store “because Redux has one store.”
+**“Slices only if one store gets huge” means A, not B:**
 
-**Slice selectors** (`useXStore((s) => s.isOpen)`) are unrelated naming: that means “select a piece of state,” not Redux Toolkit’s `createSlice`.
+```text
+A — correct (internal split of ONE oversized store; other stores stay separate)
+
+  Today:
+    useCardModalStore
+    useProModalStore
+    useMobileSidebarStore
+
+  Later, if e.g. useBoardUiStore becomes huge:
+    useBoardUiStore = create(compose(filtersSlice, selectionSlice, panelSlice))
+    useCardModalStore          ← still its own store
+    useProModalStore           ← still its own store
+
+B — wrong (do not merge today’s stores into one store and call them “slices”)
+
+    megaStore = cardSlice + proSlice + sidebarSlice
+```
+
+Slices are a **file organization** tool inside a single store you already decided must stay one store. They are **not** a migration from multi-store → one Redux-style store. Prefer a **new** `stores/use-*-store.ts` for a new unrelated UI concern.
+
+**When (if ever) to use Zustand slices:** only path **A** — one store file is too large to maintain, and you still need that one store ([TkDodo](https://tkdodo.eu/blog/working-with-zustand)). Do **not** rename our small stores “slices.”
+
+**Slice selectors** (`useXStore((s) => s.isOpen)`) are unrelated naming: that means “select a piece of state,” not Redux Toolkit’s `createSlice` and not Zustand’s slices pattern.
 
 ## One tool per job (Zustand ≠ Context)
 
