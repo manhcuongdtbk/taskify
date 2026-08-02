@@ -6,11 +6,8 @@ type MobileSidebarStore = {
   close: () => void;
 };
 
-export const useMobileSidebarStore = createStore<MobileSidebarStore>(
-  "MobileSidebarStore",
-  (set) => ({
-    isOpen: false,
-    open: () => set({ isOpen: true }, false, "open"),
-    close: () => set({ isOpen: false }, false, "close"),
-  }),
-);
+export const useMobileSidebarStore = createStore<MobileSidebarStore>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }, false, "open"),
+  close: () => set({ isOpen: false }, false, "close"),
+}));

@@ -360,6 +360,28 @@ const zustandStoreExportNameRestrictions = [
   },
 ];
 
+/**
+ * NODE_ENV checks only in lib/env.ts — use isDevelopment / isProduction elsewhere.
+ * See docs/conventions.md.
+ */
+const nodeEnvViaLibEnvMessage =
+  "Use isDevelopment / isProduction from @/lib/env instead of process.env.NODE_ENV. See docs/conventions.md.";
+
+const nodeEnvViaLibEnvRestrictions = [
+  {
+    // process.env.NODE_ENV
+    selector:
+      "MemberExpression[object.object.name='process'][object.property.name='env'][property.name='NODE_ENV']",
+    message: nodeEnvViaLibEnvMessage,
+  },
+  {
+    // process.env["NODE_ENV"]
+    selector:
+      "MemberExpression[object.object.name='process'][object.property.name='env'][property.value='NODE_ENV']",
+    message: nodeEnvViaLibEnvMessage,
+  },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -382,6 +404,7 @@ const eslintConfig = defineConfig([
   // Flat config: later `no-restricted-syntax` for overlapping files must re-include these.
   {
     files: JS_TS_FILES,
+    ignores: ["lib/env.ts"],
     rules: {
       "@next/next/no-html-link-for-pages": "error",
       // Tabnabbing: target="_blank" requires rel with noopener/noreferrer (off in Next’s defaults).
@@ -391,6 +414,7 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
       ],
     },
   },
@@ -398,13 +422,14 @@ const eslintConfig = defineConfig([
   // typedRoutes casts live only in lib/paths.ts (ignored here).
   {
     files: JS_TS_FILES,
-    ignores: ["lib/paths.ts"],
+    ignores: ["lib/paths.ts", "lib/env.ts"],
     rules: {
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
     },
@@ -420,6 +445,7 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
       ],
@@ -427,10 +453,15 @@ const eslintConfig = defineConfig([
   },
 
   // Non-Next app modules: `export const` + arrow, not `export [async] function` (named or default).
-  // `lib/paths.ts` is handled below — this block re-includes the `as Route` ban.
+  // `lib/paths.ts` / `lib/env.ts` handled below — this block re-includes the `as Route` ban.
   {
     files: JS_TS_FILES,
-    ignores: ["components/ui/**", "lib/paths.ts", ...NEXT_SPECIAL_FILES],
+    ignores: [
+      "components/ui/**",
+      "lib/paths.ts",
+      "lib/env.ts",
+      ...NEXT_SPECIAL_FILES,
+    ],
     rules: {
       ...noForwardRefImport,
       "no-restricted-syntax": [
@@ -438,6 +469,7 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -456,6 +488,7 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
         routeCastOnlyInPathsRestriction,
@@ -482,12 +515,30 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
+        ...nonNextExportStyleRestrictions,
+      ],
+    },
+  },
+
+  // Sole NODE_ENV read site: isDevelopment / isProduction. Do not ban NODE_ENV here.
+  {
+    files: ["lib/env.ts"],
+    rules: {
+      ...noForwardRefImport,
+      "no-restricted-syntax": [
+        "error",
+        ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
+        routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
     },
   },
 
   // shadcn may use `forwardRef`; still ban Lodash (es-toolkit only).
+  // NODE_ENV ban comes from the shared JS_TS `no-restricted-syntax` blocks above.
   {
     files: ["components/ui/**/*.{ts,tsx}"],
     rules: {
@@ -521,6 +572,7 @@ const eslintConfig = defineConfig([
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,

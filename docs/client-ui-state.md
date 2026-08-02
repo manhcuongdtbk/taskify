@@ -146,8 +146,8 @@ Do **not** put `on*` / `handle*` on the store type. ESLint bans those keys in `h
 [`lib/create-store.ts`](../lib/create-store.ts) is the **only** module allowed to import `zustand` / `zustand/*`. It combines:
 
 - Curried `create<T>()(…)` for TypeScript inference (see below)
-- [`devtools`](https://zustand.docs.pmnd.rs/middlewares/devtools) with a store `name`
-- `enabled` only when `NODE_ENV === "development"`
+- [`devtools`](https://zustand.docs.pmnd.rs/middlewares/devtools) (dev-only)
+- DevTools instance `name` derived from the **store file** (`use-card-modal-store.ts` → `CardModalStore`) via the call stack — no extra string and no second `useCardModalStore` in the file
 
 **Curried `create`:** In functional programming, **currying** means turning a multi-argument function into a chain of single-argument calls — `f(a, b)` becomes `f(a)(b)`. Zustand’s docs use that idea loosely: you call `create` **twice** instead of once.
 
@@ -197,15 +197,12 @@ type CardModalStore = {
   close: () => void;
 };
 
-export const useCardModalStore = createStore<CardModalStore>(
-  "CardModalStore",
-  (set) => ({
-    id: undefined,
-    isOpen: false,
-    open: (id) => set({ id, isOpen: true }, false, "open"),
-    close: () => set({ id: undefined, isOpen: false }, false, "close"),
-  }),
-);
+export const useCardModalStore = createStore<CardModalStore>((set) => ({
+  id: undefined,
+  isOpen: false,
+  open: (id) => set({ id, isOpen: true }, false, "open"),
+  close: () => set({ id: undefined, isOpen: false }, false, "close"),
+}));
 ```
 
 | `set` argument | Meaning                                |
@@ -214,13 +211,15 @@ export const useCardModalStore = createStore<CardModalStore>(
 | 2nd `false`    | Merge (do not replace the whole store) |
 | 3rd `"open"`   | Action label in Redux DevTools         |
 
+**DevTools naming:** The file path is the source of truth (`hooks/use-*-store.ts`). At create time (dev only), `createStore` reads the call stack, finds that file, and maps `use-card-modal-store` → `CardModalStore`. You do **not** pass a name, `import.meta.url`, or a second `useCardModalStore` function name — those were either a third identity or awkward duplication. If the stack parse fails, you’ll get a console warning; keep stores in `hooks/use-*-store.ts`.
+
 ### 6. File and export conventions
 
 | Piece         | Pattern                | Example                   |
 | ------------- | ---------------------- | ------------------------- |
 | File          | `hooks/use-*-store.ts` | `use-card-modal-store.ts` |
 | Export        | `use*Store`            | `useCardModalStore`       |
-| DevTools name | PascalCase store id    | `"CardModalStore"`        |
+| DevTools name | Derived from file      | `CardModalStore`          |
 
 ESLint enforces: direct `zustand` import only in `lib/create-store.ts`; store exports must match `use*Store`; no bare `use*Store()`; no `on*`/`handle*` store keys.
 
@@ -228,7 +227,7 @@ ESLint enforces: direct `zustand` import only in `lib/create-store.ts`; store ex
 
 1. Install the [Redux DevTools](https://github.com/reduxjs/redux-devtools) browser extension
 2. Run the app in development
-3. Open the extension → pick instances like `CardModalStore`
+3. Open the extension → pick instances like `CardModalStore` (from the file name)
 4. Trigger UI → inspect actions (`open` / `close`) and state diffs
 
 ## Example flow (card modal)
@@ -253,7 +252,7 @@ Server work (fetch card, delete card) stays in Route Handlers / Server Actions /
 ## Adding a new store
 
 1. Add `hooks/use-foo-store.ts`
-2. `createStore<FooStore>("FooStore", (set) => ({ … }))`
+2. `createStore<FooStore>((set) => ({ … }))`
 3. Export `useFooStore`
 4. In components: `useFooStore((s) => s.field)`; alias to `handle*` only when passing into JSX event props
 

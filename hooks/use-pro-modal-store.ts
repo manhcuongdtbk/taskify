@@ -7,11 +7,8 @@ type ProModalStore = {
 };
 
 /** Client store for the Pro upgrade dialog (components/modals/pro-modal → Stripe). */
-export const useProModalStore = createStore<ProModalStore>(
-  "ProModalStore",
-  (set) => ({
-    isOpen: false,
-    open: () => set({ isOpen: true }, false, "open"),
-    close: () => set({ isOpen: false }, false, "close"),
-  }),
-);
+export const useProModalStore = createStore<ProModalStore>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }, false, "open"),
+  close: () => set({ isOpen: false }, false, "close"),
+}));
