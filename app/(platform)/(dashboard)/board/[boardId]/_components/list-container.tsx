@@ -59,7 +59,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
     setOrderedData(data);
   }, [data]);
 
-  const onDragEnd = (result: DropResult) => {
+  const handleDragEnd = (result: DropResult) => {
     const { destination, source, type } = result;
 
     if (!destination) return;
@@ -159,7 +159,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext onDragEnd={handleDragEnd}>
       <Droppable droppableId="lists" type="list" direction="horizontal">
         {(provided) => (
           <ol

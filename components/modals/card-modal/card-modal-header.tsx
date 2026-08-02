@@ -42,11 +42,11 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
   const inputRef = useRef<ComponentRef<"input">>(null);
   const [title, setTitle] = useState(data.title);
 
-  const onBlur = () => {
+  const handleBlur = () => {
     inputRef.current?.form?.requestSubmit();
   };
 
-  const onSubmit = async (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     const title = formData.get("title") as string;
     const boardId = params.boardId as string;
 
@@ -59,10 +59,10 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
     <div className="mb-6 flex w-full items-start gap-x-3">
       <Layout className="mt-1 h-5 w-5 text-neutral-700" />
       <div className="w-full">
-        <form action={onSubmit}>
+        <form action={handleSubmit}>
           <FormInput
             ref={inputRef}
-            onBlur={onBlur}
+            onBlur={handleBlur}
             id="title"
             defaultValue={title}
             className="focus-visible::border-input relative -left-1.5 mb-0.5 w-[95%] truncate border-transparent bg-transparent px-1 text-xl font-semibold text-neutral-700 focus-visible:bg-white"

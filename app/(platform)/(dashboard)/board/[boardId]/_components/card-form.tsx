@@ -19,16 +19,16 @@ import { toast } from "@/components/ui/toast";
 
 interface CardFormProps {
   listId: string;
-  enableEditing: () => void;
-  disableEditing: () => void;
+  onEnableEditing: () => void;
+  onDisableEditing: () => void;
   isEditing: boolean;
   ref?: Ref<ComponentRef<"textarea">>;
 }
 
 export const CardForm = ({
   listId,
-  enableEditing,
-  disableEditing,
+  onEnableEditing,
+  onDisableEditing,
   isEditing,
   ref,
 }: CardFormProps) => {
@@ -51,29 +51,32 @@ export const CardForm = ({
     },
   });
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      disableEditing();
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      onDisableEditing();
     }
   };
 
-  useOnClickOutside(formRef as RefObject<ComponentRef<"form">>, disableEditing);
-  useEventListener("keydown", onKeyDown);
+  useOnClickOutside(
+    formRef as RefObject<ComponentRef<"form">>,
+    onDisableEditing,
+  );
+  useEventListener("keydown", handleKeyDown);
 
-  const onTextareaKeyDown: KeyboardEventHandler<ComponentRef<"textarea">> = (
-    event,
-  ) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
+  const handleTextareaKeyDown: KeyboardEventHandler<
+    ComponentRef<"textarea">
+  > = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
       formRef.current?.requestSubmit();
     }
   };
 
-  const onSubmit = (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
     const title = formData.get("title") as string;
     const boardId = params.boardId as string;
-    const listId = formData.get("listId") as string;
-    execute({ title, boardId, listId });
+    const listIdValue = formData.get("listId") as string;
+    execute({ title, boardId, listId: listIdValue });
   };
 
   if (isEditing) {
@@ -81,11 +84,11 @@ export const CardForm = ({
       <form
         className="m-1 space-y-4 px-1 py-0.5"
         ref={formRef}
-        action={onSubmit}
+        action={handleSubmit}
       >
         <FormTextarea
           id="title"
-          onKeyDown={onTextareaKeyDown}
+          onKeyDown={handleTextareaKeyDown}
           ref={ref}
           placeholder="Enter a title for this card..."
           errors={fieldErrors}
@@ -93,7 +96,7 @@ export const CardForm = ({
         <input hidden id="listId" name="listId" value={listId} />
         <div className="flex items-center gap-x-1">
           <FormSubmit>Add card</FormSubmit>
-          <Button onClick={disableEditing} variant="ghost" size="sm">
+          <Button onClick={onDisableEditing} variant="ghost" size="sm">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -104,7 +107,7 @@ export const CardForm = ({
   return (
     <div className="px-2 pt-2">
       <Button
-        onClick={enableEditing}
+        onClick={onEnableEditing}
         className="h-auto w-full justify-start px-2 py-1.5 text-sm text-muted-foreground"
         size="sm"
         variant="ghost"

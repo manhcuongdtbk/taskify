@@ -26,7 +26,7 @@ export const BoardOptions = ({ id }: BoardOptionsProps) => {
     },
   });
 
-  const onDelete = () => {
+  const handleDelete = () => {
     execute({ id });
   };
 
@@ -55,7 +55,7 @@ export const BoardOptions = ({ id }: BoardOptionsProps) => {
         />
         <Button
           variant="ghost"
-          onClick={onDelete}
+          onClick={handleDelete}
           disabled={isLoading}
           className="h-auto w-full justify-start rounded-none p-2 px-5 text-sm font-normal"
         >

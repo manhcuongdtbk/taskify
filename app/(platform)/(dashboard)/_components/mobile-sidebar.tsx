@@ -15,8 +15,8 @@ export const MobileSidebar = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   // TODO: Figure out why we have to use this hook here instead of just using the state directly.
-  const onOpen = useMobileSidebar((state) => state.onOpen);
-  const onClose = useMobileSidebar((state) => state.onClose);
+  const handleOpen = useMobileSidebar((state) => state.onOpen);
+  const handleClose = useMobileSidebar((state) => state.onClose);
   const isOpen = useMobileSidebar((state) => state.isOpen);
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export const MobileSidebar = () => {
 
   // Close the mobile sidebar when the pathname changes.
   useEffect(() => {
-    onClose();
-  }, [pathname, onClose]);
+    handleClose();
+  }, [pathname, handleClose]);
 
   if (!isMounted) {
     return null;
@@ -37,14 +37,14 @@ export const MobileSidebar = () => {
   return (
     <>
       <Button
-        onClick={onOpen}
+        onClick={handleOpen}
         className="mr-2 block md:hidden"
         variant="ghost"
         size="sm"
       >
         <Menu className="h-4 w-4" />
       </Button>
-      <Sheet open={isOpen} onOpenChange={onClose}>
+      <Sheet open={isOpen} onOpenChange={handleClose}>
         <SheetContent side="left" className="p-2 pt-10">
           <DashboardSidebar storageKey="taskify-mobile-sidebar-expanded" />
         </SheetContent>

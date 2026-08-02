@@ -17,11 +17,11 @@ export const ListItem = ({ index, data }: ListItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef<ComponentRef<"textarea">>(null);
 
-  const disableEditing = () => {
+  const handleDisableEditing = () => {
     setIsEditing(false);
   };
 
-  const enableEditing = () => {
+  const handleEnableEditing = () => {
     setIsEditing(true);
     setTimeout(() => {
       textareaRef.current?.focus();
@@ -40,7 +40,7 @@ export const ListItem = ({ index, data }: ListItemProps) => {
             {...provided.dragHandleProps}
             className="w-full rounded-md bg-[#f1f2f4] pb-2 shadow-md"
           >
-            <ListHeader data={data} onAddCard={enableEditing} />
+            <ListHeader data={data} onAddCard={handleEnableEditing} />
             <Droppable droppableId={data.id} type="card">
               {(provided) => (
                 <ol
@@ -61,8 +61,8 @@ export const ListItem = ({ index, data }: ListItemProps) => {
             <CardForm
               ref={textareaRef}
               isEditing={isEditing}
-              enableEditing={enableEditing}
-              disableEditing={disableEditing}
+              onEnableEditing={handleEnableEditing}
+              onDisableEditing={handleDisableEditing}
               listId={data.id}
             />
           </div>

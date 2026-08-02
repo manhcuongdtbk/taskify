@@ -41,7 +41,7 @@ export const DashboardSidebar = ({
     [],
   );
 
-  const onExpand = (id: string) => {
+  const handleExpand = (id: string) => {
     setExpanded((prevExpanded) => ({
       ...prevExpanded,
       [id]: !expanded[id],
@@ -94,7 +94,7 @@ export const DashboardSidebar = ({
             isActive={activeOrganization?.id === organization.id}
             isExpanded={expanded[organization.id]}
             organization={organization}
-            onExpand={onExpand}
+            onExpand={handleExpand}
           />
         ))}
       </Accordion>

@@ -25,25 +25,28 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
   const textareaRef = useRef<ComponentRef<"textarea">>(null);
   const formRef = useRef<ComponentRef<"form">>(null);
 
-  const enableEditing = () => {
+  const handleEnableEditing = () => {
     setIsEditing(true);
     setTimeout(() => {
       textareaRef.current?.focus();
     });
   };
 
-  const disableEditing = () => {
+  const handleDisableEditing = () => {
     setIsEditing(false);
   };
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      disableEditing();
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      handleDisableEditing();
     }
   };
 
-  useEventListener("keydown", onKeyDown);
-  useOnClickOutside(formRef as RefObject<ComponentRef<"form">>, disableEditing);
+  useEventListener("keydown", handleKeyDown);
+  useOnClickOutside(
+    formRef as RefObject<ComponentRef<"form">>,
+    handleDisableEditing,
+  );
 
   const { execute, fieldErrors } = useAction(updateCard, {
     onSuccess: (data) => {
@@ -57,7 +60,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
         type: "success",
         title: `Card "${data.title}" updated`,
       });
-      disableEditing();
+      handleDisableEditing();
     },
     onError: (error) => {
       toast.add({
@@ -67,7 +70,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
     },
   });
 
-  const onSubmit = (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
     const description = formData.get("description") as string;
     const boardId = params.boardId as string;
 
@@ -84,7 +87,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
       <div className="w-full">
         <p className="mb-2 font-semibold text-neutral-700">Description</p>
         {isEditing ? (
-          <form ref={formRef} className="space-y-2" action={onSubmit}>
+          <form ref={formRef} className="space-y-2" action={handleSubmit}>
             <FormTextarea
               id="description"
               className="mt-2 w-full"
@@ -97,7 +100,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
               <FormSubmit>Save</FormSubmit>
               <Button
                 type="button"
-                onClick={disableEditing}
+                onClick={handleDisableEditing}
                 size="sm"
                 variant="ghost"
               >
@@ -107,7 +110,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
           </form>
         ) : (
           <div
-            onClick={enableEditing}
+            onClick={handleEnableEditing}
             role="button"
             className="min-h-17.5 rounded-md bg-neutral-200 px-3.5 py-3 text-sm font-medium"
           >

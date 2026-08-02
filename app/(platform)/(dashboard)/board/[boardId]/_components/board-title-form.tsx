@@ -20,7 +20,7 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
         title: `Board "${data.title}" updated`,
       });
       setTitle(title); // Optimistically update the title
-      disableEditing();
+      handleDisableEditing();
     },
     onError: (error) => {
       toast.add({
@@ -35,11 +35,11 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(data.title);
 
-  const disableEditing = () => {
+  const handleDisableEditing = () => {
     setIsEditing(false);
   };
 
-  const enableEditing = () => {
+  const handleEnableEditing = () => {
     setIsEditing(true);
     setTimeout(() => {
       inputRef.current?.focus();
@@ -47,13 +47,13 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
     }, 0);
   };
 
-  const onSubmit = (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
     const title = formData.get("title") as string;
 
     execute({ id: data.id, title });
   };
 
-  const onBlur = () => {
+  const handleBlur = () => {
     formRef.current?.requestSubmit();
   };
 
@@ -62,11 +62,11 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
       <form
         ref={formRef}
         className="flex items-center gap-x-2"
-        action={onSubmit}
+        action={handleSubmit}
       >
         <FormInput
           id="title"
-          onBlur={onBlur}
+          onBlur={handleBlur}
           defaultValue={title}
           className="h-7 border-none bg-transparent px-1.75 py-1 text-lg font-bold focus-visible:ring-transparent focus-visible:outline-none"
           ref={inputRef}
@@ -79,7 +79,7 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
     <Button
       variant="ghost"
       className="h-auto w-auto p-1 px-2 text-lg font-bold"
-      onClick={enableEditing}
+      onClick={handleEnableEditing}
     >
       {title}
     </Button>

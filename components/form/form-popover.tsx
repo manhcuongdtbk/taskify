@@ -55,7 +55,7 @@ export const FormPopover = ({
     },
   });
 
-  const onSubmit = (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
     const title = formData.get("title") as string;
     const image = formData.get("image") as string;
 
@@ -85,7 +85,7 @@ export const FormPopover = ({
             </Button>
           }
         />
-        <form className="space-y-4" action={onSubmit}>
+        <form className="space-y-4" action={handleSubmit}>
           <div className="space-y-4">
             <FormPicker id="image" errors={fieldErrors} />
             {/* TODO: Fix input value is cleared after submitting with an invalid value */}

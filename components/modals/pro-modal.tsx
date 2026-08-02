@@ -15,7 +15,8 @@ import { siteConfig } from "@/config/site";
  * Overview: docs/billing.md
  */
 export const ProModal = () => {
-  const proModal = useProModal();
+  const isOpen = useProModal((state) => state.isOpen);
+  const handleClose = useProModal((state) => state.onClose);
 
   const { execute, isLoading } = useAction(stripeRedirect, {
     onSuccess: (data) => {
@@ -30,14 +31,14 @@ export const ProModal = () => {
     },
   });
 
-  const onClick = () => {
+  const handleClick = () => {
     execute({});
   };
 
   const boardBenefit = formatBoardLimit(PRO_PLAN.maxBoards);
 
   return (
-    <Dialog open={proModal.isOpen} onOpenChange={proModal.onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md overflow-hidden p-0">
         <div className="relative flex aspect-video items-center justify-center">
           <Image src="/hero.svg" alt="Hero" fill className="object-cover" />
@@ -57,7 +58,7 @@ export const ProModal = () => {
               <li>And more!</li>
             </ul>
           </div>
-          <Button className="w-full" onClick={onClick} disabled={isLoading}>
+          <Button className="w-full" onClick={handleClick} disabled={isLoading}>
             Upgrade
           </Button>
         </div>

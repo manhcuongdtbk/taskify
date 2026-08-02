@@ -56,13 +56,13 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
     },
   );
 
-  const onCopy = () => {
+  const handleCopy = () => {
     const boardId = params.boardId as string;
 
     executeCopyCard({ id: data.id, boardId });
   };
 
-  const onDelete = () => {
+  const handleDelete = () => {
     const boardId = params.boardId as string;
 
     executeDeleteCard({ id: data.id, boardId });
@@ -75,7 +75,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
         variant="secondary"
         className="w-full justify-start"
         size="sm"
-        onClick={onCopy}
+        onClick={handleCopy}
         disabled={isLoadingCopy}
       >
         <Copy className="mr-2 h-4 w-4" />
@@ -85,7 +85,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
         variant="secondary"
         className="w-full justify-start"
         size="sm"
-        onClick={onDelete}
+        onClick={handleDelete}
         disabled={isLoadingDelete}
       >
         <Trash className="mr-2 h-4 w-4" />

@@ -21,7 +21,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
   const formRef = useRef<ComponentRef<"form">>(null);
   const inputRef = useRef<ComponentRef<"input">>(null);
 
-  const enableEditing = () => {
+  const handleEnableEditing = () => {
     setIsEditing(true);
     // TODO: explore flushSync (as a last resort?) to replace this. And why do we need `setTimeout` here?
     setTimeout(() => {
@@ -30,7 +30,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
     });
   };
 
-  const disableEditing = () => {
+  const handleDisableEditing = () => {
     setIsEditing(false);
   };
 
@@ -41,7 +41,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
         title: `Renamed to "${data.title}"`,
       });
       setTitle(data.title); // Optimistic update
-      disableEditing();
+      handleDisableEditing();
     },
     onError: (error) => {
       toast.add({
@@ -57,23 +57,23 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
     const boardId = formData.get("boardId") as string;
 
     if (title === data.title) {
-      return disableEditing();
+      return handleDisableEditing();
     }
 
     execute({ id, title, boardId });
   };
 
-  const onBlur = () => {
+  const handleBlur = () => {
     formRef.current?.requestSubmit();
   };
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
       formRef.current?.requestSubmit();
     }
   };
 
-  useEventListener("keydown", onKeyDown);
+  useEventListener("keydown", handleKeyDown);
 
   return (
     <div className="flex items-start justify-between gap-x-2 px-2 pt-2 text-sm font-semibold">
@@ -84,7 +84,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
           <FormInput
             ref={inputRef}
             id="title"
-            onBlur={onBlur}
+            onBlur={handleBlur}
             placeholder="Enter list title..."
             defaultValue={title}
             className="h-7 truncate border-transparent bg-transparent px-1.75 py-1 text-sm font-medium transition hover:border-input focus:border-input focus:bg-white"
@@ -94,7 +94,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
       ) : (
         <div
           className="h-7 w-full border-transparent px-2.5 py-1 text-sm font-medium"
-          onClick={enableEditing}
+          onClick={handleEnableEditing}
         >
           {title}
         </div>

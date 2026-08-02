@@ -19,14 +19,14 @@ export const ListForm = () => {
   const formRef = useRef<ComponentRef<"form">>(null);
   const inputRef = useRef<ComponentRef<"input">>(null);
 
-  const enableEditing = () => {
+  const handleEnableEditing = () => {
     setIsEditing(true);
     setTimeout(() => {
       inputRef.current?.focus();
     });
   };
 
-  const disableEditing = () => {
+  const handleDisableEditing = () => {
     setIsEditing(false);
   };
 
@@ -36,7 +36,7 @@ export const ListForm = () => {
         type: "success",
         title: `List "${data.title}" created`,
       });
-      disableEditing();
+      handleDisableEditing();
       router.refresh();
     },
     onError: (error) => {
@@ -47,16 +47,19 @@ export const ListForm = () => {
     },
   });
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      disableEditing();
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      handleDisableEditing();
     }
   };
 
-  useEventListener("keydown", onKeyDown);
-  useOnClickOutside(formRef as RefObject<ComponentRef<"form">>, disableEditing);
+  useEventListener("keydown", handleKeyDown);
+  useOnClickOutside(
+    formRef as RefObject<ComponentRef<"form">>,
+    handleDisableEditing,
+  );
 
-  const onSubmit = (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
     const title = formData.get("title") as string;
     const boardId = formData.get("boardId") as string;
     execute({ title, boardId });
@@ -68,7 +71,7 @@ export const ListForm = () => {
         <form
           ref={formRef}
           className="w-full space-y-4 rounded-md bg-white p-3 shadow-md"
-          action={onSubmit}
+          action={handleSubmit}
         >
           <FormInput
             ref={inputRef}
@@ -80,7 +83,7 @@ export const ListForm = () => {
           <input type="hidden" name="boardId" value={params.boardId} />
           <div className="flex items-center gap-x-1">
             <FormSubmit>Add List</FormSubmit>
-            <Button variant="ghost" size="sm" onClick={disableEditing}>
+            <Button variant="ghost" size="sm" onClick={handleDisableEditing}>
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -93,7 +96,7 @@ export const ListForm = () => {
     <ListWrapper>
       <button
         className="flex w-full items-center rounded-md bg-white/80 p-3 text-sm font-medium transition hover:bg-white/50"
-        onClick={enableEditing}
+        onClick={handleEnableEditing}
       >
         <Plus className="mr-2 h-4 w-4" />
         Add a list

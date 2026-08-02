@@ -33,7 +33,7 @@ export const SubscriptionButton = ({ isPro }: SubscriptionButtonProps) => {
     },
   });
 
-  const onClick = () => {
+  const handleClick = () => {
     if (isPro) {
       execute({});
     } else {
@@ -42,7 +42,7 @@ export const SubscriptionButton = ({ isPro }: SubscriptionButtonProps) => {
   };
 
   return (
-    <Button disabled={isLoading} onClick={onClick}>
+    <Button disabled={isLoading} onClick={handleClick}>
       {isPro ? "Manage Subscription" : `Upgrade to ${PRO_PLAN.name}`}
     </Button>
   );

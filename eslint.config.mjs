@@ -238,6 +238,35 @@ const appUiNoExportedTypeRestrictions = [
   },
 ];
 
+/**
+ * Event handler naming — docs/conventions.md.
+ * Prefer destructuring; keep prop names as `on*` and locals as `handle*` so the
+ * two stay distinguishable. (Stock react/jsx-handler-names rejects bare `on*`
+ * values, which forces rename aliases or `props.on*` — we avoid both.)
+ */
+const eventHandlerValueMessage =
+  "Handler values must be `handle*` (local fn) or `on*` (destructured prop). See docs/conventions.md.";
+
+const eventHandlerPropKeyMessage =
+  "Handler props must start with `on` (e.g. onClick), not `handle`. See docs/conventions.md.";
+
+const eventHandlerNamingRestrictions = [
+  {
+    selector:
+      "JSXAttribute[name.name=/^on[A-Z]/] > JSXExpressionContainer > Identifier[name=/^(?!(handle|on)[A-Z])\\w+/]",
+    message: eventHandlerValueMessage,
+  },
+  {
+    selector:
+      "JSXAttribute[name.name=/^on[A-Z]/] > JSXExpressionContainer > MemberExpression > Identifier.property[name=/^(?!(handle|on)[A-Z])\\w+/]",
+    message: eventHandlerValueMessage,
+  },
+  {
+    selector: "JSXAttribute[name.name=/^handle[A-Z]/]",
+    message: eventHandlerPropKeyMessage,
+  },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -264,7 +293,11 @@ const eslintConfig = defineConfig([
       "@next/next/no-html-link-for-pages": "error",
       // Tabnabbing: target="_blank" requires rel with noopener/noreferrer (off in Next’s defaults).
       "react/jsx-no-target-blank": "error",
-      "no-restricted-syntax": ["error", ...linkVsAnchorRestrictions],
+      "no-restricted-syntax": [
+        "error",
+        ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
+      ],
     },
   },
 
@@ -276,6 +309,7 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
     },
@@ -289,6 +323,7 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
       ],
@@ -305,6 +340,7 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -319,6 +355,7 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
     },
@@ -356,6 +393,7 @@ const eslintConfig = defineConfig([
         "error",
         ...genericComponentRestrictions,
         ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,

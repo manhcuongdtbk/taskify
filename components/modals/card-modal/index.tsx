@@ -14,7 +14,7 @@ import { CardModalActivity } from "./card-modal-activity";
 export const CardModal = () => {
   const id = useCardModal((state) => state.id);
   const isOpen = useCardModal((state) => state.isOpen);
-  const onClose = useCardModal((state) => state.onClose);
+  const handleClose = useCardModal((state) => state.onClose);
 
   // TODO: fix the eslint error
   // eslint-disable-next-line @tanstack/query/prefer-query-options
@@ -31,7 +31,7 @@ export const CardModal = () => {
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl">
         {!cardData ? (
           <CardModalHeader.Skeleton />

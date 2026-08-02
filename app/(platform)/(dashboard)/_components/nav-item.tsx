@@ -59,7 +59,7 @@ export const NavItem = ({
     },
   ];
 
-  const onClick = (href: Route) => {
+  const handleClick = (href: Route) => {
     router.push(href);
   };
 
@@ -88,7 +88,7 @@ export const NavItem = ({
         {routes.map((route) => (
           <Button
             key={route.href}
-            onClick={() => onClick(route.href)}
+            onClick={() => handleClick(route.href)}
             className={cn(
               "mb-1 w-full justify-start pl-10 font-normal",
               pathname === route.href && "bg-sky-500/10 text-sky-700",
