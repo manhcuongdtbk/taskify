@@ -487,6 +487,17 @@ const eslintConfig = defineConfig([
     },
   },
 
+  // providers/: app wiring (Query, Clerk, theme, …) — filename ↔ export.
+  {
+    files: ["providers/**/*.{ts,tsx}"],
+    plugins: {
+      "filename-match-export": filenameMatchExport,
+    },
+    rules: {
+      "filename-match-export/match-named-export": "error",
+    },
+  },
+
   // stores/: Zustand client UI stores — filename ↔ export; createStore; use*Store; domain verbs.
   // Re-includes Non-Next syntax rules — flat config replaces, does not merge.
   {

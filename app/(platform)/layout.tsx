@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
 import { siteConfig } from "@/config/site";
-import { ClerkProvider } from "@/components/clerk-provider";
-import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toast";
-import { ModalProvider } from "@/components/providers/modal-provider";
-import { QueryProvider } from "@/components/providers/query-provider";
+import { ClerkProvider } from "@/providers/clerk-provider";
+import { ModalProvider } from "@/providers/modal-provider";
+import { QueryProvider } from "@/providers/query-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 export const metadata: Metadata = {
   title: {

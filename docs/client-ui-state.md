@@ -75,15 +75,15 @@ Do **not** treat Context and Zustand as interchangeable “shared state” optio
 
 ### In this repo today
 
-| Job                                                         | Tool                              | Where                                                                                    |
-| ----------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
-| Shared ephemeral UI (modal open, sidebar, selected card id) | **Zustand**                       | `stores/use-*-store.ts`                                                                  |
-| Local / single-subtree UI                                   | **`useState`**                    | e.g. form fields; `ModalProvider` mount gate                                             |
-| Query client for the tree                                   | **TanStack `QueryProvider`**      | `components/providers/query-provider.tsx`                                                |
-| Auth SDK for the tree                                       | **Clerk provider**                | platform shell                                                                           |
-| Theme for the tree                                          | **`ThemeProvider`** (next-themes) | `components/theme-provider.tsx`                                                          |
-| Mount card/pro modals once (hydration)                      | **`ModalProvider`**               | `components/providers/modal-provider.tsx` — **not** Context state; open/close is Zustand |
-| Server / domain data                                        | Prisma / Actions / Query          | [`data.md`](./data.md)                                                                   |
+| Job                                                         | Tool                              | Where                                                                         |
+| ----------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------- |
+| Shared ephemeral UI (modal open, sidebar, selected card id) | **Zustand**                       | `stores/use-*-store.ts`                                                       |
+| Local / single-subtree UI                                   | **`useState`**                    | e.g. form fields; `ModalProvider` mount gate                                  |
+| Query client for the tree                                   | **TanStack `QueryProvider`**      | `providers/query-provider.tsx`                                                |
+| Auth SDK for the tree                                       | **Clerk provider**                | `providers/clerk-provider.tsx`                                                |
+| Theme for the tree                                          | **`ThemeProvider`** (next-themes) | `providers/theme-provider.tsx`                                                |
+| Mount card/pro modals once (hydration)                      | **`ModalProvider`**               | `providers/modal-provider.tsx` — **not** Context state; open/close is Zustand |
+| Server / domain data                                        | Prisma / Actions / Query          | [`data.md`](./data.md)                                                        |
 
 **Rule:** app UI memory that changes and many components subscribe to → Zustand. “Here is the client/SDK/config for this subtree” → that library’s Provider. Never both for the same concern.
 

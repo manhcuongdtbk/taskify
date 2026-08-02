@@ -137,7 +137,7 @@ Still prefer the **server** for secrets, Prisma, and most first-load data. Use t
 | **How** (`useQuery`, keys, staleTime, …)                        | [TanStack Query docs](https://tanstack.com/query/latest/docs/framework/react/overview)                                                                          |
 | **Transport**                                                   | Web `fetch` via [`lib/fetcher.ts`](../lib/fetcher.ts) — not Next’s server `fetch`                                                                               |
 
-**In this repo today:** card modal (`components/modals/card-modal`) — `useQuery` → Route Handlers; after Action success, `queryClient.invalidateQueries`. Provider: `components/providers/query-provider.tsx`.
+**In this repo today:** card modal (`components/modals/card-modal`) — `useQuery` → Route Handlers; after Action success, `queryClient.invalidateQueries`. Provider: `providers/query-provider.tsx`.
 
 ## Where Next is thin (teach here)
 
