@@ -187,7 +187,7 @@ const noLodashImportPatterns = [
 ];
 
 const zustandCreateOnlyInStoreMessage =
-  "Define Zustand stores only in hooks/use-*-store.ts exporting use*Store. See docs/conventions.md.";
+  "Import Zustand only in lib/create-store.ts; define stores with createStore in hooks/use-*-store.ts as use*Store. See docs/conventions.md.";
 
 const noZustandImportPaths = [
   {
@@ -234,7 +234,7 @@ const noForwardRefImport = {
   ],
 };
 
-/** Store modules may import zustand; still ban forwardRef + Lodash. */
+/** lib/create-store.ts may import zustand; still ban forwardRef + Lodash. */
 const noForwardRefImportAllowZustand = {
   "no-restricted-imports": [
     "error",
@@ -444,13 +444,13 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Zustand stores: hooks/use-*-store.ts — allow zustand import; require use*Store
+  // Zustand stores: hooks/use-*-store.ts — use createStore from lib/; require use*Store
   // export; ban React-style on*/handle* action keys.
   // Re-includes Non-Next syntax rules — flat config replaces, does not merge.
   {
     files: ["hooks/**/*-store.ts", "hooks/**/*-store.tsx"],
     rules: {
-      ...noForwardRefImportAllowZustand,
+      ...noForwardRefImport,
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
@@ -461,6 +461,14 @@ const eslintConfig = defineConfig([
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
+    },
+  },
+
+  // Sole module allowed to import zustand — wraps create + devtools.
+  {
+    files: ["lib/create-store.ts"],
+    rules: {
+      ...noForwardRefImportAllowZustand,
     },
   },
 

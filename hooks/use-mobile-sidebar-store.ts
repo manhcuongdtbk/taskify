@@ -1,5 +1,4 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { createStore } from "@/lib/create-store";
 
 type MobileSidebarStore = {
   isOpen: boolean;
@@ -7,16 +6,11 @@ type MobileSidebarStore = {
   close: () => void;
 };
 
-export const useMobileSidebarStore = create<MobileSidebarStore>()(
-  devtools(
-    (set) => ({
-      isOpen: false,
-      open: () => set({ isOpen: true }, false, "open"),
-      close: () => set({ isOpen: false }, false, "close"),
-    }),
-    {
-      name: "MobileSidebarStore",
-      enabled: process.env.NODE_ENV === "development",
-    },
-  ),
+export const useMobileSidebarStore = createStore<MobileSidebarStore>(
+  "MobileSidebarStore",
+  (set) => ({
+    isOpen: false,
+    open: () => set({ isOpen: true }, false, "open"),
+    close: () => set({ isOpen: false }, false, "close"),
+  }),
 );

@@ -1,5 +1,4 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { createStore } from "@/lib/create-store";
 
 type ProModalStore = {
   isOpen: boolean;
@@ -8,16 +7,11 @@ type ProModalStore = {
 };
 
 /** Client store for the Pro upgrade dialog (components/modals/pro-modal → Stripe). */
-export const useProModalStore = create<ProModalStore>()(
-  devtools(
-    (set) => ({
-      isOpen: false,
-      open: () => set({ isOpen: true }, false, "open"),
-      close: () => set({ isOpen: false }, false, "close"),
-    }),
-    {
-      name: "ProModalStore",
-      enabled: process.env.NODE_ENV === "development",
-    },
-  ),
+export const useProModalStore = createStore<ProModalStore>(
+  "ProModalStore",
+  (set) => ({
+    isOpen: false,
+    open: () => set({ isOpen: true }, false, "open"),
+    close: () => set({ isOpen: false }, false, "close"),
+  }),
 );

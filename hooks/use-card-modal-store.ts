@@ -1,5 +1,4 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { createStore } from "@/lib/create-store";
 
 type CardModalStore = {
   id?: string;
@@ -8,17 +7,12 @@ type CardModalStore = {
   close: () => void;
 };
 
-export const useCardModalStore = create<CardModalStore>()(
-  devtools(
-    (set) => ({
-      id: undefined,
-      isOpen: false,
-      open: (id: string) => set({ id, isOpen: true }, false, "open"),
-      close: () => set({ id: undefined, isOpen: false }, false, "close"),
-    }),
-    {
-      name: "CardModalStore",
-      enabled: process.env.NODE_ENV === "development",
-    },
-  ),
+export const useCardModalStore = createStore<CardModalStore>(
+  "CardModalStore",
+  (set) => ({
+    id: undefined,
+    isOpen: false,
+    open: (id: string) => set({ id, isOpen: true }, false, "open"),
+    close: () => set({ id: undefined, isOpen: false }, false, "close"),
+  }),
 );
