@@ -29,7 +29,7 @@ Official Zustand docs cover the API well but say little about _how we compose it
 ## Out of scope for now
 
 - Redux, Jotai, or a second global-state library beside Zustand
-- Persisting UI stores (`persist` middleware) until product needs it
+- Persisting UI stores to `localStorage` / session (Zustand `persist`) until product needs it
 - Moving server cache into Zustand (use Query / RSC instead)
 
 ## Mental model
@@ -143,11 +143,47 @@ Do **not** put `on*` / `handle*` on the store type. ESLint bans those keys in `h
 
 ### 5. Repo factory: `createStore`
 
-[`lib/create-store.ts`](../lib/create-store.ts) is the **only** module allowed to import `zustand` / `zustand/*`. It wraps:
+[`lib/create-store.ts`](../lib/create-store.ts) is the **only** module allowed to import `zustand` / `zustand/*`. It combines:
 
-- Curried `create<T>()(…)` for TypeScript inference
+- Curried `create<T>()(…)` for TypeScript inference (see below)
 - [`devtools`](https://zustand.docs.pmnd.rs/middlewares/devtools) with a store `name`
 - `enabled` only when `NODE_ENV === "development"`
+
+**Curried `create`:** In functional programming, **currying** means turning a multi-argument function into a chain of single-argument calls — `f(a, b)` becomes `f(a)(b)`. Zustand’s docs use that idea loosely: you call `create` **twice** instead of once.
+
+```ts
+// One shot — often fine for a plain store
+create<BearStore>((set) => ({ … }))
+
+// Two shots — what Zustand recommends with middleware / explicit T
+create<BearStore>()(devtools((set) => ({ … }), { name: "BearStore" }))
+//              ^^ empty call returns a function; then you pass the initializer
+```
+
+The empty `()` is mostly a **TypeScript inference trick**, not a deep FP requirement. With middleware, TS has a hard time inferring the store type and the middleware’s typed `set` in a single `create(…)` call. Specifying `T` on the first call, then passing the middleware-wrapped initializer on the second, makes `set`, actions, and DevTools labels type-check. [`createStore`](../lib/create-store.ts) hides that: you write `createStore<CardModalStore>(…)` and it does `create<T>()(devtools(…))` inside.
+
+**Zustand middleware** (do not confuse with Next.js `middleware.ts` / `proxy.ts` or Express/Koa request middleware).
+
+If you come from backend middleware, think **function composition / onion nesting**, not “run once before the handler, then once after.” Your store body is still `(set) => ({ … })`. Middleware is an **outer function** that takes that body and returns a new body for `create`:
+
+```text
+create(
+  devtools(          ← outer: middleware
+    (set) => ({ … }) ← inner: your state + actions
+  )
+)
+```
+
+Same idea as `create(devtools(persist(initializer)))` — each layer sits **around** the next.
+
+What that means in practice:
+
+1. **At store creation** — the outer layer runs first, then calls your initializer (and may do setup, e.g. `persist` reading `localStorage`).
+2. **For the life of the store** — the outer layer usually **intercepts `set` / `get`**. When an action calls `set`, the update still happens; middleware adds side effects around that call (e.g. `devtools` pushes the labeled action to Redux DevTools; `persist` writes storage).
+
+So it is **around** the initializer and **around** later updates — not a separate “before middleware → store → after middleware” pipeline like HTTP.
+
+We only wire `devtools` today, and only through `createStore`. `persist` is out of scope until we need it.
 
 A store file looks like:
 
@@ -231,8 +267,8 @@ Server work (fetch card, delete card) stays in Route Handlers / Server Actions /
 
 ## Official / community reading
 
-| Source                                                                       | Use for                                         |
-| ---------------------------------------------------------------------------- | ----------------------------------------------- |
-| [Zustand docs](https://zustand.docs.pmnd.rs)                                 | API reference (`create`, middleware)            |
-| [Working with Zustand (TkDodo)](https://tkdodo.eu/blog/working-with-zustand) | Selectors, actions-as-events, larger-store tips |
-| This file                                                                    | How those ideas map onto **this** codebase      |
+| Source                                                                       | Use for                                                                                    |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [Zustand docs](https://zustand.docs.pmnd.rs)                                 | API reference (`create`, [middlewares](https://zustand.docs.pmnd.rs/middlewares/devtools)) |
+| [Working with Zustand (TkDodo)](https://tkdodo.eu/blog/working-with-zustand) | Selectors, actions-as-events, larger-store tips                                            |
+| This file                                                                    | How those ideas map onto **this** codebase                                                 |
