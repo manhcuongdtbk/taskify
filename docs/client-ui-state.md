@@ -15,7 +15,7 @@ Official Zustand docs cover the API well but say little about _how we compose it
 
 ## Already following
 
-- Small focused stores under `stores/use-*-store.ts`, exported as `use*Store`
+- **Multiple small stores** — one file per concern under `stores/use-*-store.ts` (not one global store)
 - Domain/event action names (`open`, `close`) — not React `on*` / `handle*` on the store
 - Slice selectors at every call site (no bare `useXStore()`)
 - One factory [`lib/create-store.ts`](../lib/create-store.ts) (sole `zustand` import; wires `devtools`)
@@ -23,12 +23,14 @@ Official Zustand docs cover the API well but say little about _how we compose it
 
 ## TODO
 
-- [ ] Prefer nested `actions: { … }` only if a store grows large enough that TkDodo’s split helps ([Working with Zustand](https://tkdodo.eu/blog/working-with-zustand))
+- [ ] **Zustand slices** (compose parts into _one_ store) only if a single store file grows huge and must stay one store — see [Stores vs slices](#stores-vs-slices-not-redux-default)
+- [ ] Nested `actions: { … }` only if TkDodo’s split helps a large store ([Working with Zustand](https://tkdodo.eu/blog/working-with-zustand))
 - [ ] `shallow` / multi-field object selectors only when selecting objects that would break referential equality
 
 ## Out of scope for now
 
 - Redux, Jotai, or a second global-state library beside Zustand
+- One Redux-style “app store” that holds all client UI state (we use many small stores instead)
 - React Context as a store for ephemeral UI flags (see [One tool per job](#one-tool-per-job-zustand--context) — Providers today are Query / Clerk / theme injection, not UI flags)
 - Persisting UI stores to `localStorage` / session (Zustand `persist`) until product needs it
 - Moving server cache into Zustand (use Query / RSC instead)
@@ -68,6 +70,23 @@ flowchart LR
 | Other ephemeral UI flags that several trees need      | Server Action results (Query / RSC / `useAction`) |
 
 If only **one** component tree needs the flag, prefer local `useState`. Reach for a store when several distant trees need the same flag (not when you’d invent a Context for that flag).
+
+## Stores vs slices (not Redux default)
+
+Contributors from Redux often assume **one app store** and **slices** as pieces of that store. Zustand allows that pattern, but **this repo does not use it**.
+
+|                                           | **Redux (typical)**                          | **This repo (Zustand)**                                                                     |
+| ----------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| How many stores?                          | One global store                             | **Many** small stores                                                                       |
+| What is a “slice”?                        | Official RTK unit merged into that one store | Optional pattern: functions merged into _one_ `create` when a _single_ store file gets huge |
+| What is `stores/use-card-modal-store.ts`? | Would be odd as a separate Redux store       | A **full store** (not a slice)                                                              |
+| New shared UI flag?                       | Usually another slice on the same store      | Usually another **`stores/use-*-store.ts`**                                                 |
+
+**Default here:** one concern → one store file → `use*Store`. Card modal, Pro modal, and mobile sidebar are three stores on purpose.
+
+**When (if ever) to use Zustand slices:** only if you deliberately keep **one** store and it becomes too large to maintain in one file — then split with slice functions and compose them in `create` ([TkDodo](https://tkdodo.eu/blog/working-with-zustand)). Do **not** rename our small stores “slices” or merge unrelated UI into one mega-store “because Redux has one store.”
+
+**Slice selectors** (`useXStore((s) => s.isOpen)`) are unrelated naming: that means “select a piece of state,” not Redux Toolkit’s `createSlice`.
 
 ## One tool per job (Zustand ≠ Context)
 
@@ -298,5 +317,5 @@ Server work (fetch card, delete card) stays in Route Handlers / Server Actions /
 | Source                                                                       | Use for                                                                                    |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | [Zustand docs](https://zustand.docs.pmnd.rs)                                 | API reference (`create`, [middlewares](https://zustand.docs.pmnd.rs/middlewares/devtools)) |
-| [Working with Zustand (TkDodo)](https://tkdodo.eu/blog/working-with-zustand) | Selectors, actions-as-events, larger-store tips                                            |
-| This file                                                                    | How those ideas map onto **this** codebase                                                 |
+| [Working with Zustand (TkDodo)](https://tkdodo.eu/blog/working-with-zustand) | Selectors, actions-as-events, slices when _one_ store grows                                |
+| This file                                                                    | How those ideas map onto **this** codebase (**multi-store** default — not Redux one-store) |
