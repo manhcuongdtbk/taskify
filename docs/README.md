@@ -31,6 +31,7 @@ Concern and framework maps (each listed once). Same shape where possible: **Owne
 | [`billing.md`](./billing.md)                                                   | Billing — **Stripe** today for the **Pro** plan; deep dive + backlog             |
 | [`authentication-and-authorization.md`](./authentication-and-authorization.md) | Authentication & authorization — **Clerk** today; exit notes                     |
 | [`prisma.md`](./prisma.md)                                                     | Prisma / Postgres data layer                                                     |
+| [`client-ui-state.md`](./client-ui-state.md)                                   | Ephemeral client UI state — **Zustand** today (modals, sidebars, …)              |
 
 ## Maintenance
 

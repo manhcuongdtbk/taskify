@@ -187,7 +187,7 @@ const noLodashImportPatterns = [
 ];
 
 const zustandCreateOnlyInStoreMessage =
-  "Import Zustand only in lib/create-store.ts; define stores with createStore in hooks/use-*-store.ts as use*Store. See docs/conventions.md.";
+  "Import Zustand only in lib/create-store.ts; define stores with createStore in hooks/use-*-store.ts as use*Store. See docs/client-ui-state.md.";
 
 const noZustandImportPaths = [
   {
@@ -305,12 +305,12 @@ const eventHandlerNamingRestrictions = [
 ];
 
 /**
- * Zustand store action keys — docs/conventions.md.
+ * Zustand store action keys — docs/client-ui-state.md.
  * Ban React-style `on*` / `handle*` on store APIs; prefer domain verbs (`open`).
  * Scoped to hooks store modules (files matching use-*-store.ts).
  */
 const zustandStoreActionMessage =
-  "Zustand store keys must not use React `on*` / `handle*` names — use domain verbs (e.g. open, close). See docs/conventions.md.";
+  "Zustand store keys must not use React `on*` / `handle*` names — use domain verbs (e.g. open, close). See docs/client-ui-state.md.";
 
 const zustandStoreActionNamingRestrictions = [
   {
@@ -328,12 +328,12 @@ const zustandStoreActionNamingRestrictions = [
 ];
 
 /**
- * Require a selector on Zustand store hooks — docs/conventions.md.
+ * Require a selector on Zustand store hooks — docs/client-ui-state.md.
  * Convention: store hooks are named `use*Store` (no allowlist to maintain).
  * Does not judge selector quality (e.g. `(s) => s` still passes).
  */
 const zustandSelectorRequiredMessage =
-  "Pass a slice selector to Zustand store hooks (e.g. useXStore((s) => s.open)). Bare useXStore() subscribes to the whole store. See docs/conventions.md.";
+  "Pass a slice selector to Zustand store hooks (e.g. useXStore((s) => s.open)). Bare useXStore() subscribes to the whole store. See docs/client-ui-state.md.";
 
 const zustandSelectorRequiredRestrictions = [
   {
@@ -345,7 +345,7 @@ const zustandSelectorRequiredRestrictions = [
 
 /** Exported bindings in store modules must be named use*Store. */
 const zustandStoreExportNameMessage =
-  "Zustand store hooks must be named use*Store (e.g. useProModalStore). See docs/conventions.md.";
+  "Zustand store hooks must be named use*Store (e.g. useProModalStore). See docs/client-ui-state.md.";
 
 const zustandStoreExportNameRestrictions = [
   {

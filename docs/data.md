@@ -56,6 +56,7 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 - A big Nest-style DTO/class layer before we feel the need
 - Deep **Cache Components** / PPR / ISR redesign, Draft Mode, CDN caching guides — link from [`nextjs.md`](./nextjs.md) when we adopt them; don’t re-teach here
 - **Dedicated `tanstack-query.md`** — until Query TODs need more than [`conventions.md`](./conventions.md) + [this map](#tanstack-query-client-only)
+- **Ephemeral client UI stores** (modals, sidebars) — [`client-ui-state.md`](./client-ui-state.md); not a data-fetch concern
 - **Error handling** file conventions (`error.tsx` / `not-found.tsx`) and Action error-return style — tracked in [`nextjs.md`](./nextjs.md) (related to mutations, but not a second data map)
 
 ## Mental model (one picture)
