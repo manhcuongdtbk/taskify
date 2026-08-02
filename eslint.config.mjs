@@ -330,16 +330,31 @@ const zustandStoreActionNamingRestrictions = [
 /**
  * Require a selector on Zustand store hooks — docs/client-ui-state.md.
  * Convention: store hooks are named `use*Store` (no allowlist to maintain).
- * Does not judge selector quality (e.g. `(s) => s` still passes).
+ * Also bans identity selectors `(s) => s` / `(s) => { return s }` (whole-store subscribe).
  */
 const zustandSelectorRequiredMessage =
   "Pass a slice selector to Zustand store hooks (e.g. useXStore((s) => s.open)). Bare useXStore() subscribes to the whole store. See docs/client-ui-state.md.";
+
+const zustandIdentitySelectorMessage =
+  "Do not use an identity selector (s) => s — pick a field or action (e.g. (s) => s.isOpen). See docs/client-ui-state.md.";
 
 const zustandSelectorRequiredRestrictions = [
   {
     selector:
       "CallExpression[callee.name=/^use[A-Z]\\w*Store$/][arguments.length=0]",
     message: zustandSelectorRequiredMessage,
+  },
+  {
+    // useXStore((s) => s)
+    selector:
+      "CallExpression[callee.name=/^use[A-Z]\\w*Store$/] > ArrowFunctionExpression[params.length=1][params.0.type='Identifier'][body.type='Identifier']",
+    message: zustandIdentitySelectorMessage,
+  },
+  {
+    // useXStore((s) => { return s })
+    selector:
+      "CallExpression[callee.name=/^use[A-Z]\\w*Store$/] > ArrowFunctionExpression[params.length=1][params.0.type='Identifier'][body.type='BlockStatement'] > BlockStatement[body.length=1] > ReturnStatement[argument.type='Identifier']",
+    message: zustandIdentitySelectorMessage,
   },
 ];
 
@@ -357,6 +372,31 @@ const zustandStoreExportNameRestrictions = [
     selector:
       "ExportNamedDeclaration > FunctionDeclaration[id.name=/^(?!use[A-Z]\\w*Store$)\\w+/]",
     message: zustandStoreExportNameMessage,
+  },
+];
+
+/**
+ * Store modules must build hooks with createStore from @/lib/create-store.
+ * See docs/client-ui-state.md.
+ */
+const zustandCreateStoreRequiredMessage =
+  "Define store hooks with createStore from @/lib/create-store (do not call zustand create here). See docs/client-ui-state.md.";
+
+const zustandCreateStoreRequiredRestrictions = [
+  {
+    selector:
+      "Program:not(:has(ImportDeclaration[source.value='@/lib/create-store'] > ImportSpecifier[imported.name='createStore']))",
+    message: zustandCreateStoreRequiredMessage,
+  },
+  {
+    selector:
+      "VariableDeclarator[id.name=/^use[A-Z]\\w*Store$/][init.type='CallExpression'][init.callee.name!='createStore']",
+    message: zustandCreateStoreRequiredMessage,
+  },
+  {
+    selector:
+      "VariableDeclarator[id.name=/^use[A-Z]\\w*Store$/][init.type!='CallExpression']",
+    message: zustandCreateStoreRequiredMessage,
   },
 ];
 
@@ -516,6 +556,7 @@ const eslintConfig = defineConfig([
         ...nodeEnvViaLibEnvRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
+        ...zustandCreateStoreRequiredRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],

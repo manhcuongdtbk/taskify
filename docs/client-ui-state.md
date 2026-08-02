@@ -238,7 +238,7 @@ const isOpen = useCardModalStore((s) => s.isOpen);
 const close = useCardModalStore((s) => s.close);
 ```
 
-The function `(s) => s.isOpen` is a **slice selector**. This repo always passes one (ESLint bans bare `useXStore()`). Quality of the selector (e.g. avoiding `(s) => s`) is still a judgment call.
+The function `(s) => s.isOpen` is a **slice selector**. This repo always passes one (ESLint bans bare `useXStore()` and identity `(s) => s`). Prefer a real field/action — don’t subscribe to the whole store.
 
 ### 4. React vs store naming
 
@@ -338,7 +338,7 @@ export const useCardModalStore = createStore<CardModalStore>((set) => ({
 | Export        | `use*Store`             | `useCardModalStore`       |
 | DevTools name | Derived from file       | `CardModalStore`          |
 
-File kebab-case and export camelCase must describe the **same** name (`use-card-modal-store` ↔ `useCardModalStore`). ESLint enforces that via `filename-match-export` (and: direct `zustand` import only in `lib/create-store.ts`; store exports must match `use*Store`; no bare `use*Store()`; no `on*`/`handle*` store keys).
+File kebab-case and export camelCase must describe the **same** name (`use-card-modal-store` ↔ `useCardModalStore`). ESLint enforces that via `filename-match-export` (and: direct `zustand` import only in `lib/create-store.ts`; store modules must `import { createStore } from "@/lib/create-store"` and assign `use*Store = createStore(…)`; no bare `use*Store()`; no identity `(s) => s`; no `on*`/`handle*` store keys).
 
 ### 7. DevTools
 
