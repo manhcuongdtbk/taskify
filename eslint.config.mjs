@@ -476,6 +476,17 @@ const eslintConfig = defineConfig([
     },
   },
 
+  // hooks/: filename kebab ↔ single named export camelCase (use-action.ts → useAction).
+  {
+    files: ["hooks/**/*.{ts,tsx}"],
+    plugins: {
+      "filename-match-export": filenameMatchExport,
+    },
+    rules: {
+      "filename-match-export/match-named-export": "error",
+    },
+  },
+
   // Zustand stores: hooks/use-*-store.ts — use createStore from lib/; require use*Store
   // export; ban React-style on*/handle* action keys.
   // Re-includes Non-Next syntax rules — flat config replaces, does not merge.

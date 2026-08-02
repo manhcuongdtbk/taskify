@@ -221,7 +221,7 @@ export const useCardModalStore = createStore<CardModalStore>((set) => ({
 | Export        | `use*Store`            | `useCardModalStore`       |
 | DevTools name | Derived from file      | `CardModalStore`          |
 
-ESLint enforces: direct `zustand` import only in `lib/create-store.ts`; store exports must match `use*Store`; no bare `use*Store()`; no `on*`/`handle*` store keys.
+File kebab-case and export camelCase must describe the **same** name (`use-card-modal-store` ↔ `useCardModalStore`). ESLint enforces that via `filename-match-export` (and: direct `zustand` import only in `lib/create-store.ts`; store exports must match `use*Store`; no bare `use*Store()`; no `on*`/`handle*` store keys).
 
 ### 7. DevTools
 
