@@ -2,10 +2,10 @@
 
 Ephemeral **browser UI state** shared across components — modals open/closed, which card id is selected, mobile sidebar, etc.
 
-|                 |                                                                                       |
-| --------------- | ------------------------------------------------------------------------------------- |
-| **Owner / SoT** | This file — when to use a client store, mental model, repo patterns (Zustand today)   |
-| **Open when**   | Adding shared client UI state, debugging a store, or onboarding to how we use Zustand |
+|                 |                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| **Owner / SoT** | This file — when to use a client store, mental model, repo patterns (Zustand today)         |
+| **Open when**   | Adding shared client UI state, debugging a store, onboarding to Zustand, or “what is Flux?” |
 
 **Implementation today:** [Zustand](https://zustand.docs.pmnd.rs). Catalog picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
 
@@ -59,6 +59,53 @@ flowchart LR
   Store --> Factory
   Factory --> Z
 ```
+
+## Flux in one page (if you’ve only used Context)
+
+Zustand and Redux docs say **Flux** a lot and rarely define it. If your mental model is only React Context + `useState`, this is the missing primer.
+
+**Flux** (Facebook, ~2014) is an **architecture idea**, not a library you install: **data should flow one way**.
+
+```text
+UI event  →  action (named “what happened”)  →  store updates  →  UI reads new state
+                ↑_______________________________________________|
+                         (no two-way binding back into the store)
+```
+
+Classic Flux pieces (names you’ll see in old posts):
+
+| Piece          | Role                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| **Action**     | A description of an event (`{ type: "OPEN_CARD", id }` or, in Zustand, calling `open(id)`) |
+| **Dispatcher** | Central hub that delivers actions (Redux hides this; Zustand skips it)                     |
+| **Store**      | Holds state; only changes in response to actions                                           |
+| **View**       | React UI; renders from store; sends new actions on user input                              |
+
+**Why it existed:** large apps with two-way data binding got hard to debug (“who changed this?”). One direction makes updates followable.
+
+### Context-only vs Flux-style
+
+|                        | **Context / local state only**              | **Flux-style (Redux / Zustand spirit)**                                |
+| ---------------------- | ------------------------------------------- | ---------------------------------------------------------------------- |
+| Where does state live? | Often in a provider or parent               | In a **store** outside the tree (or injected, but updated via actions) |
+| How do you change it?  | `setState` / replace Context value anywhere | Prefer **named events** (`open`, `close`) that update the store        |
+| Mental model           | “Pass value down / update from below”       | “UI asks for a change → store changes → UI re-reads”                   |
+| Debugging              | Who set this Context?                       | Action history (Redux DevTools / Zustand `devtools`)                   |
+
+Context is still great for **injecting** a client (Query, Clerk). It is a weak Flux store: no standard actions, easy to overwrite the whole value, every consumer often re-renders.
+
+### Where Redux and Zustand sit
+
+```text
+Flux (idea: unidirectional flow)
+  ├── Redux     — strict Flux-ish: one store, pure reducers, dispatch(action)
+  └── Zustand   — same spirit, less ceremony: call store actions / set(); optional many stores
+```
+
+- **Redux** ≈ Flux with one store and reducers as the only write path.
+- **Zustand** ≈ “keep a store and update it with named actions,” without requiring a dispatcher or one global store. Our `open` / `close` + DevTools labels are that spirit.
+
+You do **not** need to learn classic Flux APIs (`Dispatcher`, `emitChange`) to use this repo. You only need: **UI → named action → store → UI**, not Context-as-a-mutable-bag for shared modal flags.
 
 ## When to use a client store
 
@@ -314,8 +361,9 @@ Server work (fetch card, delete card) stays in Route Handlers / Server Actions /
 
 ## Official / community reading
 
-| Source                                                                       | Use for                                                                                    |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [Zustand docs](https://zustand.docs.pmnd.rs)                                 | API reference (`create`, [middlewares](https://zustand.docs.pmnd.rs/middlewares/devtools)) |
-| [Working with Zustand (TkDodo)](https://tkdodo.eu/blog/working-with-zustand) | Selectors, actions-as-events, slices when _one_ store grows                                |
-| This file                                                                    | How those ideas map onto **this** codebase (**multi-store** default — not Redux one-store) |
+| Source                                                                       | Use for                                                                                                                       |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| [Zustand docs](https://zustand.docs.pmnd.rs)                                 | API reference (`create`, [middlewares](https://zustand.docs.pmnd.rs/middlewares/devtools))                                    |
+| [Working with Zustand (TkDodo)](https://tkdodo.eu/blog/working-with-zustand) | Selectors, actions-as-events, slices when _one_ store grows                                                                   |
+| [Flux (Facebook archive)](https://facebook.github.io/flux/)                  | Original unidirectional-flow writeup — skim; read [Flux in one page](#flux-in-one-page-if-youve-only-used-context) here first |
+| This file                                                                    | How those ideas map onto **this** codebase (**multi-store** default — not Redux one-store)                                    |
