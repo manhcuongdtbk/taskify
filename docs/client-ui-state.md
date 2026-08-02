@@ -15,7 +15,7 @@ Official Zustand docs cover the API well but say little about _how we compose it
 
 ## Already following
 
-- Small focused stores under `hooks/use-*-store.ts`, exported as `use*Store`
+- Small focused stores under `stores/use-*-store.ts`, exported as `use*Store`
 - Domain/event action names (`open`, `close`) — not React `on*` / `handle*` on the store
 - Slice selectors at every call site (no bare `useXStore()`)
 - One factory [`lib/create-store.ts`](../lib/create-store.ts) (sole `zustand` import; wires `devtools`)
@@ -139,7 +139,7 @@ const handleOpen = useCardModalStore((s) => s.open);
 onClick={() => handleOpen(cardId)}
 ```
 
-Do **not** put `on*` / `handle*` on the store type. ESLint bans those keys in `hooks/**/*-store.ts`.
+Do **not** put `on*` / `handle*` on the store type. ESLint bans those keys in `stores/**/*-store.ts`.
 
 ### 5. Repo factory: `createStore`
 
@@ -211,15 +211,15 @@ export const useCardModalStore = createStore<CardModalStore>((set) => ({
 | 2nd `false`    | Merge (do not replace the whole store) |
 | 3rd `"open"`   | Action label in Redux DevTools         |
 
-**DevTools naming:** The file path is the source of truth (`hooks/use-*-store.ts`). At create time (dev only), `createStore` reads the call stack, finds that file, and maps `use-card-modal-store` → `CardModalStore`. You do **not** pass a name, `import.meta.url`, or a second `useCardModalStore` function name — those were either a third identity or awkward duplication. If the stack parse fails, you’ll get a console warning; keep stores in `hooks/use-*-store.ts`.
+**DevTools naming:** The file path is the source of truth (`stores/use-*-store.ts`). At create time (dev only), `createStore` reads the call stack, finds that file, and maps `use-card-modal-store` → `CardModalStore`. You do **not** pass a name, `import.meta.url`, or a second `useCardModalStore` function name — those were either a third identity or awkward duplication. If the stack parse fails, you’ll get a console warning; keep stores in `stores/use-*-store.ts`.
 
 ### 6. File and export conventions
 
-| Piece         | Pattern                | Example                   |
-| ------------- | ---------------------- | ------------------------- |
-| File          | `hooks/use-*-store.ts` | `use-card-modal-store.ts` |
-| Export        | `use*Store`            | `useCardModalStore`       |
-| DevTools name | Derived from file      | `CardModalStore`          |
+| Piece         | Pattern                 | Example                   |
+| ------------- | ----------------------- | ------------------------- |
+| File          | `stores/use-*-store.ts` | `use-card-modal-store.ts` |
+| Export        | `use*Store`             | `useCardModalStore`       |
+| DevTools name | Derived from file       | `CardModalStore`          |
 
 File kebab-case and export camelCase must describe the **same** name (`use-card-modal-store` ↔ `useCardModalStore`). ESLint enforces that via `filename-match-export` (and: direct `zustand` import only in `lib/create-store.ts`; store exports must match `use*Store`; no bare `use*Store()`; no `on*`/`handle*` store keys).
 
@@ -251,18 +251,18 @@ Server work (fetch card, delete card) stays in Route Handlers / Server Actions /
 
 ## Adding a new store
 
-1. Add `hooks/use-foo-store.ts`
+1. Add `stores/use-foo-store.ts`
 2. `createStore<FooStore>((set) => ({ … }))`
 3. Export `useFooStore`
 4. In components: `useFooStore((s) => s.field)`; alias to `handle*` only when passing into JSX event props
 
 ## Stores in this repo today
 
-| Store                   | File                                                                        | Role                        |
-| ----------------------- | --------------------------------------------------------------------------- | --------------------------- |
-| `useCardModalStore`     | [`hooks/use-card-modal-store.ts`](../hooks/use-card-modal-store.ts)         | Card detail modal id + open |
-| `useProModalStore`      | [`hooks/use-pro-modal-store.ts`](../hooks/use-pro-modal-store.ts)           | Pro upgrade dialog open     |
-| `useMobileSidebarStore` | [`hooks/use-mobile-sidebar-store.ts`](../hooks/use-mobile-sidebar-store.ts) | Mobile nav sheet open       |
+| Store                   | File                                                                          | Role                        |
+| ----------------------- | ----------------------------------------------------------------------------- | --------------------------- |
+| `useCardModalStore`     | [`stores/use-card-modal-store.ts`](../stores/use-card-modal-store.ts)         | Card detail modal id + open |
+| `useProModalStore`      | [`stores/use-pro-modal-store.ts`](../stores/use-pro-modal-store.ts)           | Pro upgrade dialog open     |
+| `useMobileSidebarStore` | [`stores/use-mobile-sidebar-store.ts`](../stores/use-mobile-sidebar-store.ts) | Mobile nav sheet open       |
 
 ## Official / community reading
 

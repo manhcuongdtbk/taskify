@@ -187,7 +187,7 @@ const noLodashImportPatterns = [
 ];
 
 const zustandCreateOnlyInStoreMessage =
-  "Import Zustand only in lib/create-store.ts; define stores with createStore in hooks/use-*-store.ts as use*Store. See docs/client-ui-state.md.";
+  "Import Zustand only in lib/create-store.ts; define stores with createStore in stores/use-*-store.ts as use*Store. See docs/client-ui-state.md.";
 
 const noZustandImportPaths = [
   {
@@ -307,7 +307,7 @@ const eventHandlerNamingRestrictions = [
 /**
  * Zustand store action keys — docs/client-ui-state.md.
  * Ban React-style `on*` / `handle*` on store APIs; prefer domain verbs (`open`).
- * Scoped to hooks store modules (files matching use-*-store.ts).
+ * Scoped to store modules under stores/ (files matching use-*-store.ts).
  */
 const zustandStoreActionMessage =
   "Zustand store keys must not use React `on*` / `handle*` names — use domain verbs (e.g. open, close). See docs/client-ui-state.md.";
@@ -487,12 +487,15 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Zustand stores: hooks/use-*-store.ts — use createStore from lib/; require use*Store
-  // export; ban React-style on*/handle* action keys.
+  // stores/: Zustand client UI stores — filename ↔ export; createStore; use*Store; domain verbs.
   // Re-includes Non-Next syntax rules — flat config replaces, does not merge.
   {
-    files: ["hooks/**/*-store.ts", "hooks/**/*-store.tsx"],
+    files: ["stores/**/*-store.ts", "stores/**/*-store.tsx"],
+    plugins: {
+      "filename-match-export": filenameMatchExport,
+    },
     rules: {
+      "filename-match-export/match-named-export": "error",
       ...noForwardRefImport,
       "no-restricted-syntax": [
         "error",

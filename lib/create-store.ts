@@ -15,7 +15,7 @@ const storeNameFromFileBase = (base: string): string =>
   pascalCase(base.replace(/^use-/, ""));
 
 /**
- * DevTools label from the calling `hooks/use-*-store.ts` frame.
+ * DevTools label from the calling `stores/use-*-store.ts` frame.
  * Skips this module so the store file wins. Falls back to undefined if not found.
  */
 const storeNameFromCallStack = (): string | undefined => {
@@ -36,7 +36,7 @@ const storeNameFromCallStack = (): string | undefined => {
 
 /**
  * App Zustand store factory — wires Redux DevTools once for every store.
- * Store modules live in hooks/use-*-store.ts and call this instead of create/devtools.
+ * Store modules live in stores/use-*-store.ts and call this instead of create/devtools.
  * DevTools instance name comes from that file name (`use-card-modal-store.ts` →
  * `CardModalStore`) — keep the export as the only `use*Store` identifier in the file.
  * See docs/client-ui-state.md.
@@ -48,7 +48,7 @@ export const createStore = <T extends object>(
 
   if (isDevelopment && !name) {
     console.warn(
-      "[createStore] Could not derive DevTools name from the call stack. Keep stores in hooks/use-*-store.ts. See docs/client-ui-state.md.",
+      "[createStore] Could not derive DevTools name from the call stack. Keep stores in stores/use-*-store.ts. See docs/client-ui-state.md.",
     );
   }
 

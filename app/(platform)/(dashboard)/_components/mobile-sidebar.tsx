@@ -1,6 +1,6 @@
 "use client";
 
-import { useMobileSidebarStore } from "@/hooks/use-mobile-sidebar-store";
+import { useMobileSidebarStore } from "@/stores/use-mobile-sidebar-store";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";

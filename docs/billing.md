@@ -293,7 +293,7 @@ in doubt.
 | Free-plan limit trigger | `components/form/form-popover.tsx`                  | Opens Pro modal on create-board errors                                       |
 | Billing page            | `organization/[organizationId]/billing/`            | Shows plan via `Info` + `SubscriptionButton`                                 |
 | Subscription CTA        | `billing/_components/subscription-button.tsx`       | **Free** plan → Pro modal; **Pro** → Customer Portal (`billingPortal`)       |
-| Modal store             | `hooks/use-pro-modal-store.ts`                      | Client open/close state                                                      |
+| Modal store             | `stores/use-pro-modal-store.ts`                     | Client open/close state                                                      |
 | Upgrade UI              | `components/modals/pro-modal.tsx`                   | Calls `stripeRedirect`, navigates to Stripe URL                              |
 | Server action           | `actions/stripe-redirect/index.ts`                  | Checkout (new) or Customer Portal / billingPortal (existing)                 |
 | Stripe client           | `lib/stripe.ts`                                     | SDK instance + `stripeTimestampToDate`                                       |

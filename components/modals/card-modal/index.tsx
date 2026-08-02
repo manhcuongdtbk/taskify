@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useCardModalStore } from "@/hooks/use-card-modal-store";
+import { useCardModalStore } from "@/stores/use-card-modal-store";
 import { useQuery } from "@tanstack/react-query";
 import { fetcher } from "@/lib/fetcher";
 import { CardWithList } from "@/types";

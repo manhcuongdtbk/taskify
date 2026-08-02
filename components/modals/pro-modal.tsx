@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useProModalStore } from "@/hooks/use-pro-modal-store";
+import { useProModalStore } from "@/stores/use-pro-modal-store";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";

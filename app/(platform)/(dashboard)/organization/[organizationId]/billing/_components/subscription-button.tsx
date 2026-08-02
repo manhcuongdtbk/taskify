@@ -4,7 +4,7 @@ import { stripeRedirect } from "@/actions/stripe-redirect";
 import { Button } from "@/components/ui/button";
 import { PRO_PLAN } from "@/constants/pricing-plans";
 import { useAction } from "@/hooks/use-action";
-import { useProModalStore } from "@/hooks/use-pro-modal-store";
+import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { toast } from "@/components/ui/toast";
 
 interface SubscriptionButtonProps {

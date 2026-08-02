@@ -17,7 +17,7 @@ import { toast } from "@/components/ui/toast";
 import { FormPicker } from "./form-picker";
 import { type ComponentRef, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useProModalStore } from "@/hooks/use-pro-modal-store";
+import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
 
 interface FormPopoverProps extends BaseUIRenderForwardingProps {

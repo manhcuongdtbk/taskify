@@ -8,7 +8,7 @@ import { useAction } from "@/hooks/use-action";
 import { copyCard } from "@/actions/copy-card";
 import { deleteCard } from "@/actions/delete-card";
 import { useParams } from "next/navigation";
-import { useCardModalStore } from "@/hooks/use-card-modal-store";
+import { useCardModalStore } from "@/stores/use-card-modal-store";
 import { toast } from "@/components/ui/toast";
 
 interface CardModalActionsProps {
