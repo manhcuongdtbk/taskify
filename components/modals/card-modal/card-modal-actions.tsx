@@ -8,7 +8,7 @@ import { useAction } from "@/hooks/use-action";
 import { copyCard } from "@/actions/copy-card";
 import { deleteCard } from "@/actions/delete-card";
 import { useParams } from "next/navigation";
-import { useCardModal } from "@/hooks/use-card-modal";
+import { useCardModalStore } from "@/hooks/use-card-modal-store";
 import { toast } from "@/components/ui/toast";
 
 interface CardModalActionsProps {
@@ -17,7 +17,7 @@ interface CardModalActionsProps {
 
 export const CardModalActions = ({ data }: CardModalActionsProps) => {
   const params = useParams();
-  const cardModal = useCardModal();
+  const close = useCardModalStore((state) => state.close);
 
   const { execute: executeCopyCard, isLoading: isLoadingCopy } = useAction(
     copyCard,
@@ -27,7 +27,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
           type: "success",
           title: `Card "${data.title}" copied`,
         });
-        cardModal.close();
+        close();
       },
       onError: (error) => {
         toast.add({
@@ -45,7 +45,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
           type: "success",
           title: `Card "${data.title}" deleted`,
         });
-        cardModal.close();
+        close();
       },
       onError: (error) => {
         toast.add({

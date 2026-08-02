@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useProModal } from "@/hooks/use-pro-modal";
+import { useProModalStore } from "@/hooks/use-pro-modal-store";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
@@ -15,8 +15,8 @@ import { siteConfig } from "@/config/site";
  * Overview: docs/billing.md
  */
 export const ProModal = () => {
-  const isOpen = useProModal((state) => state.isOpen);
-  const handleClose = useProModal((state) => state.close);
+  const isOpen = useProModalStore((state) => state.isOpen);
+  const handleClose = useProModalStore((state) => state.close);
 
   const { execute, isLoading } = useAction(stripeRedirect, {
     onSuccess: (data) => {

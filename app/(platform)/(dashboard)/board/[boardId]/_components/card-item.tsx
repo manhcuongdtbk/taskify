@@ -1,7 +1,7 @@
 "use client";
 
 import { type Card } from "@/app/generated/prisma/client";
-import { useCardModal } from "@/hooks/use-card-modal";
+import { useCardModalStore } from "@/hooks/use-card-modal-store";
 import { Draggable } from "@hello-pangea/dnd";
 
 interface CardItemProps {
@@ -10,7 +10,7 @@ interface CardItemProps {
 }
 
 export const CardItem = ({ index, data }: CardItemProps) => {
-  const handleOpen = useCardModal((state) => state.open);
+  const handleOpen = useCardModalStore((state) => state.open);
 
   return (
     <Draggable draggableId={data.id} index={index}>

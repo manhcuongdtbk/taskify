@@ -270,7 +270,7 @@ const eventHandlerNamingRestrictions = [
 /**
  * Zustand store action keys — docs/conventions.md.
  * Ban React-style `on*` / `handle*` on store APIs; prefer domain verbs (`open`).
- * Scoped to Zustand hook modules only (`hooks/use-action.ts` excluded).
+ * Scoped to hooks store modules (files matching use-*-store.ts).
  */
 const zustandStoreActionMessage =
   "Zustand store keys must not use React `on*` / `handle*` names — use domain verbs (e.g. open, close). See docs/conventions.md.";
@@ -287,6 +287,22 @@ const zustandStoreActionNamingRestrictions = [
   {
     selector: "TSMethodSignature[key.name=/^(on|handle)[A-Z]/]",
     message: zustandStoreActionMessage,
+  },
+];
+
+/**
+ * Require a selector on Zustand store hooks — docs/conventions.md.
+ * Convention: store hooks are named `use*Store` (no allowlist to maintain).
+ * Does not judge selector quality (e.g. `(s) => s` still passes).
+ */
+const zustandSelectorRequiredMessage =
+  "Pass a slice selector to Zustand store hooks (e.g. useXStore((s) => s.open)). Bare useXStore() subscribes to the whole store. See docs/conventions.md.";
+
+const zustandSelectorRequiredRestrictions = [
+  {
+    selector:
+      "CallExpression[callee.name=/^use[A-Z]\\w*Store$/][arguments.length=0]",
+    message: zustandSelectorRequiredMessage,
   },
 ];
 
@@ -320,6 +336,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
       ],
     },
   },
@@ -333,6 +350,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
     },
@@ -347,6 +365,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
       ],
@@ -364,24 +383,24 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
     },
   },
 
-  // Zustand stores in hooks/: ban React-style on*/handle* action keys (domain verbs instead).
+  // Zustand stores: hooks/**/*-store.ts — ban React-style on*/handle* action keys.
   // Re-includes Non-Next syntax rules — flat config replaces, does not merge.
-  // use-action is not a store (options use onSuccess/onError callbacks).
   {
-    files: ["hooks/**/*.{ts,tsx}"],
-    ignores: ["hooks/use-action.ts"],
+    files: ["hooks/**/*-store.ts", "hooks/**/*-store.tsx"],
     rules: {
       ...noForwardRefImport,
       "no-restricted-syntax": [
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
         ...zustandStoreActionNamingRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -398,6 +417,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
     },
@@ -436,6 +456,7 @@ const eslintConfig = defineConfig([
         ...genericComponentRestrictions,
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,

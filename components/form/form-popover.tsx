@@ -17,7 +17,7 @@ import { toast } from "@/components/ui/toast";
 import { FormPicker } from "./form-picker";
 import { type ComponentRef, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useProModal } from "@/hooks/use-pro-modal";
+import { useProModalStore } from "@/hooks/use-pro-modal-store";
 import { paths } from "@/lib/paths";
 
 interface FormPopoverProps extends BaseUIRenderForwardingProps {
@@ -32,7 +32,7 @@ export const FormPopover = ({
   align,
   sideOffset = 0,
 }: FormPopoverProps) => {
-  const proModal = useProModal();
+  const openProModal = useProModalStore((state) => state.open);
   const router = useRouter();
   const closeRef = useRef<ComponentRef<"button">>(null);
 
@@ -51,7 +51,7 @@ export const FormPopover = ({
         title: error,
       });
       // Free board limit (or similar) → open Pro upgrade modal (Stripe Checkout).
-      proModal.open();
+      openProModal();
     },
   });
 

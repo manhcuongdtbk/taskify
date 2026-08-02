@@ -1,6 +1,6 @@
 "use client";
 
-import { useMobileSidebar } from "@/hooks/use-mobile-sidebar";
+import { useMobileSidebarStore } from "@/hooks/use-mobile-sidebar-store";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,9 @@ export const MobileSidebar = () => {
   // Helps prevent hydration errors. TODO: figure out why this is needed and whether there's a better way to handle this.
   const [isMounted, setIsMounted] = useState(false);
 
-  // TODO: Figure out why we have to use this hook here instead of just using the state directly.
-  const handleOpen = useMobileSidebar((state) => state.open);
-  const handleClose = useMobileSidebar((state) => state.close);
-  const isOpen = useMobileSidebar((state) => state.isOpen);
+  const handleOpen = useMobileSidebarStore((state) => state.open);
+  const handleClose = useMobileSidebarStore((state) => state.close);
+  const isOpen = useMobileSidebarStore((state) => state.isOpen);
 
   useEffect(() => {
     // TODO: Fix this eslint rule.

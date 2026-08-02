@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useCardModal } from "@/hooks/use-card-modal";
+import { useCardModalStore } from "@/hooks/use-card-modal-store";
 import { useQuery } from "@tanstack/react-query";
 import { fetcher } from "@/lib/fetcher";
 import { CardWithList } from "@/types";
@@ -12,9 +12,9 @@ import { type AuditLog } from "@/app/generated/prisma/client";
 import { CardModalActivity } from "./card-modal-activity";
 
 export const CardModal = () => {
-  const id = useCardModal((state) => state.id);
-  const isOpen = useCardModal((state) => state.isOpen);
-  const handleClose = useCardModal((state) => state.close);
+  const id = useCardModalStore((state) => state.id);
+  const isOpen = useCardModalStore((state) => state.isOpen);
+  const handleClose = useCardModalStore((state) => state.close);
 
   // TODO: fix the eslint error
   // eslint-disable-next-line @tanstack/query/prefer-query-options

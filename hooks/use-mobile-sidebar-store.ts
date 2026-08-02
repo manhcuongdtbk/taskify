@@ -1,13 +1,12 @@
 import { create } from "zustand";
 
-type ProModalStore = {
+type MobileSidebarStore = {
   isOpen: boolean;
   open: () => void;
   close: () => void;
 };
 
-/** Client store for the Pro upgrade dialog (components/modals/pro-modal → Stripe). */
-export const useProModal = create<ProModalStore>((set) => ({
+export const useMobileSidebarStore = create<MobileSidebarStore>((set) => ({
   isOpen: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),

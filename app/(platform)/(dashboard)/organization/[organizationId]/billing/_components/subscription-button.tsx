@@ -4,7 +4,7 @@ import { stripeRedirect } from "@/actions/stripe-redirect";
 import { Button } from "@/components/ui/button";
 import { PRO_PLAN } from "@/constants/pricing-plans";
 import { useAction } from "@/hooks/use-action";
-import { useProModal } from "@/hooks/use-pro-modal";
+import { useProModalStore } from "@/hooks/use-pro-modal-store";
 import { toast } from "@/components/ui/toast";
 
 interface SubscriptionButtonProps {
@@ -19,7 +19,7 @@ interface SubscriptionButtonProps {
  * “has stripeCustomerId” inside stripe-redirect — see docs/billing.md.
  */
 export const SubscriptionButton = ({ isPro }: SubscriptionButtonProps) => {
-  const proModal = useProModal();
+  const openProModal = useProModalStore((state) => state.open);
 
   const { execute, isLoading } = useAction(stripeRedirect, {
     onSuccess: (data) => {
@@ -37,7 +37,7 @@ export const SubscriptionButton = ({ isPro }: SubscriptionButtonProps) => {
     if (isPro) {
       execute({});
     } else {
-      proModal.open();
+      openProModal();
     }
   };
 

@@ -7,7 +7,7 @@ type CardModalStore = {
   close: () => void;
 };
 
-export const useCardModal = create<CardModalStore>((set) => ({
+export const useCardModalStore = create<CardModalStore>((set) => ({
   id: undefined,
   isOpen: false,
   open: (id: string) => set({ id, isOpen: true }),
