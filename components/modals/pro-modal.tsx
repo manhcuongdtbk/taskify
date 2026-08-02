@@ -16,7 +16,7 @@ import { siteConfig } from "@/config/site";
  */
 export const ProModal = () => {
   const isOpen = useProModal((state) => state.isOpen);
-  const handleClose = useProModal((state) => state.onClose);
+  const handleClose = useProModal((state) => state.close);
 
   const { execute, isLoading } = useAction(stripeRedirect, {
     onSuccess: (data) => {

@@ -15,8 +15,8 @@ export const MobileSidebar = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   // TODO: Figure out why we have to use this hook here instead of just using the state directly.
-  const handleOpen = useMobileSidebar((state) => state.onOpen);
-  const handleClose = useMobileSidebar((state) => state.onClose);
+  const handleOpen = useMobileSidebar((state) => state.open);
+  const handleClose = useMobileSidebar((state) => state.close);
   const isOpen = useMobileSidebar((state) => state.isOpen);
 
   useEffect(() => {

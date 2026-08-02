@@ -240,7 +240,7 @@ sequenceDiagram
   participant DB as organizationSubscription
 
   User->>UI: Hit free limit or click Upgrade
-  UI->>Modal: proModal.onOpen()
+  UI->>Modal: proModal.open()
   User->>Modal: Click Upgrade
   Modal->>Action: stripeRedirect()
   Action->>Stripe: checkout.sessions.create<br/>(metadata.orgId, mode: subscription)

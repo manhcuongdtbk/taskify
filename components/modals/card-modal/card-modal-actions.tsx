@@ -27,7 +27,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
           type: "success",
           title: `Card "${data.title}" copied`,
         });
-        cardModal.onClose();
+        cardModal.close();
       },
       onError: (error) => {
         toast.add({
@@ -45,7 +45,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
           type: "success",
           title: `Card "${data.title}" deleted`,
         });
-        cardModal.onClose();
+        cardModal.close();
       },
       onError: (error) => {
         toast.add({

@@ -51,7 +51,7 @@ export const FormPopover = ({
         title: error,
       });
       // Free board limit (or similar) → open Pro upgrade modal (Stripe Checkout).
-      proModal.onOpen();
+      proModal.open();
     },
   });
 

@@ -10,7 +10,7 @@ interface CardItemProps {
 }
 
 export const CardItem = ({ index, data }: CardItemProps) => {
-  const cardModal = useCardModal();
+  const handleOpen = useCardModal((state) => state.open);
 
   return (
     <Draggable draggableId={data.id} index={index}>
@@ -19,7 +19,7 @@ export const CardItem = ({ index, data }: CardItemProps) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           ref={provided.innerRef}
-          onClick={() => cardModal.onOpen(data.id)}
+          onClick={() => handleOpen(data.id)}
           className="truncate rounded-md border-2 border-transparent bg-white px-3 py-2 text-sm shadow-sm hover:border-black"
           role="button"
         >

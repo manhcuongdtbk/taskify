@@ -14,7 +14,7 @@ import { CardModalActivity } from "./card-modal-activity";
 export const CardModal = () => {
   const id = useCardModal((state) => state.id);
   const isOpen = useCardModal((state) => state.isOpen);
-  const handleClose = useCardModal((state) => state.onClose);
+  const handleClose = useCardModal((state) => state.close);
 
   // TODO: fix the eslint error
   // eslint-disable-next-line @tanstack/query/prefer-query-options

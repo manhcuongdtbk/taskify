@@ -37,7 +37,7 @@ export const SubscriptionButton = ({ isPro }: SubscriptionButtonProps) => {
     if (isPro) {
       execute({});
     } else {
-      proModal.onOpen();
+      proModal.open();
     }
   };
 

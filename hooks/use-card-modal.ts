@@ -3,13 +3,13 @@ import { create } from "zustand";
 type CardModalStore = {
   id?: string;
   isOpen: boolean;
-  onOpen: (id: string) => void;
-  onClose: () => void;
+  open: (id: string) => void;
+  close: () => void;
 };
 
 export const useCardModal = create<CardModalStore>((set) => ({
   id: undefined,
   isOpen: false,
-  onOpen: (id: string) => set({ id, isOpen: true }),
-  onClose: () => set({ id: undefined, isOpen: false }),
+  open: (id: string) => set({ id, isOpen: true }),
+  close: () => set({ id: undefined, isOpen: false }),
 }));
