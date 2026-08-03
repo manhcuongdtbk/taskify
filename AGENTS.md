@@ -6,7 +6,7 @@ Concern maps, TODOs, out of scope: start at [`docs/README.md`](docs/README.md).
 
 ### One tool per job (hard rule)
 
-Choose a tool carefully for a given purpose. Once adopted, **do not add another tool for the same purpose** (no parallel stacks). **Replace** the current tool only if the candidate can do **everything (or nearly everything) it does, better** — see justified reasons in [`docs/conventions.md`](docs/conventions.md#when-a-replacement-is-justified); document the swap in the matching concern doc. Examples today: Vitest (not Jest) for unit/component; Playwright (not Cypress) for E2E; TanStack Query (not SWR); es-toolkit (not Lodash). Details: [`docs/conventions.md`](docs/conventions.md#one-tool-per-job) · [`docs/vocabulary.md`](docs/vocabulary.md#one-tool-per-job).
+Choose a tool carefully for a given purpose. Once adopted, **do not add another tool for the same purpose** (no parallel stacks). **Replace** only if the candidate can do **everything (or nearly everything) it does, better** — [`docs/conventions.md`](docs/conventions.md#when-a-replacement-is-justified). Testing examples (Vitest / Playwright / Storybook): [`docs/testing.md`](docs/testing.md#what-to-test-where). Full rule: [`docs/conventions.md`](docs/conventions.md#one-tool-per-job) · [`docs/vocabulary.md`](docs/vocabulary.md#one-tool-per-job).
 
 ### Match installed official docs (hard rule)
 
@@ -24,19 +24,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # This is NOT the Vitest you know
 
-APIs and defaults may differ from training data (Vitest 3 vs 4). Follow **[Match installed official docs](docs/conventions.md#match-installed-official-docs)** — check `package.json` / `node_modules/vitest/package.json`, then [vitest.dev](https://vitest.dev) / matching git tag under [vitest-dev/vitest `docs/`](https://github.com/vitest-dev/vitest/tree/main/docs). Vitest does **not** ship docs in `node_modules` (unlike Next).
-
-**Jest is not used in this repo and will not be added** (no Jest runner, no `jest.*` APIs). Models often emit `jest.fn` / `jest.mock` from training data — always use `vi.*` from `vitest` instead.
+APIs and defaults may differ from training data (Vitest 3 vs 4). Match the installed version — [`docs/conventions.md` → Match installed official docs](docs/conventions.md#match-installed-official-docs) (Vitest row). Vitest does **not** ship docs in `node_modules` (unlike Next).
 
 ## Vitest (repo rules)
 
-Full setup map: [`docs/testing.md`](docs/testing.md). Colocation: [`docs/conventions.md`](docs/conventions.md). Official AI tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html).
+**SoT:** [`docs/testing.md`](docs/testing.md) — harness, scripts, **[what to test where](docs/testing.md#what-to-test-where)** (Vitest / Playwright / Storybook). Colocation mid-suffixes: [`docs/conventions.md`](docs/conventions.md). Folders (`e2e/`): [`docs/project-structure.md`](docs/project-structure.md).
 
-- **Run:** `pnpm test:run` (or `vitest run`) — never leave watch mode hanging in agent/CI sessions. `pnpm test` is interactive watch for humans. Coverage: `pnpm test:coverage`.
-- **Imports:** always `import { describe, expect, test, vi } from "vitest"` — `globals` are off. Use `vi.fn` / `vi.mock` only.
-- **Mocks:** prefer `vi.mock(import("./module"))` over string paths; assert behavior, don’t over-mock. `restoreMocks` is on in config.
-- **Files:** colocated `*.test.ts` / `*.test.tsx` next to the module (not a catch-all `tests/` tree). Short behavior-focused names.
-- **Scope:** pure `lib/` + Zod schemas + client components. Async Server Components / full Server Actions + Clerk + Prisma → **Playwright** E2E later (not Vitest). **Playwright is the only E2E tool** — Cypress and other E2E runners are never used. **Storybook** later only for UI catalog/workshop when triggers in [`docs/testing.md`](docs/testing.md#storybook-when-needed) pass — not a second Vitest/Playwright. **Which test type → which tool:** [`docs/testing.md` → What to test where](docs/testing.md#what-to-test-where).
+- **Run:** `pnpm test:run` (agents/CI) · `pnpm test` (watch) · `pnpm test:coverage` — never leave watch hanging in agent sessions.
+- **Imports:** `import { describe, expect, test, vi } from "vitest"` — no `globals`; `vi.*` only (**not** `jest.*`).
+- **Mocks / files / scope / Storybook triggers:** follow [`docs/testing.md`](docs/testing.md) — don’t invent Jest, Cypress, or Storybook-as-test-runner.
 
 <!-- END:vitest -->
 

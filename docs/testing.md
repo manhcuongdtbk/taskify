@@ -7,26 +7,27 @@ Unit / component tests, E2E, and (later) Storybook. Where each tool’s **job** 
 | **Owner / SoT** | This file — Vitest setup map, run/debug, **what to test where** (Vitest / Playwright / Storybook)       |
 | **Open when**   | Choosing a **test type** / tool, adding a test or story, or changing Vitest/Playwright/Storybook config |
 
-**Implementation today:** [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (jsdom). **When needed:** [Playwright](https://playwright.dev) (E2E), [Storybook](https://storybook.js.org) (UI catalog). Catalog picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md). Agents: [`AGENTS.md`](../AGENTS.md) (Vitest section).
+**Implementation today:** [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (jsdom). **When needed:** [Playwright](https://playwright.dev) (E2E), [Storybook](https://storybook.js.org) (UI catalog). Index: [`README.md`](./README.md). Agents: [`AGENTS.md`](../AGENTS.md).
+
+**Doc ownership (keep DRY):**
+
+| Concern                                                                          | SoT file                                                                                           |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Test **type** → which **tool** · harness · scripts · Storybook triggers          | **This file**                                                                                      |
+| Mid-suffix companions (`*.test.tsx`, `*.stories.tsx`) · props-in-JSX             | [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names)               |
+| Folders (`e2e/`, avoid `tests/`, `fixtures/`)                                    | [`project-structure.md`](./project-structure.md)                                                   |
+| Catalog status (Adopted / When needed) for Vitest / Playwright / MSW / Storybook | [`conventions.md`](./conventions.md) tooling rows → link here for detail                           |
+| Version-matched official docs                                                    | [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) |
 
 ### Official docs (match installed version)
 
-Same hard rule as the rest of the stack — [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) · [`AGENTS.md`](../AGENTS.md).
+Follow [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) (Vitest / Testing Library / Playwright rows). Next + Vitest wiring: [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest) for the Next version in `package.json`. Handy Vitest pages: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html).
 
-For Vitest specifically:
+This page is **our** wiring. Tool exclusivity ([one tool per job](./vocabulary.md#one-tool-per-job)):
 
-1. Read the installed version: `package.json` → `vitest`, or `node_modules/vitest/package.json`.
-2. Prefer [vitest.dev](https://vitest.dev) for the **current major** (this repo is Vitest **4**). Older majors live on versioned hosts (e.g. [v3.vitest.dev](https://v3.vitest.dev)) — don’t mix them.
-3. For an **exact** guide snapshot, use the git tag: `https://github.com/vitest-dev/vitest/tree/v{version}/docs` (replace `{version}` with the installed one).
-4. Next wiring: [Next.js + Vitest](https://nextjs.org/docs/app/guides/testing/vitest) for the Next version in `package.json` (also see `node_modules/next/dist/docs/`).
-5. AI-oriented official tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html).
-
-This page is **our** wiring and common practices. Testing instantiates the repo hard rule **[one tool per job](./vocabulary.md#one-tool-per-job)** ([`conventions.md`](./conventions.md#one-tool-per-job)):
-
-- **Unit / component behavior:** Vitest only — **Jest** is never used. Models often emit `jest.*` from training data; use `vi.*` from `vitest` only.
-- **E2E / product journeys:** Playwright only (when added) — **Cypress** and other E2E runners are never used.
-- **UI catalog / workshop (later):** Storybook only when its [triggers](#storybook-when-needed) pass — not a second Vitest or Playwright. Don’t invent Storybook early “for tests.”
-- Don’t invent a second unit or E2E runner beside Vitest/Playwright unless it is a true **replacement** that dominates (same rule).
+- **Unit / component behavior:** Vitest only — never Jest (`vi.*`, not `jest.*`)
+- **E2E:** Playwright only when added — never Cypress
+- **UI catalog:** Storybook only when [triggers](#storybook-when-needed) pass — not a second test runner
 
 ## Already following
 

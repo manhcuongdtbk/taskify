@@ -34,7 +34,7 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 - **Client read cache** — TanStack Query + `lib/fetcher.ts` for card modal (and similar client islands)
 - **Client Action helper** — `useAction` wrapping safe-action results (see TODO to align with `useActionState`)
 - **Route Handlers** — webhooks and client-facing JSON the modal needs; not the primary mutation style
-- **Transport picks** — REST → `fetch`; GraphQL → `graphql-request` only if we adopt GraphQL; mocks → MSW — [`conventions.md`](./conventions.md)
+- **Transport picks** — REST → `fetch`; GraphQL → `graphql-request` only if we adopt GraphQL; mocks → MSW — [`testing.md`](./testing.md) · [`conventions.md`](./conventions.md)
 
 **Tip — `React.cache`:** request-scoped memoization for server helpers (same args → same Promise in one RSC render). It is **not** Redis and **not** Next’s Data Cache — see [Cache](#cache-means-different-things-traditional-be-vs-next-vs-client). Use when the same `auth()` / profile helper would otherwise hit Clerk/DB twice per request.
 
