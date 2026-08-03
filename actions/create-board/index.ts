@@ -75,7 +75,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: board.title,
       action: ACTION.CREATE,
     });
-  } catch (error) {
+  } catch {
     return {
       error: "Failed to create.",
     };

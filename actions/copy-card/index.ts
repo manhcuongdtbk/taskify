@@ -54,7 +54,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: card.title,
       action: ACTION.CREATE,
     });
-  } catch (error) {
+  } catch {
     return { error: "Failed to copy." };
   }
 

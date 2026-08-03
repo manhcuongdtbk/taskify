@@ -78,12 +78,54 @@ Within the same kind, prefer the **current official docs** for the version this 
 | App Router `route.ts`: **`NextRequest` / `NextResponse`** (not bare Web `Request` / `Response`)                                                                                                                                                                                                                    | Adopted               | [Extended APIs](https://nextjs.org/docs/app/getting-started/route-handlers#extended-nextrequest-and-nextresponse-apis) · [`nextjs.md`](./nextjs.md#route-handlers-nextrequest--nextresponse). Same script                                                                                                                                                                                                                                      |
 | App UI components: **filename ↔ export**, **generics denylist**, **`Form*` in `components/form/`**, **`Component` → `ComponentProps`**                                                                                                                                                                             | Adopted               | See [Component export names](#component-export-names). Enforced via ESLint (`eslint-plugin-filename-match-export`, `@noctcore/eslint-plugin-react` `component-props-naming`, `@typescript-eslint/naming-convention` / `no-restricted-syntax`). **`components/ui/` excluded** (shadcn)                                                                                                                                                          |
 | Event handlers: local fns **`handle*`**, callback props **`on*`**; event arg conventionally **`e`**                                                                                                                                                                                                                | Adopted               | [Responding to Events](https://react.dev/learn/responding-to-events). Prefer destructuring; keep names as-is (`onClick={onClick}` for props, `onClick={handleClick}` for locals) so prop vs local stays obvious. Enforced via ESLint `no-restricted-syntax` (not stock `react/jsx-handler-names`, which rejects bare `on*` values). **`e`** is convention only (not linted)                                                                    |
+| Thrown / rejected values: bind as **`reason`** (`try`/`catch`, `.catch`, `then` onRejected); omit unused `catch` bindings                                                                                                                                                                                          | Adopted               | See [Catch / rejection binding: `reason`](#catch--rejection-binding-reason). Enforced via ESLint `no-restricted-syntax` (`eslint.config.mjs`)                                                                                                                                                                                                                                                                                                  |
 | Zustand store actions: **domain / event verbs** (`open`, `close`, …) — not `on*` / `handle*`                                                                                                                                                                                                                       | Adopted               | Teaching + enforcement: [`client-ui-state.md`](./client-ui-state.md). ESLint bans `on*`/`handle*` keys in `stores/**/*-store.ts`                                                                                                                                                                                                                                                                                                               |
 | Zustand stores: **`createStore`** → **`use*Store`** in **`stores/use-*-store.ts`**; **slice selectors**; **devtools** via factory; **filename ↔ export**                                                                                                                                                           | Adopted               | [`client-ui-state.md`](./client-ui-state.md) · [`lib/create-store.ts`](../lib/create-store.ts). ESLint: sole `zustand` import in that factory; stores must use `createStore` from `@/lib/create-store`; export must be `use*Store`; ban bare `use*Store()` and identity `(s) => s`; filename kebab ↔ export camel (`use-card-modal-store.ts` → `useCardModalStore`) via `filename-match-export`                                                |
 | App UI: **folder colocation** + **one main named export per component file** (props local unless a consumer needs them); **no `export type` / `export interface` in component files**                                                                                                                              | Adopted               | Folder layout: [`project-structure.md`](./project-structure.md). Public-surface rules: [Colocation and public exports](#colocation-and-public-exports). Importable UI types go in sibling `*.types.ts`. ESLint bans type co-exports in `components/**` + `app/**/_components/**` (not `ui/`, not `*.types.ts`)                                                                                                                                 |
 | **Companion files:** feature folders use bare `schema.ts` / `types.ts`; flat peers use role mid-suffixes (`*.test.tsx`, `*.stories.tsx`, `*.types.ts`, …)                                                                                                                                                          | Adopted / When needed | See [Companion files: role mid-suffixes vs bare names](#companion-files-role-mid-suffixes-vs-bare-names). Don’t mix both for the same concern                                                                                                                                                                                                                                                                                                  |
 | Env vars: **`SCREAMING_SNAKE_CASE`**; client-exposed only via `NEXT_PUBLIC_*`; **`isDevelopment` / `isProduction`** from [`lib/env.ts`](../lib/env.ts) for `NODE_ENV` checks                                                                                                                                       | Adopted               | [Next.js Environment Variables](https://nextjs.org/docs/app/guides/environment-variables). ESLint bans `process.env.NODE_ENV` outside `lib/env.ts`. Use `isDevelopment` vs `!isProduction` intentionally (`test` is neither). Next still inlines the booleans for dead-code elimination.                                                                                                                                                       |
 | Don’t put secrets in `NEXT_PUBLIC_*` or git                                                                                                                                                                                                                                                                        | Adopted               | Same Next.js guide · [Vercel Environment Variables](https://vercel.com/docs/environment-variables)                                                                                                                                                                                                                                                                                                                                             |
+
+#### Catch / rejection binding: `reason`
+
+**Common misunderstanding:** people name the catch / `.catch` value `error` (or `err`) and assume it is always an `Error`. It is not.
+
+In JavaScript you can `throw` / `reject` **any** value (`Error`, string, number, plain object, `null`, …). The language and Promise APIs call that value a **rejection reason**. TypeScript types it as `unknown` until you narrow it. Next.js’s [Error Handling](https://nextjs.org/docs/app/getting-started/error-handling) guide uses `catch (reason)` for the same reason.
+
+We enforce **`reason`** so the name matches the model:
+
+```ts
+try {
+  await doWork();
+} catch (reason) {
+  // narrow before treating as Error
+  const message = reason instanceof Error ? reason.message : String(reason);
+}
+
+promise.catch((reason) => {
+  console.error(reason);
+});
+
+promise.then(
+  (value) => value,
+  (reason) => {
+    console.error(reason);
+  },
+);
+
+// unused try/catch binding — omit it
+try {
+  await doWork();
+} catch {
+  return { error: "Failed." };
+}
+```
+
+**Out of scope for this name** (keep framework / domain names):
+
+- Next `error.tsx` / React boundary props → `error`
+- Expected failures returned as data → `{ error: "…" }`
+- Query / library fields that the API already names `error`
 
 #### Route-mirrored page/layout names
 

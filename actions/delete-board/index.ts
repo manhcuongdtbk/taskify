@@ -43,7 +43,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: board.title,
       action: ACTION.DELETE,
     });
-  } catch (error) {
+  } catch {
     return { error: "Failed to delete." };
   }
 

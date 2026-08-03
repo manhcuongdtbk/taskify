@@ -305,6 +305,67 @@ const eventHandlerNamingRestrictions = [
 ];
 
 /**
+ * try/catch + Promise rejection callbacks — docs/conventions.md.
+ * Spec / Next.js call the value a *rejection reason* (`unknown`), not necessarily
+ * an `Error`. Naming it `reason` teaches that; `error`/`err` imply the wrong type.
+ * Omit unused try/catch bindings (`catch {`). Inline `.catch` / `then` onRejected
+ * params must be `reason` when present.
+ */
+const catchReasonMessage =
+  "Name thrown/rejected values `reason` (not `error`/`err`) — a rejection reason is `unknown`, not always an Error. See docs/conventions.md.";
+
+const catchReasonNamingRestrictions = [
+  {
+    // try { … } catch (x) — any param that is not the identifier `reason`
+    selector: "CatchClause[param][param.name!='reason']",
+    message: catchReasonMessage,
+  },
+  {
+    // promise.catch((x) => …) / .catch(function (x) { … })
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='catch'] > ArrowFunctionExpression[params.0.type='Identifier'][params.0.name!='reason']",
+    message: catchReasonMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='catch'] > FunctionExpression[params.0.type='Identifier'][params.0.name!='reason']",
+    message: catchReasonMessage,
+  },
+  {
+    // promise.catch(({ message }) => …) / patterns — require a `reason` identifier
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='catch'] > ArrowFunctionExpression[params.0.type=/^(ObjectPattern|ArrayPattern|AssignmentPattern)$/]",
+    message: catchReasonMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='catch'] > FunctionExpression[params.0.type=/^(ObjectPattern|ArrayPattern|AssignmentPattern)$/]",
+    message: catchReasonMessage,
+  },
+  {
+    // promise.then(ok, (x) => …) — second arg is onRejected
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='then'][arguments.length>=2] > ArrowFunctionExpression:nth-child(2)[params.0.type='Identifier'][params.0.name!='reason']",
+    message: catchReasonMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='then'][arguments.length>=2] > FunctionExpression:nth-child(2)[params.0.type='Identifier'][params.0.name!='reason']",
+    message: catchReasonMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='then'][arguments.length>=2] > ArrowFunctionExpression:nth-child(2)[params.0.type=/^(ObjectPattern|ArrayPattern|AssignmentPattern)$/]",
+    message: catchReasonMessage,
+  },
+  {
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.name='then'][arguments.length>=2] > FunctionExpression:nth-child(2)[params.0.type=/^(ObjectPattern|ArrayPattern|AssignmentPattern)$/]",
+    message: catchReasonMessage,
+  },
+];
+
+/**
  * Zustand store action keys — docs/client-ui-state.md.
  * Ban React-style `on*` / `handle*` on store APIs; prefer domain verbs (`open`).
  * Scoped to store modules under stores/ (files matching use-*-store.ts).
@@ -453,6 +514,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
       ],
@@ -468,6 +530,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,
@@ -484,6 +547,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,
@@ -508,6 +572,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,
@@ -552,6 +617,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...zustandStoreActionNamingRestrictions,
@@ -580,6 +646,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...nonNextExportStyleRestrictions,
@@ -596,6 +663,7 @@ const eslintConfig = defineConfig([
         "error",
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -637,6 +705,7 @@ const eslintConfig = defineConfig([
         ...genericComponentRestrictions,
         ...linkVsAnchorRestrictions,
         ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         routeCastOnlyInPathsRestriction,

@@ -35,8 +35,8 @@ export const createAuditLog = async ({
         userName: user.firstName + " " + user.lastName,
       },
     });
-  } catch (error) {
-    console.log("[AUDIT_LOG_ERROR]", error);
+  } catch (reason) {
+    console.log("[AUDIT_LOG_ERROR]", reason);
     return {
       error: "Failed to create audit log",
     };

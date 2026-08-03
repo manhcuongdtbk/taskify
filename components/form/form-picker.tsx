@@ -35,8 +35,8 @@ export const FormPicker = ({ id, errors }: FormPickerProps) => {
         }
 
         setImages(Array.isArray(data) ? data : [data]);
-      } catch (error) {
-        console.error(error);
+      } catch (reason) {
+        console.error(reason);
         setImages(defaultImages);
       } finally {
         setIsLoading(false);

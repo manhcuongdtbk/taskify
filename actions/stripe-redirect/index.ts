@@ -96,9 +96,9 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
       url = stripeSession.url || "";
     }
-  } catch (error) {
-    // TODO: unused `error` (P0 — docs/billing.md) —
-    // log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
+  } catch {
+    // TODO (P0 — docs/billing.md): log the failure reason
+    // (e.g. `catch (reason)` + console/reporter) so checkout failures are debuggable.
     return { error: "Something went wrong." };
   }
 

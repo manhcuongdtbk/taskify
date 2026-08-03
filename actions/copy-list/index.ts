@@ -64,7 +64,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: list.title,
       action: ACTION.CREATE,
     });
-  } catch (error) {
+  } catch {
     return { error: "Failed to copy." };
   }
 

@@ -9,7 +9,7 @@ const main = async () => {
   console.log(formatLintFileSupportReport(report, { all }));
 };
 
-main().catch((error: unknown) => {
-  console.error(error);
+main().catch((reason: unknown) => {
+  console.error(reason);
   process.exit(1);
 });

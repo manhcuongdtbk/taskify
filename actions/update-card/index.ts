@@ -34,7 +34,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: card.title,
       action: ACTION.UPDATE,
     });
-  } catch (error) {
+  } catch {
     return { error: "Failed to update." };
   }
 

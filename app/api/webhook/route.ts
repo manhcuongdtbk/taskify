@@ -42,9 +42,9 @@ export async function POST(req: NextRequest) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!,
     );
-  } catch (error) {
-    // TODO: unused `error` (P0 — docs/billing.md) —
-    // log it (or use `catch {`) so failures are debuggable without an eslint unused-var warning.
+  } catch {
+    // TODO (P0 — docs/billing.md): log the failure reason
+    // (e.g. `catch (reason)` + console/reporter) so webhook failures are debuggable.
     return new NextResponse("Webhook Error", { status: 400 });
   }
 
