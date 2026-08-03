@@ -12,6 +12,20 @@ Concern maps, TODOs, out of scope: start at [`docs/README.md`](docs/README.md).
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+<!-- BEGIN:vitest -->
+
+## Vitest
+
+Unit / component tests: Vitest + Testing Library. Config: [`vitest.config.mts`](vitest.config.mts). Colocation and props-in-JSX: [`docs/conventions.md`](docs/conventions.md). Official AI tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html).
+
+- **Run:** `pnpm test:run` (or `vitest run`) — never leave watch mode hanging in agent/CI sessions. `pnpm test` is interactive watch for humans.
+- **Imports:** always `import { describe, expect, test, vi } from "vitest"` — `globals` are off. Use `vi.fn` / `vi.mock`, never Jest APIs.
+- **Mocks:** prefer `vi.mock(import("./module"))` over string paths; assert behavior, don’t over-mock. `restoreMocks` is on in config.
+- **Files:** colocated `*.test.ts` / `*.test.tsx` next to the module (not a catch-all `tests/` tree). Short behavior-focused names.
+- **Scope:** pure `lib/` + Zod schemas + client components. Async Server Components / full Server Actions + Clerk + Prisma → Playwright E2E later, not Vitest.
+
+<!-- END:vitest -->
+
 <!-- VERCEL BEST PRACTICES START -->
 
 ## Best practices for developing on Vercel

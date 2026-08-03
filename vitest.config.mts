@@ -6,5 +6,8 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     environment: "jsdom",
+    // AI-generated spies/mocks often skip cleanup — restore between tests.
+    // https://vitest.dev/guide/learn/writing-tests-with-ai.html
+    restoreMocks: true,
   },
 });

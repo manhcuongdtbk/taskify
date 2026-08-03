@@ -19,6 +19,7 @@
     "lint:types": "tsc --noEmit",
     "lint:file-support": "node --import tsx scripts/print-lint-file-support.ts",
     "test": "vitest",
+    "test:run": "vitest run",
     "test:inspect": "vitest --inspect-brk --no-file-parallelism --test-timeout=0",
     "postinstall": "prisma generate",
     "prepare": "husky"
