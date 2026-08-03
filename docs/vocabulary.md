@@ -122,10 +122,23 @@ Prefer **pricing plan** in docs and UI when a reader could mean either. Do **not
 
 Code keeps short identifiers (`FREE_PLAN`, `PRO_PLAN`, `PLANS`) in [`constants/pricing-plans.ts`](../constants/pricing-plans.ts); prose still follows the table above.
 
+## One tool per job
+
+**Hard engineering rule** for this repo (not a soft “common practice”):
+
+1. **Choose carefully** which library/framework fills a purpose.
+2. **Never run two tools for the same purpose** (no parallel stacks: Jest+Vitest, Cypress+Playwright, SWR+Query, Lodash+es-toolkit, …).
+3. **Replace** the adopted tool only if the candidate can do **everything (or nearly everything) it does for that purpose, and better**. A niche win is not enough.
+
+**Why replace (when the dominates bar is met):** capability gap, maintenance/longevity, operational cost for this app, stack fit, risk/compliance, or real team/platform leverage — not popularity or fashion. Full table + “not enough”: [`conventions.md` → When a replacement is justified](./conventions.md#when-a-replacement-is-justified).
+
+Full wording + examples: [`conventions.md` → One tool per job](./conventions.md#one-tool-per-job). Agents: [`AGENTS.md`](../AGENTS.md).
+
 ## Other terms
 
 | Word                               | Where defined                                                                             | Quick meaning                                                                                                                                                                                                                                                                                                        |
 | ---------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **One tool per job**               | [One tool per job](#one-tool-per-job) below                                               | Choose carefully; no parallel stack for the same purpose; replace only if the other tool dominates. Hard rule: [`conventions.md`](./conventions.md#one-tool-per-job) · [`AGENTS.md`](../AGENTS.md)                                                                                                                   |
 | **billing** / **pricing plan** / … | [Billing terms](#billing-terms) above                                                     | Do not confuse pricing plans with project plans. Flows: [`billing.md`](./billing.md)                                                                                                                                                                                                                                 |
 | **Organization**                   | Clerk concept, used throughout                                                            | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code                                                                                                                                                                                                                                     |
 | **Authentication**                 | Sign-in / session identity                                                                | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                       |

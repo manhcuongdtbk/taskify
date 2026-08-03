@@ -9,7 +9,21 @@ Unit / component tests and (later) E2E. Where the harness lives, how to run and 
 
 **Implementation today:** [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (jsdom). Catalog picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md). Agents: [`AGENTS.md`](../AGENTS.md) (Vitest section).
 
-Official guides: [Next.js + Vitest](https://nextjs.org/docs/app/guides/testing/vitest) · [Vitest](https://vitest.dev/guide/) · [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Debugging](https://vitest.dev/guide/debugging.html). Prefer those for API trivia; this page is **our** wiring.
+### Official docs (match installed version)
+
+Vitest does **not** ship guides under `node_modules` (Next does). Before relying on API trivia:
+
+1. Read the installed version: `package.json` → `vitest`, or `node_modules/vitest/package.json`.
+2. Prefer [vitest.dev](https://vitest.dev) for the **current major** (this repo is Vitest **4**). Older majors live on versioned hosts (e.g. [v3.vitest.dev](https://v3.vitest.dev)) — don’t mix them.
+3. For a **exact** guide snapshot, use the git tag: `https://github.com/vitest-dev/vitest/tree/v{version}/docs` (replace `{version}` with the installed one, e.g. `v4.1.10`).
+4. Next wiring: [Next.js + Vitest](https://nextjs.org/docs/app/guides/testing/vitest) for the Next version in `package.json` (also see `node_modules/next/dist/docs/`).
+5. AI-oriented official tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Debugging](https://vitest.dev/guide/debugging.html).
+
+This page is **our** wiring and common practices. Testing instantiates the repo hard rule **[one tool per job](./vocabulary.md#one-tool-per-job)** ([`conventions.md`](./conventions.md#one-tool-per-job)):
+
+- **Unit / component:** Vitest only — **Jest** is never used. Models often emit `jest.*` from training data; use `vi.*` from `vitest` only.
+- **E2E:** Playwright only (when added) — **Cypress** and other E2E runners are never used.
+- Don’t invent a second unit or E2E runner beside those unless it is a true **replacement** that dominates (same rule).
 
 ## Already following
 
@@ -18,25 +32,26 @@ Official guides: [Next.js + Vitest](https://nextjs.org/docs/app/guides/testing/v
 - Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:inspect` (Chrome DevTools / Node inspector)
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
 - Colocated `*.test.ts` / `*.test.tsx` (prefer `.test` over `.spec`) — [`conventions.md`](./conventions.md) · [`project-structure.md`](./project-structure.md)
-- Explicit Vitest imports (no `globals`); `vi.*`, never Jest APIs
+- Explicit Vitest imports (no `globals`); `vi.*` only (Jest is never used here)
 
 ## TODO
 
 - [ ] First colocated suite(s) — start with pure `lib/` / Zod `actions/*/schema.ts`, then a client component
-- [ ] `@testing-library/jest-dom` + `setupFiles` when component assertions need `toBeInTheDocument()` etc.
+- [ ] `@testing-library/jest-dom` + `setupFiles` when component assertions need `toBeInTheDocument()` etc. (DOM matchers only — **not** the Jest test runner)
 - [ ] `@testing-library/user-event` when writing interactive component tests
 - [ ] Drop `vite-tsconfig-paths` for Vite native `resolve.tsconfigPaths` if the deprecation warning stays noisy
 - [ ] Exclude `e2e/` from Vitest when Playwright lands (often `*.spec.ts`)
 - [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md)
-- [ ] Playwright for critical flows (auth, board, billing) — keep under `e2e/`
+- [ ] Playwright for critical flows (auth, board, billing) — keep under `e2e/` (only E2E tool; no Cypress)
 - [ ] CI: run `pnpm test:run` on PRs when suites exist
 
 ## Out of scope for now
 
-- Jest or Cypress beside Vitest / Playwright
+- **Jest** (runner or `jest.*` APIs) — forever out of scope; Vitest only for unit/component
+- **Cypress** and any other E2E runner beside Playwright — forever out of scope
 - Vitest Browser Mode (we use jsdom for component tests)
 - Catch-all `tests/` tree — colocate unit/component; `e2e/` for Playwright
-- Async Server Components in Vitest — use E2E ([Next.js note](https://nextjs.org/docs/app/guides/testing/vitest))
+- Async Server Components in Vitest — use Playwright E2E ([Next.js note](https://nextjs.org/docs/app/guides/testing/vitest))
 
 ## What to test where
 
