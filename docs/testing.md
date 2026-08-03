@@ -28,8 +28,9 @@ This page is **our** wiring and common practices. Testing instantiates the repo 
 ## Already following
 
 - Vitest + `@vitejs/plugin-react` + jsdom + Testing Library (`@testing-library/react`, `@testing-library/dom`)
-- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `restoreMocks: true`, `vite-tsconfig-paths` for `@/*`
-- Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:inspect` (Chrome DevTools / Node inspector)
+- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `restoreMocks: true`, `coverage.provider: "v8"`, `vite-tsconfig-paths` for `@/*`
+- Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:coverage` (`vitest run --coverage`), `pnpm test:inspect` (Chrome DevTools / Node inspector)
+- Coverage: `@vitest/coverage-v8` — [Coverage](https://vitest.dev/guide/coverage.html); reports under `coverage/` (gitignored)
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
 - Colocated `*.test.ts` / `*.test.tsx` (prefer `.test` over `.spec`) — [`conventions.md`](./conventions.md) · [`project-structure.md`](./project-structure.md)
 - Explicit Vitest imports (no `globals`); `vi.*` only (Jest is never used here)
@@ -43,7 +44,9 @@ This page is **our** wiring and common practices. Testing instantiates the repo 
 - [ ] Exclude `e2e/` from Vitest when Playwright lands (often `*.spec.ts`)
 - [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md)
 - [ ] Playwright for critical flows (auth, board, billing) — keep under `e2e/` (only E2E tool; no Cypress)
-- [ ] CI: run `pnpm test:run` on PRs when suites exist
+- [ ] CI: run `pnpm test:run` (and optionally `pnpm test:coverage`) on PRs when suites exist
+- [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
+- [ ] Tighten `coverage.include` / thresholds once suites exist and the report is noisy
 
 ## Out of scope for now
 
@@ -66,11 +69,12 @@ jsdom is **not** a real browser: programmatic DOM + synthetic events. Layout, re
 
 ## Run
 
-| Script              | When                                                                                                                                          |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm test`         | Local watch (humans)                                                                                                                          |
-| `pnpm test:run`     | One-shot — agents, CI, pre-commit checks                                                                                                      |
-| `pnpm test:inspect` | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools) |
+| Script               | When                                                                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm test`          | Local watch (humans)                                                                                                                          |
+| `pnpm test:run`      | One-shot — agents, CI, pre-commit checks                                                                                                      |
+| `pnpm test:coverage` | One-shot with V8 coverage report (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                           |
+| `pnpm test:inspect`  | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools) |
 
 ## Debug
 
@@ -83,8 +87,8 @@ jsdom is **not** a real browser: programmatic DOM + synthetic events. Layout, re
 
 | Path                                                    | Role                                                         |
 | ------------------------------------------------------- | ------------------------------------------------------------ |
-| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + React plugin + jsdom + `restoreMocks`               |
-| [`package.json`](../package.json)                       | `test` / `test:run` / `test:inspect`                         |
+| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + React plugin + jsdom + `restoreMocks` + V8 coverage |
+| [`package.json`](../package.json)                       | `test` / `test:run` / `test:coverage` / `test:inspect`       |
 | [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                            |
 | [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                  |
 | [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)              |

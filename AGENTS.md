@@ -28,7 +28,7 @@ APIs and defaults may differ from training data (Vitest 3 vs 4). Before writing 
 
 Full setup map: [`docs/testing.md`](docs/testing.md). Colocation: [`docs/conventions.md`](docs/conventions.md). Official AI tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html).
 
-- **Run:** `pnpm test:run` (or `vitest run`) — never leave watch mode hanging in agent/CI sessions. `pnpm test` is interactive watch for humans.
+- **Run:** `pnpm test:run` (or `vitest run`) — never leave watch mode hanging in agent/CI sessions. `pnpm test` is interactive watch for humans. Coverage: `pnpm test:coverage`.
 - **Imports:** always `import { describe, expect, test, vi } from "vitest"` — `globals` are off. Use `vi.fn` / `vi.mock` only.
 - **Mocks:** prefer `vi.mock(import("./module"))` over string paths; assert behavior, don’t over-mock. `restoreMocks` is on in config.
 - **Files:** colocated `*.test.ts` / `*.test.tsx` next to the module (not a catch-all `tests/` tree). Short behavior-focused names.
