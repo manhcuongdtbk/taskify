@@ -83,6 +83,59 @@
         "killOnServerStop": true,
         "pattern": "- Local:.+(https?://.+)"
       }
+    },
+
+    // https://vitest.dev/guide/debugging.html
+    // Prefer Testing view → Debug Test (vitest.explorer) for a single case; use these for F5 / Debug panel.
+    // --test-timeout=0: don't fail while paused on a breakpoint.
+    // --no-file-parallelism: one file at a time so breakpoints aren't missed in another worker.
+    {
+      "name": "Vitest: debug current file",
+      "type": "node",
+      "request": "launch",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": [
+        "run",
+        "${relativeFile}",
+        "--test-timeout=0",
+        "--no-file-parallelism"
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      // Watch + --isolate false keeps the debugger attached across re-runs (docs tip).
+      "name": "Vitest: debug current file (watch)",
+      "type": "node",
+      "request": "launch",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": [
+        "${relativeFile}",
+        "--test-timeout=0",
+        "--no-file-parallelism",
+        "--isolate",
+        "false"
+      ],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Vitest: debug all tests",
+      "type": "node",
+      "request": "launch",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "--test-timeout=0", "--no-file-parallelism"],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
     }
   ]
 }
