@@ -36,7 +36,7 @@ Full setup map: [`docs/testing.md`](docs/testing.md). Colocation: [`docs/convent
 - **Imports:** always `import { describe, expect, test, vi } from "vitest"` — `globals` are off. Use `vi.fn` / `vi.mock` only.
 - **Mocks:** prefer `vi.mock(import("./module"))` over string paths; assert behavior, don’t over-mock. `restoreMocks` is on in config.
 - **Files:** colocated `*.test.ts` / `*.test.tsx` next to the module (not a catch-all `tests/` tree). Short behavior-focused names.
-- **Scope:** pure `lib/` + Zod schemas + client components. Async Server Components / full Server Actions + Clerk + Prisma → **Playwright** E2E later (not Vitest). **Playwright is the only E2E tool** — Cypress and other E2E runners are never used.
+- **Scope:** pure `lib/` + Zod schemas + client components. Async Server Components / full Server Actions + Clerk + Prisma → **Playwright** E2E later (not Vitest). **Playwright is the only E2E tool** — Cypress and other E2E runners are never used. **Storybook** later only for UI catalog/workshop when triggers in [`docs/testing.md`](docs/testing.md#storybook-when-needed) pass — not a second Vitest/Playwright. **Which test type → which tool:** [`docs/testing.md` → What to test where](docs/testing.md#what-to-test-where).
 
 <!-- END:vitest -->
 
