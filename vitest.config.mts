@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     // AI-generated spies/mocks often skip cleanup — restore between tests.
-    // https://vitest.dev/guide/learn/writing-tests-with-ai.html
+    // See docs/testing.md · https://vitest.dev/guide/learn/writing-tests-with-ai.html
     restoreMocks: true,
   },
 });

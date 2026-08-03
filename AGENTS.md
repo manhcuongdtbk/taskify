@@ -16,7 +16,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Vitest
 
-Unit / component tests: Vitest + Testing Library. Config: [`vitest.config.mts`](vitest.config.mts). Colocation and props-in-JSX: [`docs/conventions.md`](docs/conventions.md). Official AI tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html).
+Full setup map: [`docs/testing.md`](docs/testing.md). Colocation: [`docs/conventions.md`](docs/conventions.md). Official AI tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html).
 
 - **Run:** `pnpm test:run` (or `vitest run`) — never leave watch mode hanging in agent/CI sessions. `pnpm test` is interactive watch for humans.
 - **Imports:** always `import { describe, expect, test, vi } from "vitest"` — `globals` are off. Use `vi.fn` / `vi.mock`, never Jest APIs.

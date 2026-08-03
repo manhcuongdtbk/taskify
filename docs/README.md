@@ -32,6 +32,7 @@ Concern and framework maps (each listed once). Same shape where possible: **Owne
 | [`authentication-and-authorization.md`](./authentication-and-authorization.md) | Authentication & authorization — **Clerk** today; exit notes                     |
 | [`prisma.md`](./prisma.md)                                                     | Prisma / Postgres data layer                                                     |
 | [`client-ui-state.md`](./client-ui-state.md)                                   | Ephemeral client UI state — **Zustand** today (modals, sidebars, …)              |
+| [`testing.md`](./testing.md)                                                   | Testing — **Vitest** (+ Testing Library) today; Playwright / MSW when needed     |
 
 ## Maintenance
 
