@@ -8,7 +8,7 @@ alwaysApply: true
 Before non-trivial work in this repo:
 
 1. Open [`docs/README.md`](docs/README.md) and pick the matching **concern** doc (data, billing, authentication-and-authorization, conventions, …).
-2. Prefer official docs for the versions in `package.json` (Next: also `node_modules/next/dist/docs/` — see `AGENTS.md`).
+2. **Match installed official docs** — for every dependency, use docs for the version in `package.json` / `node_modules/<pkg>/package.json` (never training data alone). Procedure + lookup: [`docs/conventions.md`](docs/conventions.md#match-installed-official-docs). Next also ships guides in `node_modules/next/dist/docs/` — see `AGENTS.md`.
 3. **Concern over vendor** — durable docs are named for the concern; Stripe/Clerk/Query live *inside* those pages.
 4. **One tool per job** — choose carefully; once adopted, don’t invent a parallel stack for the same purpose (second billing provider, second auth system, SWR beside Query, Lodash beside es-toolkit, Jest beside Vitest, Cypress beside Playwright, …). **Replace** only if the other tool can do everything (or nearly everything) the current one does, better — and document it in the concern doc. See [`docs/conventions.md`](docs/conventions.md) · [`docs/vocabulary.md`](docs/vocabulary.md).
 5. Code comments and rules should point at a **file** (e.g. `docs/billing.md`), not at another doc’s section titles.

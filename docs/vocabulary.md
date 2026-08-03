@@ -122,6 +122,12 @@ Prefer **pricing plan** in docs and UI when a reader could mean either. Do **not
 
 Code keeps short identifiers (`FREE_PLAN`, `PRO_PLAN`, `PLANS`) in [`constants/pricing-plans.ts`](../constants/pricing-plans.ts); prose still follows the table above.
 
+## Match installed official docs
+
+**Hard engineering rule:** when using a library/framework API, read official docs for the **version installed** in this repo (`package.json` / `node_modules/<pkg>/package.json`) — not training data, not “whatever is latest on the marketing site,” not a random blog.
+
+Full procedure + per-package how-to: [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs). Agents: [`AGENTS.md`](../AGENTS.md).
+
 ## One tool per job
 
 **Hard engineering rule** for this repo (not a soft “common practice”):
@@ -138,7 +144,8 @@ Full wording + examples: [`conventions.md` → One tool per job](./conventions.m
 
 | Word                               | Where defined                                                                             | Quick meaning                                                                                                                                                                                                                                                                                                        |
 | ---------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **One tool per job**               | [One tool per job](#one-tool-per-job) below                                               | Choose carefully; no parallel stack for the same purpose; replace only if the other tool dominates. Hard rule: [`conventions.md`](./conventions.md#one-tool-per-job) · [`AGENTS.md`](../AGENTS.md)                                                                                                                   |
+| **Match installed official docs**  | [Match installed official docs](#match-installed-official-docs) above                     | Use version-correct official docs for every dependency. SoT: [`conventions.md`](./conventions.md#match-installed-official-docs) · [`AGENTS.md`](../AGENTS.md)                                                                                                                                                        |
+| **One tool per job**               | [One tool per job](#one-tool-per-job) above                                               | Choose carefully; no parallel stack for the same purpose; replace only if the other tool dominates. Hard rule: [`conventions.md`](./conventions.md#one-tool-per-job) · [`AGENTS.md`](../AGENTS.md)                                                                                                                   |
 | **billing** / **pricing plan** / … | [Billing terms](#billing-terms) above                                                     | Do not confuse pricing plans with project plans. Flows: [`billing.md`](./billing.md)                                                                                                                                                                                                                                 |
 | **Organization**                   | Clerk concept, used throughout                                                            | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code                                                                                                                                                                                                                                     |
 | **Authentication**                 | Sign-in / session identity                                                                | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                       |

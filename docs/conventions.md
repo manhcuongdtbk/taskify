@@ -27,7 +27,46 @@ When something is ambiguous, follow this **priority list** (highest first). Use 
 | 11       | **Common practice**           | See [`vocabulary.md`](./vocabulary.md) — widespread habit, not “best”                 |
 | 12       | **Repo convention**           | Only when the levels above don’t cover it; keep these rare                            |
 
-Within the same kind, prefer the **current official docs** for the version this repo depends on (see `package.json`) over blog posts or memory.
+Within the same kind, prefer the **current official docs** for the version this repo depends on (see [`Match installed official docs`](#match-installed-official-docs)) over blog posts or memory.
+
+### Match installed official docs
+
+**Hard rule** for humans and agents (also [`AGENTS.md`](../AGENTS.md) · [`.cursor/rules/docs.mdc`](../.cursor/rules/docs.mdc)). Term: [`vocabulary.md`](./vocabulary.md#match-installed-official-docs).
+
+Training data, Stack Overflow, and “latest” marketing sites drift. **APIs must match what is installed.**
+
+#### Procedure (every dependency)
+
+1. **Read the version** — `package.json` dependency entry, or `node_modules/<pkg>/package.json` → `version` (resolved).
+2. **Prefer in-tree docs** when the package ships them (Next: `node_modules/next/dist/docs/`).
+3. **Else** use that project’s **official** docs for the **same major** (and minor/patch when they publish versioned URLs or git tags).
+4. **Heed** migration / deprecation notes for that major before inventing patterns.
+5. **Repo concern docs** (`docs/billing.md`, `docs/testing.md`, …) describe **our wiring and choices** — they do not replace the library’s versioned API docs.
+6. **Skills** under `.claude/skills/` / `.agents/skills/` help when present; still verify against the installed version.
+
+#### How to find docs (major stack today)
+
+Do **not** hardcode patch versions in this table — always re-read `package.json` / `node_modules`. Methods:
+
+| Package / concern                       | Version from                       | Where to read (match that version)                                                                                                                       |
+| --------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Next.js**                             | `next`                             | **`node_modules/next/dist/docs/`** first · [nextjs.org/docs](https://nextjs.org/docs) · concern [`nextjs.md`](./nextjs.md)                               |
+| **React** / **react-dom**               | `react`, `react-dom`               | [react.dev](https://react.dev) for the installed major (19.x today)                                                                                      |
+| **Vitest** (+ coverage / UI when added) | `vitest`, `@vitest/*`              | [vitest.dev](https://vitest.dev) for major · git tag `https://github.com/vitest-dev/vitest/tree/v{version}/docs` · concern [`testing.md`](./testing.md)  |
+| **Testing Library**                     | `@testing-library/*`               | [testing-library.com](https://testing-library.com) docs for the installed packages                                                                       |
+| **Prisma**                              | `prisma`, `@prisma/client`         | [prisma.io/docs](https://www.prisma.io/docs) for that major (v7 today) · concern [`prisma.md`](./prisma.md) · repo `prisma-*` skills                     |
+| **Clerk**                               | `@clerk/nextjs`, `@clerk/ui`       | [clerk.com/docs](https://clerk.com/docs) · concern [`authentication-and-authorization.md`](./authentication-and-authorization.md) · repo `clerk*` skills |
+| **Stripe**                              | `stripe` (+ Dashboard API version) | [docs.stripe.com](https://docs.stripe.com) · SDK + **API version** both matter · concern [`billing.md`](./billing.md) · repo Stripe skills               |
+| **TanStack Query**                      | `@tanstack/react-query`            | [tanstack.com/query](https://tanstack.com/query/latest/docs/framework/react/overview) for v5 · concern [`data.md`](./data.md)                            |
+| **Zustand**                             | `zustand`                          | [zustand.docs.pmnd.rs](https://zustand.docs.pmnd.rs) · concern [`client-ui-state.md`](./client-ui-state.md)                                              |
+| **Zod**                                 | `zod`                              | [zod.dev](https://zod.dev) for the installed major (v4 today)                                                                                            |
+| **es-toolkit**                          | `es-toolkit`                       | [es-toolkit.dev](https://es-toolkit.dev) · repo `recommend` / `guide` skills                                                                             |
+| **Tailwind CSS**                        | `tailwindcss`                      | [tailwindcss.com/docs](https://tailwindcss.com/docs) for v4                                                                                              |
+| **TypeScript**                          | `typescript`                       | [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) for the installed major                                                   |
+| **Playwright** (when added)             | `playwright` / `@playwright/test`  | [playwright.dev](https://playwright.dev) for that version · concern [`testing.md`](./testing.md)                                                         |
+| **Anything else in `package.json`**     | that package’s entry               | Official site / npm `homepage` / GitHub `docs/` at the **installed tag** — same procedure                                                                |
+
+When a package is missing from the table, still follow the procedure — don’t fall back to memory.
 
 ### Where each kind is documented
 

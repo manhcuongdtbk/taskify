@@ -11,13 +11,15 @@ Unit / component tests and (later) E2E. Where the harness lives, how to run and 
 
 ### Official docs (match installed version)
 
-Vitest does **not** ship guides under `node_modules` (Next does). Before relying on API trivia:
+Same hard rule as the rest of the stack — [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) · [`AGENTS.md`](../AGENTS.md).
+
+For Vitest specifically:
 
 1. Read the installed version: `package.json` → `vitest`, or `node_modules/vitest/package.json`.
 2. Prefer [vitest.dev](https://vitest.dev) for the **current major** (this repo is Vitest **4**). Older majors live on versioned hosts (e.g. [v3.vitest.dev](https://v3.vitest.dev)) — don’t mix them.
-3. For a **exact** guide snapshot, use the git tag: `https://github.com/vitest-dev/vitest/tree/v{version}/docs` (replace `{version}` with the installed one, e.g. `v4.1.10`).
+3. For an **exact** guide snapshot, use the git tag: `https://github.com/vitest-dev/vitest/tree/v{version}/docs` (replace `{version}` with the installed one).
 4. Next wiring: [Next.js + Vitest](https://nextjs.org/docs/app/guides/testing/vitest) for the Next version in `package.json` (also see `node_modules/next/dist/docs/`).
-5. AI-oriented official tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Debugging](https://vitest.dev/guide/debugging.html).
+5. AI-oriented official tips: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html).
 
 This page is **our** wiring and common practices. Testing instantiates the repo hard rule **[one tool per job](./vocabulary.md#one-tool-per-job)** ([`conventions.md`](./conventions.md#one-tool-per-job)):
 

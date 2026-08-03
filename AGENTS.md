@@ -7,6 +7,10 @@ Concern maps, TODOs, out of scope: start at [`docs/README.md`](docs/README.md).
 ### One tool per job (hard rule)
 
 Choose a tool carefully for a given purpose. Once adopted, **do not add another tool for the same purpose** (no parallel stacks). **Replace** the current tool only if the candidate can do **everything (or nearly everything) it does, better** — see justified reasons in [`docs/conventions.md`](docs/conventions.md#when-a-replacement-is-justified); document the swap in the matching concern doc. Examples today: Vitest (not Jest) for unit/component; Playwright (not Cypress) for E2E; TanStack Query (not SWR); es-toolkit (not Lodash). Details: [`docs/conventions.md`](docs/conventions.md#one-tool-per-job) · [`docs/vocabulary.md`](docs/vocabulary.md#one-tool-per-job).
+
+### Match installed official docs (hard rule)
+
+**Do not trust training data or random blog posts for APIs.** For every dependency you touch, use official docs that match the **installed version** in `package.json` / `node_modules/<pkg>/package.json`. Procedure + per-package how-to: [`docs/conventions.md`](docs/conventions.md#match-installed-official-docs). Repo concern docs (`docs/*.md`) are **our wiring** — not a substitute for that library’s versioned docs.
 <!-- END:project-docs -->
 
 <!-- BEGIN:nextjs-agent-rules -->
@@ -20,7 +24,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # This is NOT the Vitest you know
 
-APIs and defaults may differ from training data (Vitest 3 vs 4). Before writing or changing tests, check the installed version in `package.json` / `node_modules/vitest/package.json`. Prefer [vitest.dev](https://vitest.dev) for the current major, or the matching tag under [vitest-dev/vitest `docs/`](https://github.com/vitest-dev/vitest/tree/main/docs) (e.g. `v4.1.10`) — Vitest does **not** ship docs in `node_modules` (unlike Next).
+APIs and defaults may differ from training data (Vitest 3 vs 4). Follow **[Match installed official docs](docs/conventions.md#match-installed-official-docs)** — check `package.json` / `node_modules/vitest/package.json`, then [vitest.dev](https://vitest.dev) / matching git tag under [vitest-dev/vitest `docs/`](https://github.com/vitest-dev/vitest/tree/main/docs). Vitest does **not** ship docs in `node_modules` (unlike Next).
 
 **Jest is not used in this repo and will not be added** (no Jest runner, no `jest.*` APIs). Models often emit `jest.fn` / `jest.mock` from training data — always use `vi.*` from `vitest` instead.
 
