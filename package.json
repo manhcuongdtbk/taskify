@@ -16,10 +16,11 @@
     "lint:prettier:fix": "prettier --write .",
     "lint:prisma": "node --import tsx scripts/check-prisma-schema.ts",
     "lint:prisma:fix": "node --import tsx scripts/check-prisma-schema.ts --fix",
-    "lint:file-support": "node --import tsx scripts/print-lint-file-support.ts",
     "lint:types": "tsc --noEmit",
-    "prepare": "husky",
-    "postinstall": "prisma generate"
+    "lint:file-support": "node --import tsx scripts/print-lint-file-support.ts",
+    "test": "vitest",
+    "postinstall": "prisma generate",
+    "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -58,21 +59,27 @@
     "@tailwindcss/postcss": "^4",
     "@tanstack/eslint-plugin-query": "^5.101.4",
     "@tanstack/react-query-devtools": "^5.101.4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^24.13.3",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-filename-match-export": "^1.4.0",
     "husky": "^9.1.7",
+    "jsdom": "^30.0.1",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.10"
   }
 }

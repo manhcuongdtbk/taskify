@@ -24,7 +24,9 @@
     // Pretty TypeScript Errors
     "yoavbls.pretty-ts-errors",
     // Mermaid
-    "mermaidchart.vscode-mermaid-chart"
+    "mermaidchart.vscode-mermaid-chart",
+    // Vitest
+    "vitest.explorer"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": []
