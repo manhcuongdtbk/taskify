@@ -3,17 +3,18 @@ import { describe, expect, test } from "vitest";
 import { paths } from "./paths";
 
 describe("paths", () => {
-  test("static auth and org-select routes", () => {
+  test("static routes", () => {
     expect(paths.signIn).toBe("/sign-in");
     expect(paths.signUp).toBe("/sign-up");
     expect(paths.selectOrg).toBe("/select-org");
   });
 
-  test("board route", () => {
-    expect(paths.board("board_123")).toBe("/board/board_123");
-  });
-
   test.for([
+    {
+      name: "board",
+      actual: paths.board("board_123"),
+      expected: "/board/board_123",
+    },
     {
       name: "organization",
       actual: paths.organization("org_1"),
@@ -34,7 +35,7 @@ describe("paths", () => {
       actual: paths.organizationBilling("org_1"),
       expected: "/organization/org_1/billing",
     },
-  ])("$name", ({ actual, expected }) => {
+  ])("dynamic route $name", ({ actual, expected }) => {
     expect(actual).toBe(expected);
   });
 });
