@@ -209,15 +209,16 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 
 ## TODO
 
-- [ ] First colocated suite(s) — start with pure `lib/` / Zod `actions/*/schema.ts`, then a client component (jest-dom for DOM asserts; `userEvent.setup()` for interactions)
+- [x] First colocated suite(s) — pure `lib/` helpers + Zod `actions/*/schema.ts` (P0). Remaining Vitest backlog (P1 mocked I/O / stores / `use-action`, P2 components, P3 MSW + reorder, P4 polish): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
+- [ ] Client component suites (jest-dom for DOM asserts; `userEvent.setup()` for interactions) — plan P2
 - [ ] Drop `vite-tsconfig-paths` for Vite native `resolve.tsconfigPaths` if the deprecation warning stays noisy
-- [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md)
+- [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md) · plan P3
 - [ ] Playwright for critical flows (auth, board, billing) — `e2e/*.spec.ts` only (never `*.test.*`; only E2E tool; no Cypress)
 - [ ] Storybook when [catalog triggers](#storybook-when-needed) pass — catalog/workshop only; colocated `*.stories.tsx` (not CI component-test owner unless [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) rewritten)
 - [ ] Revisit Vitest Browser Mode only if [triggers](#trigger-checklist-for-switching-the-component-default) fire — pilot jsdom vs Browser Mode before blanket switch; update decision record + config together
 - [ ] CI: run `pnpm test:run` (and optionally `pnpm test:coverage`) on PRs when suites exist
 - [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
-- [ ] Tighten `coverage.include` / thresholds once suites exist and the report is noisy
+- [ ] Tighten `coverage.include` / thresholds once suites exist and the report is noisy — plan P4
 
 ## Out of scope for now
 
