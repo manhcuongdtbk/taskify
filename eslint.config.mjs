@@ -9,6 +9,10 @@ import filenameMatchExport from "eslint-plugin-filename-match-export";
 import noctcoreReact from "@noctcore/eslint-plugin-react";
 // npm package `@vitest/eslint-plugin` (repo: vitest-dev/eslint-plugin-vitest). Docs: docs/testing.md
 import vitest from "@vitest/eslint-plugin";
+// Companion lint for `@testing-library/jest-dom` matchers — docs/testing.md
+import jestDom from "eslint-plugin-jest-dom";
+// Companion lint for Testing Library queries / async / cleanup — docs/testing.md
+import testingLibrary from "eslint-plugin-testing-library";
 
 /** Matches eslint-config-next’s JS/TS family — one place for custom `files` globs. */
 const JS_TS_FILES = ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"];
@@ -801,6 +805,23 @@ const eslintConfig = defineConfig([
         },
       ],
     },
+  },
+
+  // Prefer jest-dom matchers over generic DOM asserts — docs/testing.md
+  // https://github.com/testing-library/eslint-plugin-jest-dom
+  {
+    ...jestDom.configs["flat/recommended"],
+    files: ["**/*.test.{ts,tsx}"],
+    ignores: ["e2e/**"],
+  },
+
+  // Testing Library query / async / cleanup practices — docs/testing.md
+  // https://github.com/testing-library/eslint-plugin-testing-library
+  // Use `flat/react` (not `flat/dom`) — we render via `@testing-library/react`.
+  {
+    ...testingLibrary.configs["flat/react"],
+    files: ["**/*.test.{ts,tsx}"],
+    ignores: ["e2e/**"],
   },
 
   // Ban misplaced runner suffixes (always-fail Program selector).
