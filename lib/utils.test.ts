@@ -24,8 +24,8 @@ describe("absoluteUrl", () => {
   });
 
   test("prefixes path with NEXT_PUBLIC_APP_URL", () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://taskify.example");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://app.example");
 
-    expect(absoluteUrl("/board/1")).toBe("https://taskify.example/board/1");
+    expect(absoluteUrl("/board/1")).toBe("https://app.example/board/1");
   });
 });

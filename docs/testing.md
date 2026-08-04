@@ -261,7 +261,7 @@ Visual regression only? ──yes──► Playwright (for now)
 
 ### Test types (vocabulary)
 
-| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                                        | Typical files                | Taskify examples                                                                       |
+| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                                        | Typical files                | Examples                                                                               |
 | --------------------------- | ------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------- |
 | **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                                           | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/fetcher.ts`, `lib/paths.ts`, `lib/generate-log-message.ts` |
 | **Component (static)**      | Given props, the right roles/text/structure appear           | jsdom                    | **Vitest** + Testing Library                                                         | `foo.test.tsx`               | Modal header title, disabled submit, empty list copy                                   |
@@ -308,7 +308,7 @@ Storybook               →  humans browse / compose UI (catalog — when trigge
 
 ### Prisma-related code (what to test how)
 
-Prisma shows up in tests in **different layers**. Official [unit testing](https://www.prisma.io/docs/orm/prisma-client/testing/unit-testing) / [integration testing](https://www.prisma.io/docs/orm/prisma-client/testing/integration-testing) pages may still show **Jest** and older layouts. Prefer **this section** as Taskify wiring, and treat Prisma’s [Testing with Prisma blog series](https://www.prisma.io/blog/series/testing-with-prisma) as optional background (Vitest-oriented; verified on Prisma 7 / Vitest 4 in recent updates). Schema/Client patterns: [`prisma.md`](./prisma.md). Backlog: [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md).
+Prisma shows up in tests in **different layers**. Official [unit testing](https://www.prisma.io/docs/orm/prisma-client/testing/unit-testing) / [integration testing](https://www.prisma.io/docs/orm/prisma-client/testing/integration-testing) pages may still show **Jest** and older layouts. Prefer **this section** as repo wiring, and treat Prisma’s [Testing with Prisma blog series](https://www.prisma.io/blog/series/testing-with-prisma) as optional background (Vitest-oriented; verified on Prisma 7 / Vitest 4 in recent updates). Schema/Client patterns: [`prisma.md`](./prisma.md). Backlog: [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md).
 
 **Blog series — read when** (full series is five parts; do not treat parts 1–2 as the whole series):
 
