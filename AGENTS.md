@@ -28,13 +28,14 @@ APIs and defaults may differ from training data (Vitest 3 vs 4). Match the insta
 
 ## Vitest (repo rules)
 
-**SoT:** [`docs/testing.md`](docs/testing.md) — harness, scripts, **[what to test where](docs/testing.md#what-to-test-where)** (Vitest / Playwright / Storybook). Colocation mid-suffixes: [`docs/conventions.md`](docs/conventions.md). Folders (`e2e/`): [`docs/project-structure.md`](docs/project-structure.md).
+**SoT:** [`docs/testing.md`](docs/testing.md) — harness, scripts, **[what to test where](docs/testing.md#what-to-test-where)** (Vitest / Playwright / Storybook), **[decision record](docs/testing.md#decision-record-vitest--jsdom--browser-mode--playwright--storybook)** (jsdom default vs Browser Mode / Storybook — don’t re-litigate). Colocation mid-suffixes: [`docs/conventions.md`](docs/conventions.md). Folders (`e2e/`): [`docs/project-structure.md`](docs/project-structure.md).
 
 - **Run:** `pnpm test:run` (agents/CI) · `pnpm test` (watch) · `pnpm test:coverage` — never leave watch hanging in agent sessions.
 - **Imports:** `import { describe, expect, test, vi } from "vitest"` — no `globals`; `vi.*` only (**not** `jest.*`).
 - **File suffixes / layout:** `*.test.*` = Vitest colocated (never `__tests__/`, `tests/`, or root `test/`); `e2e/*.spec.*` = Playwright only — never mix. See [`docs/testing.md`](docs/testing.md).
+- **Component env:** default **jsdom** + Testing Library — **not** Vitest Browser Mode unless [`testing.md` triggers](docs/testing.md#trigger-checklist-for-switching-the-component-default) say so (Vitest’s component guide prefers Browser Mode; our wiring wins).
 - **Bug fixes:** for Vitest-owned code, write a **failing** regression test first, then fix the implementation — don’t weaken the test to make it pass. Details: [`docs/testing.md`](docs/testing.md) · [Vitest: Fixing Bugs with Tests](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests).
-- **Mocks / files / scope / Storybook triggers:** follow [`docs/testing.md`](docs/testing.md) — don’t invent Jest, Cypress, or Storybook-as-test-runner.
+- **Mocks / files / scope / Storybook:** follow [`docs/testing.md`](docs/testing.md) — don’t invent Jest, Cypress, or Storybook-as-CI-test-runner.
 
 <!-- END:vitest -->
 

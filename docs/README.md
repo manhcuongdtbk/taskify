@@ -24,15 +24,15 @@ Orientation for the product and how we choose patterns. When changing how someth
 
 Concern and framework maps (each listed once). Same shape where possible: **Owner / SoT** + **Open when** → **Already following** → **TODO** → **Out of scope** → deep detail.
 
-| Doc                                                                            | Concern (implementation today)                                                    |
-| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| [`nextjs.md`](./nextjs.md)                                                     | Next.js App Router                                                                |
-| [`data.md`](./data.md)                                                         | Fetching & mutating (App Router map; TanStack Query when/where; cache / DAL·DTO)  |
-| [`billing.md`](./billing.md)                                                   | Billing — **Stripe** today for the **Pro** plan; deep dive + backlog              |
-| [`authentication-and-authorization.md`](./authentication-and-authorization.md) | Authentication & authorization — **Clerk** today; exit notes                      |
-| [`prisma.md`](./prisma.md)                                                     | Prisma / Postgres data layer                                                      |
-| [`client-ui-state.md`](./client-ui-state.md)                                   | Ephemeral client UI state — **Zustand** today (modals, sidebars, …)               |
-| [`testing.md`](./testing.md)                                                   | Testing — **Vitest** today; Playwright / Storybook when needed (job split inside) |
+| Doc                                                                            | Concern (implementation today)                                                                                                                                                              |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`nextjs.md`](./nextjs.md)                                                     | Next.js App Router                                                                                                                                                                          |
+| [`data.md`](./data.md)                                                         | Fetching & mutating (App Router map; TanStack Query when/where; cache / DAL·DTO)                                                                                                            |
+| [`billing.md`](./billing.md)                                                   | Billing — **Stripe** today for the **Pro** plan; deep dive + backlog                                                                                                                        |
+| [`authentication-and-authorization.md`](./authentication-and-authorization.md) | Authentication & authorization — **Clerk** today; exit notes                                                                                                                                |
+| [`prisma.md`](./prisma.md)                                                     | Prisma / Postgres data layer                                                                                                                                                                |
+| [`client-ui-state.md`](./client-ui-state.md)                                   | Ephemeral client UI state — **Zustand** today (modals, sidebars, …)                                                                                                                         |
+| [`testing.md`](./testing.md)                                                   | Testing — **Vitest + jsdom** today; Playwright / Storybook when needed; [decision record](./testing.md#decision-record-vitest--jsdom--browser-mode--playwright--storybook) for Browser Mode |
 
 ## Maintenance
 
