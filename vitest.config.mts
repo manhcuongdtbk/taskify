@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     environment: "jsdom",
+    // DOM matchers (`toBeInTheDocument`, …) — @testing-library/jest-dom; docs/testing.md
+    setupFiles: ["./vitest.setup.ts"],
     // *.test.* = Vitest only; *.spec.* = Playwright under e2e/ — docs/testing.md
     // Ban Vitest-doc separate suite folders: __tests__/, test/, tests/
     include: ["**/*.test.?(c|m)[jt]s?(x)"],
