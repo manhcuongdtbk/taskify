@@ -759,10 +759,12 @@ const eslintConfig = defineConfig([
 
   // Vitest suites — rationale: docs/testing.md
   // https://github.com/vitest-dev/eslint-plugin-vitest
+  // *.test.* = Vitest; *.spec.* = Playwright under e2e/ only.
+  // Use `*.test.` / `*.spec.` globs (not `{test}` alone — single-option braces don’t match).
   {
-    files: ["**/*.{test,spec}.{ts,tsx}"],
-    ignores: ["e2e/**"],
     ...vitest.configs.recommended,
+    files: ["**/*.test.{ts,tsx}"],
+    ignores: ["e2e/**"],
     rules: {
       ...vitest.configs.recommended.rules,
       "vitest/consistent-test-it": ["error", { fn: "test" }],
@@ -776,6 +778,103 @@ const eslintConfig = defineConfig([
       "vitest/prefer-hooks-in-order": "error",
       "vitest/no-duplicate-hooks": "error",
       "vitest/max-nested-describe": ["error", { max: 3 }],
+      // Re-state app import bans — flat config replaces, does not merge.
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react",
+              importNames: ["forwardRef"],
+              message:
+                "Pass `ref` as a normal prop (React 19). Do not use forwardRef. See docs/conventions.md.",
+            },
+            ...noLodashImportPaths,
+            ...noZustandImportPaths,
+            {
+              name: "@playwright/test",
+              message:
+                "*.test.* is Vitest-only. Put Playwright under e2e/*.spec.*. See docs/testing.md.",
+            },
+          ],
+          patterns: [...noLodashImportPatterns, ...noZustandImportPatterns],
+        },
+      ],
+    },
+  },
+
+  // Ban misplaced runner suffixes (always-fail Program selector).
+  {
+    files: ["**/*.spec.{ts,tsx,js,jsx,mts,cts}"],
+    ignores: ["e2e/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Program",
+          message:
+            "*.spec.* is reserved for Playwright under e2e/. Use *.test.* for Vitest. See docs/testing.md.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["e2e/**/*.test.{ts,tsx,js,jsx,mts,cts}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Program",
+          message:
+            "*.test.* is reserved for Vitest (colocated). Use *.spec.* under e2e/ for Playwright. See docs/testing.md.",
+        },
+      ],
+    },
+  },
+  // Ban Vitest-documented separate suite folders (colocate *.test.* instead).
+  // https://vitest.dev/guide/learn/writing-tests.html · testing-in-practice.html
+  // Root `test/` only — nested `test/` can be a real App Router segment.
+  {
+    files: [
+      "**/__tests__/**/*.{ts,tsx,js,jsx,mts,cts}",
+      "**/tests/**/*.{ts,tsx,js,jsx,mts,cts}",
+      "test/**/*.{ts,tsx,js,jsx,mts,cts}",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Program",
+          message:
+            "Do not use __tests__/, tests/, or root test/ for Vitest. Colocate *.test.* next to the module; Playwright stays under e2e/*.spec.*. See docs/testing.md.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["e2e/**/*.spec.{ts,tsx,js,jsx,mts,cts}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            ...noLodashImportPaths,
+            {
+              name: "vitest",
+              message:
+                "e2e/*.spec.* is Playwright-only. Use colocated *.test.* for Vitest. See docs/testing.md.",
+            },
+          ],
+          patterns: [
+            ...noLodashImportPatterns,
+            {
+              group: ["vitest/*", "@vitest/*"],
+              message:
+                "e2e/*.spec.* is Playwright-only. Use colocated *.test.* for Vitest. See docs/testing.md.",
+            },
+          ],
+        },
+      ],
     },
   },
 
