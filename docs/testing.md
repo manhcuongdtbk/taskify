@@ -58,18 +58,18 @@ Our [match installed official docs](./conventions.md#match-installed-official-do
 
 This page owns **policy**. Authoring details live in version-matched official docs ([`conventions.md`](./conventions.md#match-installed-official-docs)).
 
-**Default path — Vitest + jsdom + Testing Library (+ jest-dom for DOM asserts):**
+**Default path — Vitest + jsdom + Testing Library (+ jest-dom + user-event):**
 
-| Layer                               | Learn           | Official entry                                                                                                                                                                                                       |
-| ----------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runner / asserts / mocks            | Vitest          | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) · [Vi](https://vitest.dev/api/vi.html)                           |
-| Enable simulated DOM                | Vitest config   | [`environment`](https://vitest.dev/config/environment) (`jsdom`) · [`environmentOptions`](https://vitest.dev/config/environmentoptions) · Features note: [happy-dom / jsdom](https://vitest.dev/guide/features.html) |
-| Render / query                      | Testing Library | [React Testing Library intro](https://testing-library.com/docs/react-testing-library/intro/) · [docs](https://testing-library.com/docs/)                                                                             |
-| Assert DOM state after query        | jest-dom        | [jest-dom](https://github.com/testing-library/jest-dom#with-vitest) — **why:** [Already following](#already-following)                                                                                               |
-| Interact (click / type) when needed | user-event      | `@testing-library/user-event` — [ecosystem](https://testing-library.com/docs/dom-testing-library/install/#ecosystem); not installed until interactive suites                                                         |
-| Next wiring (install shape)         | Next.js         | [Vitest with Next.js](https://nextjs.org/docs/app/guides/testing/vitest) — **setup example**, not a substitute for Vitest `environment` docs                                                                         |
+| Layer                        | Learn           | Official entry                                                                                                                                                                                                        |
+| ---------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runner / asserts / mocks     | Vitest          | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) · [Vi](https://vitest.dev/api/vi.html)                            |
+| Enable simulated DOM         | Vitest config   | [`environment`](https://vitest.dev/config/environment) (`jsdom`) · [`environmentOptions`](https://vitest.dev/config/environmentoptions) · Features note: [happy-dom / jsdom](https://vitest.dev/guide/features.html)  |
+| Render / query               | Testing Library | [React Testing Library intro](https://testing-library.com/docs/react-testing-library/intro/) · [docs](https://testing-library.com/docs/)                                                                              |
+| Assert DOM state after query | jest-dom        | [jest-dom](https://github.com/testing-library/jest-dom#with-vitest) — **why:** [Already following](#already-following)                                                                                                |
+| Interact (click / type)      | user-event      | [user-event intro](https://testing-library.com/docs/user-event/intro) — **why / how:** [Already following](#already-following) · [ecosystem](https://testing-library.com/docs/dom-testing-library/install/#ecosystem) |
+| Next wiring (install shape)  | Next.js         | [Vitest with Next.js](https://nextjs.org/docs/app/guides/testing/vitest) — **setup example**, not a substitute for Vitest `environment` docs                                                                          |
 
-Yes: with jsdom you learn **Vitest + Testing Library + jest-dom** (and later `user-event` for interactions), not Vitest alone. That is the cost of the current default.
+Yes: with jsdom you learn **Vitest + Testing Library + jest-dom + user-event**, not Vitest alone. That is the cost of the current default.
 
 **Opt-in / future path — Vitest Browser Mode:**
 
@@ -121,7 +121,21 @@ This page is **our** wiring. Tool exclusivity ([one tool per job](./vocabulary.m
 
 - Vitest + `@vitejs/plugin-react` + jsdom + Testing Library (`@testing-library/react`, `@testing-library/dom`)
 - **Why `@testing-library/jest-dom`:** Vitest’s built-in matchers (`toBeTruthy`, `toEqual`, …) are generic — they don’t speak DOM. Testing Library **renders and queries** the tree; it does **not** add matchers. jest-dom fills that gap with intent-shaped asserts (`toBeInTheDocument()`, `toBeVisible()`, `toHaveAttribute()`, …) and clearer failure messages for component tests. It is listed in the [Testing Library ecosystem](https://testing-library.com/docs/dom-testing-library/install/#ecosystem) as the companion for custom DOM matchers. Wired in [`vitest.setup.ts`](../vitest.setup.ts) via `import "@testing-library/jest-dom/vitest"` — **matchers only**, not the Jest runner (the “jest” name is historical). Do **not** add `vitest-dom` (stale fork of the same matchers).
-- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `setupFiles: ["./vitest.setup.ts"]`, `restoreMocks: true`, `expect.requireAssertions: true`, `coverage.provider: "v8"`, `vite-tsconfig-paths` for `@/*`
+- **Why `@testing-library/user-event`:** Testing Library’s `fireEvent` dispatches a single low-level DOM event; real users cause sequences (focus → keys → input) plus visibility/interactivity checks. user-event is the [ecosystem](https://testing-library.com/docs/dom-testing-library/install/#ecosystem) companion that simulates those interactions — prefer it for clicks/typing in interactive component tests; keep `fireEvent` only for gaps user-event doesn’t cover yet ([intro](https://testing-library.com/docs/user-event/intro)). **No Vitest `setupFiles` entry** — import per test and call `userEvent.setup()` **before** `render` (instance API in v14; don’t park `userEvent` in `beforeEach`). Example:
+
+```ts
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
+
+test("submits on click", async () => {
+  const user = userEvent.setup();
+  render(<MyForm />);
+  await user.click(screen.getByRole("button", { name: /save/i }));
+  // …
+});
+```
+
+- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `setupFiles: ["./vitest.setup.ts"]` (jest-dom only), `restoreMocks: true`, `expect.requireAssertions: true`, `coverage.provider: "v8"`, `vite-tsconfig-paths` for `@/*`
 - Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:coverage` (`vitest run --coverage`), `pnpm test:inspect` (Chrome DevTools / Node inspector)
 - Coverage: `@vitest/coverage-v8` — [Coverage](https://vitest.dev/guide/coverage.html); reports under `coverage/` (gitignored)
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
@@ -150,6 +164,7 @@ Why we set these (not just what). Enforcement lives in [`vitest.config.mts`](../
 | Choice                                                                  | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Reference                                                                                                                                                                                                                                                                   |
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `setupFiles` → [`vitest.setup.ts`](../vitest.setup.ts) + jest-dom       | **Problem:** component tests need DOM asserts; Vitest matchers aren’t DOM-aware and Testing Library doesn’t ship matchers. **Fix:** jest-dom (ecosystem companion). Wire once via `import "@testing-library/jest-dom/vitest"` — not the default Jest entry. **No `tsconfig` change:** setup is already in `"include": ["**/*.ts"]`; skip official `"types": ["vitest/globals", "@testing-library/jest-dom"]` — we don’t use Vitest globals, and the default jest-dom types target Jest (the `/vitest` import augments Vitest instead). | [Why above](#already-following) · [jest-dom → With Vitest](https://github.com/testing-library/jest-dom#with-vitest) · [setupFiles](https://vitest.dev/config/setupfiles)                                                                                                    |
+| `@testing-library/user-event` (dep only — no `setupFiles`)              | **Problem:** interactive tests need realistic click/type; `fireEvent` is one low-level dispatch. **Fix:** user-event (ecosystem companion). **Config:** none in Vitest — `import userEvent` + `userEvent.setup()` before `render` per test (v14 instance API). Prefer over `fireEvent`; no shared test-utils helper yet.                                                                                                                                                                                                               | [Why above](#already-following) · [user-event intro](https://testing-library.com/docs/user-event/intro) · [ecosystem](https://testing-library.com/docs/dom-testing-library/install/#ecosystem)                                                                              |
 | `restoreMocks: true`                                                    | Spies/mocks (especially AI-written) often skip cleanup; restore between tests                                                                                                                                                                                                                                                                                                                                                                                                                                                          | [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html)                                                                                                                                                                                          |
 | `expect.requireAssertions: true`                                        | Runtime fail if a test never calls Vitest `expect` (empty / accidental pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                           | [expect.requireAssertions](https://vitest.dev/config/expect.html#expect-requireassertions)                                                                                                                                                                                  |
 | ESLint Vitest `recommended` (not `all`)                                 | Correctness / anti-footgun baseline. `all` is mostly style, padding (Prettier’s job), and downgrades many rules to `warn`                                                                                                                                                                                                                                                                                                                                                                                                              | [`@vitest/eslint-plugin`](https://github.com/vitest-dev/eslint-plugin-vitest) shareable configs                                                                                                                                                                             |
@@ -194,8 +209,7 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 
 ## TODO
 
-- [ ] First colocated suite(s) — start with pure `lib/` / Zod `actions/*/schema.ts`, then a client component (use `toBeInTheDocument()` etc. from jest-dom when asserting DOM)
-- [ ] `@testing-library/user-event` when writing interactive component tests
+- [ ] First colocated suite(s) — start with pure `lib/` / Zod `actions/*/schema.ts`, then a client component (jest-dom for DOM asserts; `userEvent.setup()` for interactions)
 - [ ] Drop `vite-tsconfig-paths` for Vite native `resolve.tsconfigPaths` if the deprecation warning stays noisy
 - [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md)
 - [ ] Playwright for critical flows (auth, board, billing) — `e2e/*.spec.ts` only (never `*.test.*`; only E2E tool; no Cypress)
@@ -261,12 +275,12 @@ Visual regression only? ──yes──► Playwright (for now)
 
 ### Static vs interactive (both Vitest)
 
-|           | Static component test               | Interactive component test              |
-| --------- | ----------------------------------- | --------------------------------------- |
-| Acts like | Snapshot of the tree after `render` | User clicking/typing                    |
-| Assert    | Roles, text, attributes             | Outcomes after `userEvent`              |
-| Use when  | Props → markup                      | Behavior matters                        |
-| Still     | Vitest + Testing Library            | Vitest + Testing Library + `user-event` |
+|           | Static component test               | Interactive component test                         |
+| --------- | ----------------------------------- | -------------------------------------------------- |
+| Acts like | Snapshot of the tree after `render` | User clicking/typing                               |
+| Assert    | Roles, text, attributes             | Outcomes after `userEvent`                         |
+| Use when  | Props → markup                      | Behavior matters                                   |
+| Still     | Vitest + Testing Library + jest-dom | Vitest + Testing Library + jest-dom + `user-event` |
 
 jsdom is **not** a real browser: no real layout engine, incomplete Web APIs. If the bug is “dnd geometry,” “Clerk hosted UI,” or “RSC stream on this route,” that is **Playwright**, not a harder Vitest test — and usually not “switch the whole suite to Browser Mode” either. Browser Mode is for _isolated_ real-browser component fidelity when [triggers](#trigger-checklist-for-switching-the-component-default) say so; product journeys stay Playwright.
 
@@ -331,7 +345,7 @@ Storybook               →  humans browse / compose UI (catalog — when trigge
 | [`vitest.config.mts`](../vitest.config.mts)             | Vitest + `setupFiles` + `*.test.*` include + `restoreMocks` + `requireAssertions` + V8 coverage                                               |
 | [`vitest.setup.ts`](../vitest.setup.ts)                 | jest-dom on Vitest `expect` — **why:** DOM asserts; see [Already following](#already-following)                                               |
 | [`eslint.config.mjs`](../eslint.config.mjs)             | `@vitest/eslint-plugin` + `eslint-plugin-jest-dom` + `eslint-plugin-testing-library` on Vitest suites ([above](#vitest-lint--config-choices)) |
-| [`package.json`](../package.json)                       | `test` / `test:run` / `test:coverage` / `test:inspect`                                                                                        |
+| [`package.json`](../package.json)                       | `test` scripts · Testing Library deps (`jest-dom`, `user-event`, …)                                                                           |
 | [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                                                                                                             |
 | [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                                                                                                   |
 | [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)                                                                                               |
