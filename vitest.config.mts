@@ -9,6 +9,11 @@ export default defineConfig({
     // AI-generated spies/mocks often skip cleanup — restore between tests.
     // See docs/testing.md · https://vitest.dev/guide/learn/writing-tests-with-ai.html
     restoreMocks: true,
+    // Fail tests that never call expect (empty/accidental passes).
+    // https://vitest.dev/config/expect.html#expect-requireassertions
+    expect: {
+      requireAssertions: true,
+    },
     // https://vitest.dev/guide/coverage.html — v8 is the recommended provider on Node.
     coverage: {
       provider: "v8",

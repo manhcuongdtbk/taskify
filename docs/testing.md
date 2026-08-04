@@ -32,7 +32,7 @@ This page is **our** wiring. Tool exclusivity ([one tool per job](./vocabulary.m
 ## Already following
 
 - Vitest + `@vitejs/plugin-react` + jsdom + Testing Library (`@testing-library/react`, `@testing-library/dom`)
-- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `restoreMocks: true`, `coverage.provider: "v8"`, `vite-tsconfig-paths` for `@/*`
+- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `restoreMocks: true`, `expect.requireAssertions: true`, `coverage.provider: "v8"`, `vite-tsconfig-paths` for `@/*`
 - Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:coverage` (`vitest run --coverage`), `pnpm test:inspect` (Chrome DevTools / Node inspector)
 - Coverage: `@vitest/coverage-v8` — [Coverage](https://vitest.dev/guide/coverage.html); reports under `coverage/` (gitignored)
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
@@ -169,12 +169,12 @@ Storybook   →  “Can humans browse / compose UI?”    (catalog — when trig
 
 ## File map
 
-| Path                                                    | Role                                                         |
-| ------------------------------------------------------- | ------------------------------------------------------------ |
-| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + React plugin + jsdom + `restoreMocks` + V8 coverage |
-| [`package.json`](../package.json)                       | `test` / `test:run` / `test:coverage` / `test:inspect`       |
-| [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                            |
-| [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                  |
-| [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)              |
-| `**/foo.test.ts(x)`                                     | Colocated suites (none required yet; add next to the module) |
-| `e2e/`                                                  | Playwright only (when added)                                 |
+| Path                                                    | Role                                                                               |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + React plugin + jsdom + `restoreMocks` + `requireAssertions` + V8 coverage |
+| [`package.json`](../package.json)                       | `test` / `test:run` / `test:coverage` / `test:inspect`                             |
+| [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                                                  |
+| [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                                        |
+| [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)                                    |
+| `**/foo.test.ts(x)`                                     | Colocated suites (none required yet; add next to the module)                       |
+| `e2e/`                                                  | Playwright only (when added)                                                       |
