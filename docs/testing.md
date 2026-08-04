@@ -308,22 +308,34 @@ Storybook               →  humans browse / compose UI (catalog — when trigge
 
 ### Prisma-related code (what to test how)
 
-Prisma shows up in tests in **different layers**. Official [unit testing](https://www.prisma.io/docs/orm/prisma-client/testing/unit-testing) / [integration testing](https://www.prisma.io/docs/orm/prisma-client/testing/integration-testing) pages may still show **Jest** and older layouts; for this repo prefer the Vitest-oriented blog series ([mocking Client](https://www.prisma.io/blog/testing-series-1-8eRB5p0Y8o) · [unit testing](https://www.prisma.io/blog/testing-series-2-xPhjjmIEsM)) and **this section** as wiring. Schema/Client patterns: [`prisma.md`](./prisma.md). Backlog: [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md).
+Prisma shows up in tests in **different layers**. Official [unit testing](https://www.prisma.io/docs/orm/prisma-client/testing/unit-testing) / [integration testing](https://www.prisma.io/docs/orm/prisma-client/testing/integration-testing) pages may still show **Jest** and older layouts. Prefer **this section** as Taskify wiring, and treat Prisma’s [Testing with Prisma blog series](https://www.prisma.io/blog/series/testing-with-prisma) as optional background (Vitest-oriented; verified on Prisma 7 / Vitest 4 in recent updates). Schema/Client patterns: [`prisma.md`](./prisma.md). Backlog: [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md).
+
+**Blog series — read when** (full series is five parts; do not treat parts 1–2 as the whole series):
+
+| Part                                                                         | Topic                             | Read when                                       |
+| ---------------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------- |
+| [1 – Mocking Client](https://www.prisma.io/blog/testing-series-1-8eRB5p0Y8o) | `vi.mock` / fake Client           | First Vitest suite that **calls** Prisma Client |
+| [2 – Unit testing](https://www.prisma.io/blog/testing-series-2-xPhjjmIEsM)   | What to test / skip around Client | Same milestone                                  |
+| [3 – Integration](https://www.prisma.io/blog/testing-series-3-aBUyF8nxAn)    | Real DB                           | If we add Vitest integration against Postgres   |
+| [4 – E2E](https://www.prisma.io/blog/testing-series-4-OVXtDis201)            | Playwright + Prisma cleanup       | When Playwright lands                           |
+| [5 – CI](https://www.prisma.io/blog/testing-series-5-xWogenROXm)             | Pipelines                         | When CI runs those suites                       |
+
+Parts **1–2** are the least you need for current/near-term Client unit tests. Types-only helpers (below) do not require the series.
 
 **Vocabulary**
 
 | Term        | Meaning here                                                                              |
 | ----------- | ----------------------------------------------------------------------------------------- |
 | **Fixture** | Plain object shaped like a model row (or a partial of one) — not a replacement for Client |
-| **Mock**    | Fake dependency (`vi.mock`, deep-mocked `PrismaClient`) so tests don’t hit the DB         |
+| **Mock**    | Fake dependency (`vi.mock` / stubbed Client methods) so tests don’t hit the DB            |
 | **Spy**     | Assert a mocked method was called (and with what args)                                    |
 
 **Decide in order** (stop at the first match):
 
 1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-log-message.ts`](../lib/generate-log-message.ts) + [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
-2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a deep-mocked Client when that suite lands (`vitest-mock-extended`, `vi.mock` of [`lib/prisma.ts`](../lib/prisma.ts), optional colocated `lib/__mocks__/prisma.ts` — `__mocks__` dirs are allowed; catch-all `__tests__/` / `tests/` are not). First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching ([blog guidance](https://www.prisma.io/blog/testing-series-2-xPhjjmIEsM)).
-3. **Need real SQL / relations** → integration against a test DB (later; see Prisma integration docs) — not default for app helpers.
-4. **Full product journey** → **Playwright**.
+2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a **mocked** [`lib/prisma.ts`](../lib/prisma.ts) when that suite lands. First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching (blog part 2).
+3. **Need real SQL / relations** → integration against a test DB (later; blog part 3 / Prisma integration docs) — not default for app helpers.
+4. **Full product journey** → **Playwright** (blog part 4 when relevant).
 
 ```text
 Uses Prisma Client? ──no──► types-only unit (no Client mock)
@@ -335,11 +347,21 @@ Need real DB correctness? ──no──► Vitest + mocked Client (when added)
                          └──► integration DB or Playwright
 ```
 
+**How to mock Client (Vitest only — no extra package by default)**
+
+Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) · [Vi](https://vitest.dev/api/vi.html)) already supports:
+
+- **`vi.mock` factory** returning only the methods under test as `vi.fn()` (preferred for a small surface like `auditLog.create`)
+- **Colocated `lib/__mocks__/prisma.ts`** loaded by `vi.mock("@/lib/prisma")` without a factory ([`__mocks__` convention](https://vitest.dev/api/vi.html#vi-mock)) — `__mocks__` dirs are allowed; catch-all `__tests__/` / `tests/` are not
+- **Automock** (`vi.mock` with no factory and no `__mocks__` file): Vitest recursively replaces exports (nested objects / class instances); useful for plain modules — Prisma Client is a heavy instance/Proxy, so prefer an explicit factory or `__mocks__` stub of methods you call
+
+**Do not add `vitest-mock-extended` by default.** The Prisma blog uses `mockDeep` for convenience. Vitest does not require it. Add that package only if a narrow manual stub becomes painful (many models, interactive `$transaction`, etc.) — [one tool per job](./vocabulary.md#one-tool-per-job).
+
 **Types-only + full model type:** Prefer keeping the production param as the model type (e.g. `AuditLog`) when call sites pass real rows. In the test, use a **named cast** helper that accepts `Pick<…>` of fields under test and returns `as AuditLog` — do **not** invent unused columns (`id`, timestamps, …) only to satisfy TypeScript. See `auditLogForMessage` in [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
 
 **Do not add `"type": "module"` to root [`package.json`](../package.json)** to “match” Prisma blog samples. Those samples are bare Node/Vitest packages. This app relies on Next.js, Vitest/Vite, and `node --import tsx` for scripts; forcing package-wide ESM can break CJS assumptions. Revisit only if a concrete Node entrypoint fails without it.
 
-**Not yet:** `vitest-mock-extended` / `lib/__mocks__/prisma.ts` — add when the first Client-mock suite ships (plan P1 / `create-audit-log`), not for types-only helpers.
+**Not yet:** Client-mock suites / `lib/__mocks__/prisma.ts` — add with the first Client-using unit test (plan P1 / `create-audit-log`), not for types-only helpers.
 
 ### Storybook (when needed)
 

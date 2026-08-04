@@ -12,7 +12,7 @@ todos:
     content: Self-review the P0 diff, then push and open PR to main
     status: completed
   - id: p1-mocked-unit
-    content: "TODO later — P1: create-safe-action, fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock (vitest-mock-extended + lib/__mocks__/prisma) for create-audit-log"
+    content: "TODO later — P1: create-safe-action, fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock via Vitest vi.mock factory or lib/__mocks__/prisma (no vitest-mock-extended by default) for create-audit-log"
     status: pending
   - id: p2-components
     content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + subscription-button + card-modal pieces"
@@ -55,7 +55,7 @@ Shipped on `test/vitest-p0-pure-unit` (PR to `main`). Colocated suites cover:
 
 - [`lib/create-safe-action.ts`](../../lib/create-safe-action.ts), [`lib/fetcher.ts`](../../lib/fetcher.ts), [`lib/env.ts`](../../lib/env.ts)
 - Three Zustand stores; [`hooks/use-action.ts`](../../hooks/use-action.ts)
-- **Prisma Client mock (first):** [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts) via Vitest + `vitest-mock-extended` + `lib/__mocks__/prisma.ts` — see [`docs/testing.md`](../../docs/testing.md) (Prisma-related). Types-only helpers (e.g. `generate-log-message`) stay without Client mocks.
+- **Prisma Client mock (first):** [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts) via Vitest `vi.mock` **factory** or colocated `lib/__mocks__/prisma.ts` stubbing only methods under test — see [`docs/testing.md`](../../docs/testing.md) (Prisma-related). Do **not** add `vitest-mock-extended` unless a narrow stub becomes painful. Types-only helpers (e.g. `generate-log-message`) stay without Client mocks. Blog series index: [Testing with Prisma](https://www.prisma.io/blog/series/testing-with-prisma) (parts 1–2 when implementing; 3–5 later).
 - Still skip or defer heavy Clerk+Prisma paths (`subscription`, `organization-limit`) until that pattern is proven; `unsplash` / `prisma` singleton itself are not unit targets
 
 ### P2 — Component static + interactive
