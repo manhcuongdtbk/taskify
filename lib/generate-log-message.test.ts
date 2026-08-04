@@ -8,20 +8,15 @@ import {
 
 import { generateLogMessage } from "./generate-log-message";
 
-function auditLog(
-  overrides: Pick<AuditLog, "action" | "entityTitle" | "entityType">,
+/**
+ * Test-only: supply fields under test. Unused `AuditLog` columns are not part of
+ * this suite — cast instead of inventing a full row fixture. Prod stays typed as
+ * `AuditLog` (call sites pass real rows). See docs/testing.md (Prisma-related).
+ */
+function auditLogForMessage(
+  fields: Pick<AuditLog, "action" | "entityTitle" | "entityType">,
 ): AuditLog {
-  return {
-    id: "log_1",
-    orgId: "org_1",
-    entityId: "entity_1",
-    userId: "user_1",
-    userImage: "https://example.com/avatar.png",
-    userName: "Ada",
-    createdAt: new Date("2024-01-01T00:00:00.000Z"),
-    updatedAt: new Date("2024-01-01T00:00:00.000Z"),
-    ...overrides,
-  };
+  return fields as AuditLog;
 }
 
 describe("generateLogMessage", () => {
@@ -48,7 +43,9 @@ describe("generateLogMessage", () => {
     "$action $entityType → $expected",
     ({ action, entityType, entityTitle, expected }) => {
       expect(
-        generateLogMessage(auditLog({ action, entityType, entityTitle })),
+        generateLogMessage(
+          auditLogForMessage({ action, entityType, entityTitle }),
+        ),
       ).toBe(expected);
     },
   );
@@ -56,7 +53,7 @@ describe("generateLogMessage", () => {
   test("falls back for unknown actions", () => {
     expect(
       generateLogMessage(
-        auditLog({
+        auditLogForMessage({
           action: "UNKNOWN" as ACTION,
           entityType: ENTITY_TYPE.CARD,
           entityTitle: "Mystery",

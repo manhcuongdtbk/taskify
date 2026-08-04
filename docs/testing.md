@@ -306,6 +306,41 @@ Playwright              →  product works end-to-end (real app + real browser)
 Storybook               →  humans browse / compose UI (catalog — when triggered)
 ```
 
+### Prisma-related code (what to test how)
+
+Prisma shows up in tests in **different layers**. Official [unit testing](https://www.prisma.io/docs/orm/prisma-client/testing/unit-testing) / [integration testing](https://www.prisma.io/docs/orm/prisma-client/testing/integration-testing) pages may still show **Jest** and older layouts; for this repo prefer the Vitest-oriented blog series ([mocking Client](https://www.prisma.io/blog/testing-series-1-8eRB5p0Y8o) · [unit testing](https://www.prisma.io/blog/testing-series-2-xPhjjmIEsM)) and **this section** as wiring. Schema/Client patterns: [`prisma.md`](./prisma.md). Backlog: [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md).
+
+**Vocabulary**
+
+| Term        | Meaning here                                                                              |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| **Fixture** | Plain object shaped like a model row (or a partial of one) — not a replacement for Client |
+| **Mock**    | Fake dependency (`vi.mock`, deep-mocked `PrismaClient`) so tests don’t hit the DB         |
+| **Spy**     | Assert a mocked method was called (and with what args)                                    |
+
+**Decide in order** (stop at the first match):
+
+1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-log-message.ts`](../lib/generate-log-message.ts) + [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
+2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a deep-mocked Client when that suite lands (`vitest-mock-extended`, `vi.mock` of [`lib/prisma.ts`](../lib/prisma.ts), optional colocated `lib/__mocks__/prisma.ts` — `__mocks__` dirs are allowed; catch-all `__tests__/` / `tests/` are not). First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching ([blog guidance](https://www.prisma.io/blog/testing-series-2-xPhjjmIEsM)).
+3. **Need real SQL / relations** → integration against a test DB (later; see Prisma integration docs) — not default for app helpers.
+4. **Full product journey** → **Playwright**.
+
+```text
+Uses Prisma Client? ──no──► types-only unit (no Client mock)
+         │ yes
+Custom logic around queries? ──no──► skip Vitest (thin wrapper)
+         │ yes
+Need real DB correctness? ──no──► Vitest + mocked Client (when added)
+         │ yes
+                         └──► integration DB or Playwright
+```
+
+**Types-only + full model type:** Prefer keeping the production param as the model type (e.g. `AuditLog`) when call sites pass real rows. In the test, use a **named cast** helper that accepts `Pick<…>` of fields under test and returns `as AuditLog` — do **not** invent unused columns (`id`, timestamps, …) only to satisfy TypeScript. See `auditLogForMessage` in [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
+
+**Do not add `"type": "module"` to root [`package.json`](../package.json)** to “match” Prisma blog samples. Those samples are bare Node/Vitest packages. This app relies on Next.js, Vitest/Vite, and `node --import tsx` for scripts; forcing package-wide ESM can break CJS assumptions. Revisit only if a concrete Node entrypoint fails without it.
+
+**Not yet:** `vitest-mock-extended` / `lib/__mocks__/prisma.ts` — add when the first Client-mock suite ships (plan P1 / `create-audit-log`), not for types-only helpers.
+
 ### Storybook (when needed)
 
 **Not** a Vitest or Playwright replacement, and **not** our component-test tool until this doc explicitly reassigns ownership ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook)). Planned order: Playwright E2E first, Storybook later. Prefer [Storybook](https://storybook.js.org) over Ladle/Histoire ([`conventions.md`](./conventions.md)).

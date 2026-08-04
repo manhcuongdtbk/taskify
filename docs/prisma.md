@@ -9,6 +9,8 @@ Learning reference for **Prisma ORM** as used in this app (Postgres + Next.js).
 
 Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.json`. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` help with CLI/Client. Index: [`README.md`](./README.md).
 
+**Testing code that touches Prisma** (types-only vs mocked Client vs real DB vs Playwright; fixture vs mock; no root `"type": "module"` for blog parity): [`testing.md`](./testing.md) — section **Prisma-related code (what to test how)**. Do not duplicate that decision tree here.
+
 **Page shape:** Already following → TODO → Out of scope.
 
 ## Already following (keep as examples)
@@ -22,6 +24,7 @@ Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.jso
 - **Domain models** for boards/lists/cards, audit logs, organization limits, and Stripe subscription mirror (`OrganizationSubscription`)
 - **Organization scoping** — queries/mutations typically filter by Clerk `orgId` (tenant id), not a Prisma multi-tenant plugin
 - **Cascade deletes** on list/card relations where the schema defines them
+- **Testing guidance** for Prisma-touched code lives in [`testing.md`](./testing.md) (types-only example: `lib/generate-log-message`; Client-mock when added — not Jest)
 
 ## TODO — follow Prisma / data-layer recommendations more closely
 
