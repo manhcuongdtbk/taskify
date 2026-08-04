@@ -7,6 +7,8 @@ import pluginQuery from "@tanstack/eslint-plugin-query";
 import filenameMatchExport from "eslint-plugin-filename-match-export";
 // Community-only (new, niche). We use a single rule — watch releases / health; replace with a local rule if it stalls. See docs/conventions.md § Component export names.
 import noctcoreReact from "@noctcore/eslint-plugin-react";
+// npm package `@vitest/eslint-plugin` (repo: vitest-dev/eslint-plugin-vitest). Docs: docs/testing.md
+import vitest from "@vitest/eslint-plugin";
 
 /** Matches eslint-config-next’s JS/TS family — one place for custom `files` globs. */
 const JS_TS_FILES = ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"];
@@ -752,6 +754,28 @@ const eslintConfig = defineConfig([
           prefix: ["Form"],
         },
       ],
+    },
+  },
+
+  // Vitest suites — rationale: docs/testing.md
+  // https://github.com/vitest-dev/eslint-plugin-vitest
+  {
+    files: ["**/*.{test,spec}.{ts,tsx}"],
+    ignores: ["e2e/**"],
+    ...vitest.configs.recommended,
+    rules: {
+      ...vitest.configs.recommended.rules,
+      "vitest/consistent-test-it": ["error", { fn: "test" }],
+      "vitest/consistent-vitest-vi": ["error", { fn: "vi" }],
+      "vitest/prefer-importing-vitest-globals": "error",
+      "vitest/consistent-each-for": "error",
+      "vitest/hoisted-apis-on-top": "error",
+      "vitest/no-alias-methods": "error",
+      "vitest/no-test-prefixes": "error",
+      "vitest/prefer-hooks-on-top": "error",
+      "vitest/prefer-hooks-in-order": "error",
+      "vitest/no-duplicate-hooks": "error",
+      "vitest/max-nested-describe": ["error", { max: 3 }],
     },
   },
 

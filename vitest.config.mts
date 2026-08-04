@@ -6,11 +6,8 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     environment: "jsdom",
-    // AI-generated spies/mocks often skip cleanup — restore between tests.
-    // See docs/testing.md · https://vitest.dev/guide/learn/writing-tests-with-ai.html
+    // Mock/assert hygiene — rationale: docs/testing.md
     restoreMocks: true,
-    // Fail tests that never call expect (empty/accidental passes).
-    // https://vitest.dev/config/expect.html#expect-requireassertions
     expect: {
       requireAssertions: true,
     },

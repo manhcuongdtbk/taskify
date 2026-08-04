@@ -21,7 +21,7 @@ Unit / component tests, E2E, and (later) Storybook. Where each tool’s **job** 
 
 ### Official docs (match installed version)
 
-Follow [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) (Vitest / Testing Library / Playwright rows). Next + Vitest wiring: [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest) for the Next version in `package.json`. Handy Vitest pages: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html).
+Follow [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) (Vitest / Testing Library / Playwright rows). Next + Vitest wiring: [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest) for the Next version in `package.json`. Handy Vitest pages: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html).
 
 This page is **our** wiring. Tool exclusivity ([one tool per job](./vocabulary.md#one-tool-per-job)):
 
@@ -38,6 +38,44 @@ This page is **our** wiring. Tool exclusivity ([one tool per job](./vocabulary.m
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
 - Colocated `*.test.ts` / `*.test.tsx` (prefer `.test` over `.spec`) — [`conventions.md`](./conventions.md) · [`project-structure.md`](./project-structure.md)
 - Explicit Vitest imports (no `globals`); `vi.*` only (Jest is never used here)
+- ESLint: [`@vitest/eslint-plugin`](https://github.com/vitest-dev/eslint-plugin-vitest) on `**/*.{test,spec}.{ts,tsx}` (ignores `e2e/`) — `recommended` + repo extras; rationale in [Vitest lint & config choices](#vitest-lint--config-choices) · [`eslint.config.mjs`](../eslint.config.mjs)
+- Bug fixes: [reproduce with a failing test first](#fixing-bugs-with-tests-agents)
+
+### Fixing bugs with tests (agents)
+
+When fixing a bug in code that Vitest owns ([what to test where](#what-to-test-where)):
+
+1. Write a **failing** colocated test that reproduces the bug.
+2. Fix the **implementation** (not the test) until the test passes.
+3. Keep the test as a regression guard.
+
+Do **not** “fix” by weakening assertions or deleting the repro. Prefer real behavior over mocks unless the dependency is slow/flaky/side-effectful ([Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests)).
+
+If the bug needs the real app (Clerk, Stripe Checkout UI, async RSC, multi-page flows), use Playwright when added — don’t force a Vitest suite for that class of bug.
+
+### Vitest lint & config choices
+
+Why we set these (not just what). Enforcement lives in [`vitest.config.mts`](../vitest.config.mts) and [`eslint.config.mjs`](../eslint.config.mjs). Prefer official docs for the installed Vitest / plugin versions ([`conventions.md`](./conventions.md)).
+
+| Choice                                                                 | Why                                                                                                                       | Reference                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `restoreMocks: true`                                                   | Spies/mocks (especially AI-written) often skip cleanup; restore between tests                                             | [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html)                                                                                                                                  |
+| `expect.requireAssertions: true`                                       | Runtime fail if a test never calls Vitest `expect` (empty / accidental pass)                                              | [expect.requireAssertions](https://vitest.dev/config/expect.html#expect-requireassertions)                                                                                                                          |
+| ESLint `recommended` (not `all`)                                       | Correctness / anti-footgun baseline. `all` is mostly style, padding (Prettier’s job), and downgrades many rules to `warn` | [`@vitest/eslint-plugin`](https://github.com/vitest-dev/eslint-plugin-vitest) shareable configs                                                                                                                     |
+| Scope: `**/*.{test,spec}.{ts,tsx}`, ignore `e2e/`                      | Colocated Vitest only; don’t treat Playwright specs as Vitest                                                             | This file · [`project-structure.md`](./project-structure.md)                                                                                                                                                        |
+| `consistent-test-it` → `test`                                          | Vitest guides lead with `test`; `it` is an identical alias — pick one                                                     | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/consistent-test-it.md)                                          |
+| `consistent-vitest-vi` → `vi`                                          | Docs document the helper as `vi.*`; `vitest` is the same object under another name                                        | [Vi API](https://vitest.dev/api/vi.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/consistent-vitest-vi.md)                                                                  |
+| `prefer-importing-vitest-globals`                                      | We do **not** enable Vitest `globals`; always `import { … } from "vitest"`                                                | [Using Global Imports](https://vitest.dev/guide/learn/writing-tests.html#using-global-imports) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/prefer-importing-vitest-globals.md) |
+| `consistent-each-for`                                                  | Prefer `test.for` over Jest-style `test.each` in new code                                                                 | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/consistent-each-for.md)                                         |
+| `hoisted-apis-on-top`                                                  | `vi.mock` / `vi.hoisted` are hoisted — keep them at the top of the file                                                   | [vi.mock](https://vitest.dev/api/vi.html#vi-mock) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/hoisted-apis-on-top.md)                                                          |
+| `no-alias-methods`                                                     | Prefer full matcher names (`toHaveBeenCalled`) over aliases (`toBeCalled`)                                                | [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/no-alias-methods.md)                                                                                                                 |
+| `no-test-prefixes`                                                     | Prefer `.only` / `.skip` over `f` / `x` prefixes                                                                          | [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/no-test-prefixes.md)                                                                                                                 |
+| `prefer-hooks-on-top` · `prefer-hooks-in-order` · `no-duplicate-hooks` | Stable setup/teardown layout; no accidental double hooks                                                                  | [rules](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules)                                                                                                                                    |
+| `max-nested-describe` (`max: 3`)                                       | Keep `describe` nesting shallow                                                                                           | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/max-nested-describe.md)                                         |
+| **Skip** `prefer-expect-assertions`                                    | Runtime `requireAssertions` already covers “must assert”; no need for ceremonial `expect.hasAssertions()`                 | [expect.requireAssertions](https://vitest.dev/config/expect.html#expect-requireassertions)                                                                                                                          |
+| **Skip** `padding-around-*` / most of `all`                            | Prettier owns formatting; avoid a second style guide                                                                      | [`conventions.md`](./conventions.md) (lint & format) · plugin `all` config                                                                                                                                          |
+
+`recommended` already includes `expect-expect` (lint-time “has an assertion”) alongside runtime `requireAssertions` — complementary, not duplicate tooling.
 
 ## TODO
 
@@ -169,12 +207,13 @@ Storybook   →  “Can humans browse / compose UI?”    (catalog — when trig
 
 ## File map
 
-| Path                                                    | Role                                                                               |
-| ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + React plugin + jsdom + `restoreMocks` + `requireAssertions` + V8 coverage |
-| [`package.json`](../package.json)                       | `test` / `test:run` / `test:coverage` / `test:inspect`                             |
-| [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                                                  |
-| [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                                        |
-| [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)                                    |
-| `**/foo.test.ts(x)`                                     | Colocated suites (none required yet; add next to the module)                       |
-| `e2e/`                                                  | Playwright only (when added)                                                       |
+| Path                                                    | Role                                                                                           |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + React plugin + jsdom + `restoreMocks` + `requireAssertions` + V8 coverage             |
+| [`eslint.config.mjs`](../eslint.config.mjs)             | `@vitest/eslint-plugin` on Vitest suite files (choices: [above](#vitest-lint--config-choices)) |
+| [`package.json`](../package.json)                       | `test` / `test:run` / `test:coverage` / `test:inspect`                                         |
+| [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                                                              |
+| [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                                                    |
+| [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)                                                |
+| `**/foo.test.ts(x)`                                     | Colocated suites (none required yet; add next to the module)                                   |
+| `e2e/`                                                  | Playwright only (when added)                                                                   |

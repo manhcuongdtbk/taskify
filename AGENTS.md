@@ -32,6 +32,7 @@ APIs and defaults may differ from training data (Vitest 3 vs 4). Match the insta
 
 - **Run:** `pnpm test:run` (agents/CI) · `pnpm test` (watch) · `pnpm test:coverage` — never leave watch hanging in agent sessions.
 - **Imports:** `import { describe, expect, test, vi } from "vitest"` — no `globals`; `vi.*` only (**not** `jest.*`).
+- **Bug fixes:** for Vitest-owned code, write a **failing** regression test first, then fix the implementation — don’t weaken the test to make it pass. Details: [`docs/testing.md`](docs/testing.md) · [Vitest: Fixing Bugs with Tests](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests).
 - **Mocks / files / scope / Storybook triggers:** follow [`docs/testing.md`](docs/testing.md) — don’t invent Jest, Cypress, or Storybook-as-test-runner.
 
 <!-- END:vitest -->
