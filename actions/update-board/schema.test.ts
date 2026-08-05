@@ -10,7 +10,7 @@ describe("UpdateBoard", () => {
       id: "board_1",
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: { title: "Renamed", id: "board_1" },
     });
@@ -24,7 +24,7 @@ describe("UpdateBoard", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       title: ["Title is required"],
       id: ["Invalid input: expected string, received undefined"],
     });
@@ -38,7 +38,7 @@ describe("UpdateBoard", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       title: ["Title is too short"],
     });
   });

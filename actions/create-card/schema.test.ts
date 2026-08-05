@@ -11,7 +11,7 @@ describe("CreateCard", () => {
       listId: "list_1",
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: {
         title: "Write tests",
@@ -29,7 +29,7 @@ describe("CreateCard", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       title: ["Title is required"],
       boardId: ["Invalid input: expected string, received undefined"],
       listId: ["Invalid input: expected string, received undefined"],
@@ -48,7 +48,7 @@ describe("CreateCard", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       title: ["Title is too short"],
     });
   });

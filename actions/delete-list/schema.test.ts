@@ -10,7 +10,7 @@ describe("DeleteList", () => {
       boardId: "board_1",
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: { id: "list_1", boardId: "board_1" },
     });
@@ -24,7 +24,7 @@ describe("DeleteList", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       id: ["Invalid input: expected string, received undefined"],
       boardId: ["Invalid input: expected string, received undefined"],
     });

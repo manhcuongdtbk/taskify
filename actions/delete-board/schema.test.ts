@@ -7,7 +7,7 @@ describe("DeleteBoard", () => {
   test("accepts a valid id", () => {
     const result = DeleteBoard.safeParse({ id: "board_1" });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: { id: "board_1" },
     });
@@ -21,7 +21,7 @@ describe("DeleteBoard", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       id: ["Invalid input: expected string, received undefined"],
     });
   });

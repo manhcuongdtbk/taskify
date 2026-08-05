@@ -10,7 +10,7 @@ describe("CreateBoard", () => {
       image: "img|thumb|full|user|html",
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: {
         title: "Roadmap",
@@ -27,7 +27,7 @@ describe("CreateBoard", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       title: ["Title is required"],
       image: ["Image is required"],
     });
@@ -44,7 +44,7 @@ describe("CreateBoard", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       title: ["Title is too short"],
     });
   });

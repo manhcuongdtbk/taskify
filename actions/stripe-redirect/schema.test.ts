@@ -6,7 +6,7 @@ describe("StripeRedirect", () => {
   test("accepts an empty object", () => {
     const result = StripeRedirect.safeParse({});
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: {},
     });
@@ -15,7 +15,7 @@ describe("StripeRedirect", () => {
   test("strips unknown keys", () => {
     const result = StripeRedirect.safeParse({ unused: true });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: {},
     });

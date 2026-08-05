@@ -780,6 +780,7 @@ const eslintConfig = defineConfig([
       ],
       "vitest/hoisted-apis-on-top": "error",
       "vitest/no-alias-methods": "error",
+      "vitest/prefer-strict-equal": "error",
       "vitest/no-test-prefixes": "error",
       "vitest/prefer-hooks-on-top": "error",
       "vitest/prefer-hooks-in-order": "error",

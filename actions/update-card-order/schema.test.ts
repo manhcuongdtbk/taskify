@@ -19,7 +19,7 @@ describe("UpdateCardOrder", () => {
       boardId: "board_1",
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       success: true,
       data: {
         items: [cardItem],
@@ -36,7 +36,7 @@ describe("UpdateCardOrder", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       items: ["Invalid input: expected array, received undefined"],
       boardId: ["Invalid input: expected string, received undefined"],
     });
@@ -53,7 +53,7 @@ describe("UpdateCardOrder", () => {
       z.flattenError(
         (result as Extract<typeof result, { success: false }>).error,
       ).fieldErrors,
-    ).toEqual({
+    ).toStrictEqual({
       items: [
         "Invalid input: expected string, received undefined",
         "Invalid input: expected number, received undefined",
