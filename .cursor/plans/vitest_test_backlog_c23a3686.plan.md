@@ -70,6 +70,10 @@ Shipped on `test/vitest-p0-pure-unit` (PR to `main`). Colocated suites cover:
 
 - Role/a11y asserts in component suites; thin leftovers; coverage/CI tighten
 
+### Follow-up (separate PR after P0)
+
+- [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) — harden Zod authoring (Zod 4–compatible rules only); tracked in [`docs/testing.md`](../../docs/testing.md) TODO. Not part of the Vitest P0 PR.
+
 ### Forever not Vitest (other tools)
 
 - E2E / visual → Playwright; Browser Mode only on decision-record triggers; Storybook = catalog later

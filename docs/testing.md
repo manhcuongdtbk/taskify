@@ -328,6 +328,7 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 - [ ] CI: run `pnpm test:run` (and optionally `pnpm test:coverage`) on PRs when suites exist
 - [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
 - [ ] Tighten `coverage.include` / thresholds once suites exist and the report is noisy — plan P4
+- [ ] **Follow-up PR (after Vitest P0):** evaluate / add [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) to harden Zod usage ([ecosystem](https://zod.dev/ecosystem)) — not in the current P0 PR; pick rules that fit Zod 4 + our `import { z } from "zod"` style ([one tool per job](./vocabulary.md#one-tool-per-job): lint aid, not a second schema stack)
 
 ## Out of scope for now
 
