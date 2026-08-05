@@ -394,8 +394,8 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 # Prefer this when inspecting modules (files and/or folders; recursive)
 pnpm test:coverage:file constants/pricing-plans.ts
 pnpm test:coverage:file lib/paths.ts lib/utils.ts
-pnpm test:coverage:file lib constants
-pnpm test:coverage:file lib/paths.test.ts actions/create-board
+pnpm test:coverage:file lib/ constants/
+pnpm test:coverage:file lib/paths.test.ts actions/create-board/
 
 # Full-suite coverage
 pnpm test:coverage
