@@ -177,7 +177,7 @@ Use **Vitest’s words** in docs, PR review, and chat — not near-synonyms from
 | **Parameterized test** | Same body, many rows — **`test.for` only** (`test.each` / `describe.each` fail ESLint)        | Interpolate the **test name** with `$field` / printf placeholders — [Parameterized Tests](https://vitest.dev/guide/learn/writing-tests.html#parameterized-tests) · [lint table](#vitest-lint--config-choices)                                                             |
 | **Test context**       | Second arg to the test fn (`{ expect, … }`) / fixtures via `test.extend`                      | Needed for concurrent snapshots; optional otherwise                                                                                                                                                                                                                       |
 | **`vi`**               | Vitest’s mocking / spying / timer API                                                         | **`vi.*` only** — never `jest.*`                                                                                                                                                                                                                                          |
-| **Mock / spy / stub**  | Test doubles via `vi.fn`, `vi.spyOn`, `vi.mock`, …                                            | Mock slow / flaky / side-effectful deps; don’t mock the unit under test — [When to Mock](https://vitest.dev/guide/learn/testing-in-practice.html#when-to-mock)                                                                                                            |
+| **Test double**        | Umbrella for stub / mock / spy — any stand-in for a real dependency                           | Not a Vitest API word. Definitions + examples: [Test doubles](#test-doubles-stub-vs-mock-vs-spy)                                                                                                                                                                          |
 | **Fake timers**        | `vi.useFakeTimers` / `vi.setSystemTime` for time-dependent code                               | Prefer over real `setTimeout` waits when asserting time                                                                                                                                                                                                                   |
 | **Snapshot**           | `toMatchSnapshot` / `toMatchInlineSnapshot`                                                   | Use sparingly; prefer explicit asserts for domain copy                                                                                                                                                                                                                    |
 | **Environment**        | Where the file runs (`node`, `jsdom`, browser provider, …)                                    | Default **jsdom** for components; pure `*.test.ts` still fine under that config                                                                                                                                                                                           |
@@ -187,6 +187,67 @@ Use **Vitest’s words** in docs, PR review, and chat — not near-synonyms from
 **Do not say “test title.”** Say **test name** (first argument to `test`) or **suite name** (first argument to `describe`).
 
 **Test type** (unit / component / E2E / …) is a **repo** word for ownership — [Test types (vocabulary)](#test-types-vocabulary) — not a Vitest API term.
+
+#### Test doubles: stub vs mock vs spy
+
+**Test double** is the umbrella word for any fake you swap in for a real dependency. Vitest’s docs call almost all of them “mocking” ([Mocking](https://vitest.dev/guide/mocking.html)) and only use “stub” for [`vi.stubEnv`](https://vitest.dev/api/vi.html#vi-stubenv) / [`vi.stubGlobal`](https://vitest.dev/api/vi.html#vi-stubglobal) — so the distinction below is **our vocabulary** for review conversations, not a Vitest API split.
+
+The three differ by **what the test does with the double**, not by which `vi.*` function created it:
+
+| Double   | Purpose                                                      | Does the double appear in an `expect`? | Typical API                                         |
+| -------- | ------------------------------------------------------------ | -------------------------------------- | --------------------------------------------------- |
+| **Stub** | Let the code **run** (satisfy an import / constructor / env) | **No** — you assert on the real output | `vi.mock` factory, `vi.stubEnv`, `vi.stubGlobal`    |
+| **Mock** | Record calls on a fake **you supplied**                      | **Yes** — `toHaveBeenCalledWith(…)`    | `vi.fn`, `vi.mock` factory returning `vi.fn()`      |
+| **Spy**  | Watch a function that **already exists** on a real object    | **Yes**                                | `vi.spyOn` (keeps real impl unless you override it) |
+
+**Stub — in this repo today.** `lib/stripe.ts` constructs a Stripe client at module load, which would demand `STRIPE_SECRET_KEY`. The fake class exists only so the import succeeds; no test mentions it:
+
+```5:11:lib/stripe.test.ts
+vi.mock("stripe", () => ({
+  default: class Stripe {
+    constructor() {
+      // Avoid needing STRIPE_SECRET_KEY when importing helpers under test.
+    }
+  },
+}));
+```
+
+The assertions target the real helpers (`toStripeUnitAmount`, `toStripeCurrency`), never the fake.
+
+**Mock — the shape our first Prisma suite will use** (plan P1, [`lib/create-audit-log.ts`](../lib/create-audit-log.ts)). Here the point _is_ the call: we verify the row we would have written, without a database.
+
+```ts
+// lib/prisma.ts exports the client as `default`
+vi.mock("@/lib/prisma", () => ({
+  default: { auditLog: { create: vi.fn() } },
+}));
+
+test("writes an audit log row for the action", async () => {
+  await createAuditLog({ entityId: "board_1", action: ACTION.CREATE /* … */ });
+
+  expect(prisma.auditLog.create).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({ entityId: "board_1" }),
+    }),
+  );
+});
+```
+
+**Spy — when the real function should stay reachable.** `vi.spyOn` wraps something that already exists, so you can assert calls and still let the original run (or replace it for one test):
+
+```ts
+const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+renderBoardList({ boards: [] });
+
+expect(warn).toHaveBeenCalledOnce();
+```
+
+**Rule of thumb:** if you can delete the double from your mental model of the assertion, it’s a **stub**. If the assertion names it, it’s a **mock** (you created the fake) or a **spy** (you wrapped an existing function).
+
+**Coverage note:** doubles live in the test file, so they never add coverage themselves. A stub can still make source lines run — importing `./stripe` with the Stripe stub executes the `new Stripe(...)` line in [`lib/stripe.ts`](../lib/stripe.ts) — but that measures **our** module, not the vendor SDK.
+
+`restoreMocks: true` ([config](#vitest-lint--config-choices)) resets spies/mocks between tests; `vi.stubEnv` / `vi.stubGlobal` need `unstubEnvs` / `unstubGlobals` or manual cleanup.
 
 #### How we name tests
 
