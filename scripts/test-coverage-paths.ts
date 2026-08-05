@@ -1,10 +1,10 @@
 /**
  * Run Vitest coverage for colocated source ↔ `*.test.*` pair(s).
  *
- *   pnpm test:coverage:file constants/pricing-plans.ts
- *   pnpm test:coverage:file lib/paths.ts lib/utils.ts
- *   pnpm test:coverage:file lib constants
- *   pnpm test:coverage:file lib/paths.test.ts actions/create-board/
+ *   pnpm test:coverage:paths constants/pricing-plans.ts
+ *   pnpm test:coverage:paths lib/paths.ts lib/utils.ts
+ *   pnpm test:coverage:paths lib constants
+ *   pnpm test:coverage:paths lib/paths.test.ts actions/create-board/
  *
  * Pass source files, test files, and/or folders (mixed OK; folders are recursive).
  * Trailing slash on folders is optional (`lib` and `lib/` are the same).
@@ -32,15 +32,15 @@ const SKIP_DIR_NAMES = new Set([
 type Pair = { source: string; test: string };
 
 function usage(): never {
-  console.error(`Usage: pnpm test:coverage:file <path> [...]
+  console.error(`Usage: pnpm test:coverage:paths <path> [...]
 
 Paths may be source files, *.test.* files, and/or folders (recursive).
 
 Examples:
-  pnpm test:coverage:file lib/paths.ts
-  pnpm test:coverage:file lib/paths.ts lib/utils.ts
-  pnpm test:coverage:file lib constants
-  pnpm test:coverage:file lib/paths.test.ts actions/create-board/
+  pnpm test:coverage:paths lib/paths.ts
+  pnpm test:coverage:paths lib/paths.ts lib/utils.ts
+  pnpm test:coverage:paths lib constants
+  pnpm test:coverage:paths lib/paths.test.ts actions/create-board/
 
 Trailing slash on folders is optional (lib and lib/ are the same).
 `);
