@@ -36,7 +36,6 @@ export default defineConfig({
       ],
       exclude: [
         "components/ui/**", // shadcn
-        "lib/testing/**", // test-only helpers, not product code
         "**/*.{test,spec}.{ts,tsx}",
       ],
     },

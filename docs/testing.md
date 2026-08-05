@@ -153,7 +153,7 @@ Helpers that exist **only** to serve suites live in [`lib/testing/`](../lib/test
 
 - **Import from suites only.** ESLint `no-restricted-imports` bans `@/lib/testing/**` everywhere except `**/*.test.{ts,tsx}` (`lib/testing/**` may import its own siblings) — [`eslint.config.mjs`](../eslint.config.mjs).
 - **Group by concern.** Nest under a library/domain folder when the helper is tied to one stack (e.g. [`lib/testing/zod/`](../lib/testing/zod/) for Zod `safeParse` helpers). Keep the `lib/testing/` root for cross-cutting helpers later (render wrappers, …) — don’t invent empty sibling folders early.
-- **Not product code.** Excluded from `coverage.include` in [`vitest.config.mts`](../vitest.config.mts) so test infrastructure doesn't move the coverage number.
+- **Cover executable helper logic.** `lib/testing/**` stays in [`vitest.config.mts`](../vitest.config.mts) coverage; test-only location controls imports, not whether branches deserve verification.
 - **Still Vitest-tested.** Each helper keeps a colocated `*.test.ts` (same colocation rule as everywhere else).
 - **Add one only when a pattern repeats.** Today: [`safe-parse-field-errors.ts`](../lib/testing/zod/safe-parse-field-errors.ts) — narrows a failed Zod `safeParse` and returns `fieldErrors`, so the 13 `actions/*/schema.test.ts` suites don't repeat an `Extract` cast. Prefer plain code in the suite until repetition is real.
 - **Not a suite folder.** `lib/testing/` holds helpers; cases stay colocated with the module under test ([`project-structure.md`](./project-structure.md)).
