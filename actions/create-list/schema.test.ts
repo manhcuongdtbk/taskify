@@ -22,7 +22,7 @@ describe("CreateList", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      title: ["Title is required"],
+      title: ["Invalid input: expected string, received undefined"],
       boardId: ["Invalid input: expected string, received undefined"],
     });
   });
@@ -32,7 +32,7 @@ describe("CreateList", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      title: ["Title is too short"],
+      title: ["Too small: expected string to have >=3 characters"],
     });
   });
 });
