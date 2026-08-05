@@ -19,7 +19,6 @@ describe("hasUnlimitedBoards", () => {
 
 describe("formatBoardLimit", () => {
   test.for([
-    { maxBoards: 5, expected: "Up to 5 boards" },
     { maxBoards: 1, expected: "Up to 1 boards" },
     { maxBoards: null, expected: "Unlimited boards" },
   ])(

@@ -3,10 +3,12 @@ import { describe, expect, test } from "vitest";
 import { paths } from "./paths";
 
 describe("paths", () => {
-  test("static routes", () => {
-    expect(paths.signIn).toBe("/sign-in");
-    expect(paths.signUp).toBe("/sign-up");
-    expect(paths.selectOrg).toBe("/select-org");
+  test.for([
+    { name: "signIn", actual: paths.signIn, expected: "/sign-in" },
+    { name: "signUp", actual: paths.signUp, expected: "/sign-up" },
+    { name: "selectOrg", actual: paths.selectOrg, expected: "/select-org" },
+  ])("static route $name", ({ actual, expected }) => {
+    expect(actual).toBe(expected);
   });
 
   test.for([
