@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CreateList } from "./schema";
 
 describe("CreateList", () => {
-  test("accepts a valid list", () => {
+  test("valid: accepts a list", () => {
     const result = CreateList.safeParse({
       title: "Todo",
       boardId: "board_1",
@@ -16,7 +16,7 @@ describe("CreateList", () => {
     });
   });
 
-  test("requires title and boardId", () => {
+  test("invalid: requires title and boardId", () => {
     const result = CreateList.safeParse({});
 
     expect(result.success).toBe(false);
@@ -30,7 +30,7 @@ describe("CreateList", () => {
     });
   });
 
-  test("rejects titles shorter than 3 characters", () => {
+  test("invalid: rejects titles shorter than 3 characters", () => {
     const result = CreateList.safeParse({ title: "ab", boardId: "board_1" });
 
     expect(result.success).toBe(false);

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CreateCard } from "./schema";
 
 describe("CreateCard", () => {
-  test("accepts a valid card", () => {
+  test("valid: accepts a card", () => {
     const result = CreateCard.safeParse({
       title: "Write tests",
       boardId: "board_1",
@@ -21,7 +21,7 @@ describe("CreateCard", () => {
     });
   });
 
-  test("requires title, boardId, and listId", () => {
+  test("invalid: requires title, boardId, and listId", () => {
     const result = CreateCard.safeParse({});
 
     expect(result.success).toBe(false);
@@ -36,7 +36,7 @@ describe("CreateCard", () => {
     });
   });
 
-  test("rejects titles shorter than 3 characters", () => {
+  test("invalid: rejects titles shorter than 3 characters", () => {
     const result = CreateCard.safeParse({
       title: "ab",
       boardId: "board_1",

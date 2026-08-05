@@ -259,10 +259,10 @@ Follow Vitest ([Descriptive Names](https://vitest.dev/guide/learn/testing-in-pra
 4. Under a `describe("fn")`, keep names short; the suite already scopes the subject.
 5. **Don’t oversample the same branch.** Cover the main contract, **boundaries**, and **error paths** — not every valid input that hits identical logic (e.g. one positive `maxBoards` is enough for `formatBoardLimit`; keep `0` / `-1` / non-integers as rejects).
 
-**Repo extras** (examples: [`constants/pricing-plans.test.ts`](../constants/pricing-plans.test.ts)):
+**Repo extras** (examples: [`constants/pricing-plans.test.ts`](../constants/pricing-plans.test.ts) · [`actions/*/schema.test.ts`](../actions/)):
 
 - Prefer **domain wording** for outcomes (`limited` / `unlimited`) over raw assertion echo (`is false` / `is true`) when both are clear.
-- When a parameterized table splits happy-path vs rejection, prefix the **test name** with **`valid:`** / **`invalid:`**, then the behavior (`valid: formats maxBoards=1 as Up to 1 boards`, `invalid: throws when maxBoards is not a positive integer (-1)`).
+- When a suite (or parameterized table) splits happy-path vs rejection, prefix the **test name** with **`valid:`** / **`invalid:`**, then the behavior — e.g. `valid: accepts a copy payload`, `invalid: requires id and boardId`, `valid: formats maxBoards=1 as Up to 1 boards`, `invalid: throws when maxBoards is not a positive integer (-1)`.
 - Interpolate case data in parameterized **test names** (`$maxBoards`, `$expected`, `$0`) so the reporter shows which row failed.
 
 ### Vitest lint & config choices

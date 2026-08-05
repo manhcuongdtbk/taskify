@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CopyCard } from "./schema";
 
 describe("CopyCard", () => {
-  test("accepts a valid copy payload", () => {
+  test("valid: accepts a copy payload", () => {
     const result = CopyCard.safeParse({
       id: "card_1",
       boardId: "board_1",
@@ -16,7 +16,7 @@ describe("CopyCard", () => {
     });
   });
 
-  test("requires id and boardId", () => {
+  test("invalid: requires id and boardId", () => {
     const result = CopyCard.safeParse({});
 
     expect(result.success).toBe(false);

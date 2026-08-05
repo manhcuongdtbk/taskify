@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CopyList } from "./schema";
 
 describe("CopyList", () => {
-  test("accepts a valid copy payload", () => {
+  test("valid: accepts a copy payload", () => {
     const result = CopyList.safeParse({
       id: "list_1",
       boardId: "board_1",
@@ -16,7 +16,7 @@ describe("CopyList", () => {
     });
   });
 
-  test("requires id and boardId", () => {
+  test("invalid: requires id and boardId", () => {
     const result = CopyList.safeParse({});
 
     expect(result.success).toBe(false);

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { DeleteList } from "./schema";
 
 describe("DeleteList", () => {
-  test("accepts a valid delete payload", () => {
+  test("valid: accepts a delete payload", () => {
     const result = DeleteList.safeParse({
       id: "list_1",
       boardId: "board_1",
@@ -16,7 +16,7 @@ describe("DeleteList", () => {
     });
   });
 
-  test("requires id and boardId", () => {
+  test("invalid: requires id and boardId", () => {
     const result = DeleteList.safeParse({});
 
     expect(result.success).toBe(false);

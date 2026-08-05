@@ -4,7 +4,7 @@ import { z } from "zod";
 import { DeleteCard } from "./schema";
 
 describe("DeleteCard", () => {
-  test("accepts a valid delete payload", () => {
+  test("valid: accepts a delete payload", () => {
     const result = DeleteCard.safeParse({
       id: "card_1",
       boardId: "board_1",
@@ -16,7 +16,7 @@ describe("DeleteCard", () => {
     });
   });
 
-  test("requires id and boardId", () => {
+  test("invalid: requires id and boardId", () => {
     const result = DeleteCard.safeParse({});
 
     expect(result.success).toBe(false);

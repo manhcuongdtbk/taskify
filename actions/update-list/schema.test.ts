@@ -4,7 +4,7 @@ import { z } from "zod";
 import { UpdateList } from "./schema";
 
 describe("UpdateList", () => {
-  test("accepts a valid update", () => {
+  test("valid: accepts an update", () => {
     const result = UpdateList.safeParse({
       title: "Doing",
       id: "list_1",
@@ -21,7 +21,7 @@ describe("UpdateList", () => {
     });
   });
 
-  test("requires title, id, and boardId", () => {
+  test("invalid: requires title, id, and boardId", () => {
     const result = UpdateList.safeParse({});
 
     expect(result.success).toBe(false);
@@ -36,7 +36,7 @@ describe("UpdateList", () => {
     });
   });
 
-  test("rejects titles shorter than 3 characters", () => {
+  test("invalid: rejects titles shorter than 3 characters", () => {
     const result = UpdateList.safeParse({
       title: "ab",
       id: "list_1",

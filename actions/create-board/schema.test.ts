@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CreateBoard } from "./schema";
 
 describe("CreateBoard", () => {
-  test("accepts a valid board", () => {
+  test("valid: accepts a board", () => {
     const result = CreateBoard.safeParse({
       title: "Roadmap",
       image: "img|thumb|full|user|html",
@@ -19,7 +19,7 @@ describe("CreateBoard", () => {
     });
   });
 
-  test("requires title and image", () => {
+  test("invalid: requires title and image", () => {
     const result = CreateBoard.safeParse({});
 
     expect(result.success).toBe(false);
@@ -33,7 +33,7 @@ describe("CreateBoard", () => {
     });
   });
 
-  test("rejects titles shorter than 3 characters", () => {
+  test("invalid: rejects titles shorter than 3 characters", () => {
     const result = CreateBoard.safeParse({
       title: "ab",
       image: "img|thumb|full|user|html",

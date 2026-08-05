@@ -13,7 +13,7 @@ const cardItem = {
 };
 
 describe("UpdateCardOrder", () => {
-  test("accepts a valid reorder payload", () => {
+  test("valid: accepts a reorder payload", () => {
     const result = UpdateCardOrder.safeParse({
       items: [cardItem],
       boardId: "board_1",
@@ -28,7 +28,7 @@ describe("UpdateCardOrder", () => {
     });
   });
 
-  test("requires items and boardId", () => {
+  test("invalid: requires items and boardId", () => {
     const result = UpdateCardOrder.safeParse({});
 
     expect(result.success).toBe(false);
@@ -42,7 +42,7 @@ describe("UpdateCardOrder", () => {
     });
   });
 
-  test("rejects items with invalid fields", () => {
+  test("invalid: rejects items with invalid fields", () => {
     const result = UpdateCardOrder.safeParse({
       items: [{ id: "card_1" }],
       boardId: "board_1",

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { DeleteBoard } from "./schema";
 
 describe("DeleteBoard", () => {
-  test("accepts a valid id", () => {
+  test("valid: accepts an id", () => {
     const result = DeleteBoard.safeParse({ id: "board_1" });
 
     expect(result).toStrictEqual({
@@ -13,7 +13,7 @@ describe("DeleteBoard", () => {
     });
   });
 
-  test("requires id", () => {
+  test("invalid: requires id", () => {
     const result = DeleteBoard.safeParse({});
 
     expect(result.success).toBe(false);
