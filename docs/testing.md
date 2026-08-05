@@ -382,27 +382,29 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 
 ## Run
 
-| Script               | When                                                                                                                                          |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm test`          | Local watch (humans)                                                                                                                          |
-| `pnpm test:run`      | One-shot — agents, CI, pre-commit checks                                                                                                      |
-| `pnpm test:coverage` | One-shot with V8 coverage report (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                           |
-| `pnpm test:inspect`  | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools) |
-
-Extra Vitest args go **after the script name**. With current pnpm, **do not** insert `--` before those args — pnpm would forward a literal `--` into Vitest, so later flags like `--coverage.include=…` are treated as filenames and ignored (and the test filter may not apply).
+| Script                    | When                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm test`               | Local watch (humans)                                                                                                                             |
+| `pnpm test:run`           | One-shot — agents, CI, pre-commit checks                                                                                                         |
+| `pnpm test:coverage`      | One-shot with V8 coverage for the whole suite (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                 |
+| `pnpm test:coverage:file` | Coverage for **one** colocated source ↔ `*.test.*` pair (pass either path) — [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) |
+| `pnpm test:inspect`       | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools)    |
 
 ```bash
-# Run one suite
+# Prefer this when inspecting one module (source or test path — same pair)
+pnpm test:coverage:file constants/pricing-plans.ts
+pnpm test:coverage:file constants/pricing-plans.test.ts
+
+# Full-suite coverage
+pnpm test:coverage
+
+# Manual Vitest filters (extra args after the script name; do not insert `--` —
+# pnpm would forward a literal `--` and break flags like --coverage.include)
 pnpm test:run lib/paths.test.ts
-
-# Coverage for that suite; report still uses coverage.include from vitest.config.mts
-pnpm test:coverage lib/paths.test.ts
-
-# Also narrow the report to one source file ([coverage.include](https://vitest.dev/config/coverage.html#coverage-include))
 pnpm test:coverage lib/paths.test.ts --coverage.include=lib/paths.ts
 ```
 
-HTML report: `coverage/index.html` (gitignored). No extra package script for this — Vitest CLI is enough ([one tool per job](./vocabulary.md#one-tool-per-job)).
+HTML report: `coverage/index.html` (gitignored).
 
 ## Debug
 
@@ -413,14 +415,15 @@ HTML report: `coverage/index.html` (gitignored). No extra package script for thi
 
 ## File map
 
-| Path                                                    | Role                                                                                                                                          |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + `setupFiles` + `*.test.*` include + `restoreMocks` + `requireAssertions` + V8 coverage                                               |
-| [`vitest.setup.ts`](../vitest.setup.ts)                 | jest-dom on Vitest `expect` — **why:** DOM asserts; see [Already following](#already-following)                                               |
-| [`eslint.config.mjs`](../eslint.config.mjs)             | `@vitest/eslint-plugin` + `eslint-plugin-jest-dom` + `eslint-plugin-testing-library` on Vitest suites ([above](#vitest-lint--config-choices)) |
-| [`package.json`](../package.json)                       | `test` scripts · Testing Library deps (`jest-dom`, `user-event`, …)                                                                           |
-| [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                                                                                                             |
-| [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                                                                                                   |
-| [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)                                                                                               |
-| `**/foo.test.ts(x)`                                     | Colocated Vitest suites (never `*.spec.*`)                                                                                                    |
-| `e2e/**/*.spec.ts(x)`                                   | Playwright only (when added; never `*.test.*`)                                                                                                |
+| Path                                                                | Role                                                                                                                                          |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`vitest.config.mts`](../vitest.config.mts)                         | Vitest + `setupFiles` + `*.test.*` include + `restoreMocks` + `requireAssertions` + V8 coverage                                               |
+| [`vitest.setup.ts`](../vitest.setup.ts)                             | jest-dom on Vitest `expect` — **why:** DOM asserts; see [Already following](#already-following)                                               |
+| [`eslint.config.mjs`](../eslint.config.mjs)                         | `@vitest/eslint-plugin` + `eslint-plugin-jest-dom` + `eslint-plugin-testing-library` on Vitest suites ([above](#vitest-lint--config-choices)) |
+| [`package.json`](../package.json)                                   | `test` scripts · `test:coverage:file` · Testing Library deps (`jest-dom`, `user-event`, …)                                                    |
+| [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) | Colocated source/test → Vitest coverage for that pair only                                                                                    |
+| [`.vscode/extensions.json`](../.vscode/extensions.json)             | `vitest.explorer`                                                                                                                             |
+| [`.vscode/launch.json`](../.vscode/launch.json)                     | Vitest debug launch configs                                                                                                                   |
+| [`AGENTS.md`](../AGENTS.md)                                         | Short agent rules (point here for the full map)                                                                                               |
+| `**/foo.test.ts(x)`                                                 | Colocated Vitest suites (never `*.spec.*`)                                                                                                    |
+| `e2e/**/*.spec.ts(x)`                                               | Playwright only (when added; never `*.test.*`)                                                                                                |
