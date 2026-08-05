@@ -774,7 +774,10 @@ const eslintConfig = defineConfig([
       "vitest/consistent-test-it": ["error", { fn: "test" }],
       "vitest/consistent-vitest-vi": ["error", { fn: "vi" }],
       "vitest/prefer-importing-vitest-globals": "error",
-      "vitest/consistent-each-for": "error",
+      "vitest/consistent-each-for": [
+        "error",
+        { test: "for", it: "for", describe: "for", suite: "for" },
+      ],
       "vitest/hoisted-apis-on-top": "error",
       "vitest/no-alias-methods": "error",
       "vitest/no-test-prefixes": "error",
