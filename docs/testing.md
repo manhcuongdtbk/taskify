@@ -382,18 +382,19 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 
 ## Run
 
-| Script                    | When                                                                                                                                             |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm test`               | Local watch (humans)                                                                                                                             |
-| `pnpm test:run`           | One-shot — agents, CI, pre-commit checks                                                                                                         |
-| `pnpm test:coverage`      | One-shot with V8 coverage for the whole suite (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                 |
-| `pnpm test:coverage:file` | Coverage for **one** colocated source ↔ `*.test.*` pair (pass either path) — [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) |
-| `pnpm test:inspect`       | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools)    |
+| Script                    | When                                                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm test`               | Local watch (humans)                                                                                                                                          |
+| `pnpm test:run`           | One-shot — agents, CI, pre-commit checks                                                                                                                      |
+| `pnpm test:coverage`      | One-shot with V8 coverage for the whole suite (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                              |
+| `pnpm test:coverage:file` | Coverage for colocated source ↔ `*.test.*` pair(s) (pass one or more source/test paths) — [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) |
+| `pnpm test:inspect`       | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools)                 |
 
 ```bash
-# Prefer this when inspecting one module (source or test path — same pair)
+# Prefer this when inspecting modules (source and/or test paths; multiple OK)
 pnpm test:coverage:file constants/pricing-plans.ts
-pnpm test:coverage:file constants/pricing-plans.test.ts
+pnpm test:coverage:file lib/paths.ts lib/utils.ts
+pnpm test:coverage:file lib/paths.test.ts constants/pricing-plans.ts
 
 # Full-suite coverage
 pnpm test:coverage
