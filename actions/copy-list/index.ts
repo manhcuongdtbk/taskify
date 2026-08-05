@@ -14,7 +14,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -29,7 +29,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     });
 
     if (!listToCopy) {
-      return { error: "List not found" };
+      return { serverError: "List not found" };
     }
 
     const lastList = await prisma.list.findFirst({
@@ -65,7 +65,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       action: ACTION.CREATE,
     });
   } catch {
-    return { error: "Failed to copy." };
+    return { serverError: "Failed to copy." };
   }
 
   revalidatePath(`/board/${boardId}`);

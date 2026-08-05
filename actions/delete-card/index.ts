@@ -14,7 +14,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -34,7 +34,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       action: ACTION.DELETE,
     });
   } catch {
-    return { error: "Failed to delete." };
+    return { serverError: "Failed to delete." };
   }
 
   revalidatePath(`/board/${boardId}`);

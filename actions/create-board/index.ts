@@ -19,7 +19,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -28,7 +28,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!canCreate && !isPro) {
     return {
-      error:
+      serverError:
         "You have reached your limit of free boards. Please upgrade to create more.",
     };
   }
@@ -46,7 +46,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     !imageUserName
   ) {
     return {
-      error: "Missing fields. Failed to create board.",
+      serverError: "Missing fields. Failed to create board.",
     };
   }
 
@@ -77,7 +77,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     });
   } catch {
     return {
-      error: "Failed to create.",
+      serverError: "Failed to create.",
     };
   }
 
