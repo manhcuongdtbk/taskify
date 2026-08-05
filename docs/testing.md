@@ -382,19 +382,20 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 
 ## Run
 
-| Script                    | When                                                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm test`               | Local watch (humans)                                                                                                                                          |
-| `pnpm test:run`           | One-shot — agents, CI, pre-commit checks                                                                                                                      |
-| `pnpm test:coverage`      | One-shot with V8 coverage for the whole suite (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                              |
-| `pnpm test:coverage:file` | Coverage for colocated source ↔ `*.test.*` pair(s) (pass one or more source/test paths) — [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) |
-| `pnpm test:inspect`       | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools)                 |
+| Script                    | When                                                                                                                                            |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm test`               | Local watch (humans)                                                                                                                            |
+| `pnpm test:run`           | One-shot — agents, CI, pre-commit checks                                                                                                        |
+| `pnpm test:coverage`      | One-shot with V8 coverage for the whole suite (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                |
+| `pnpm test:coverage:file` | Coverage for colocated source ↔ `*.test.*` pair(s) (files and/or folders) — [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) |
+| `pnpm test:inspect`       | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools)   |
 
 ```bash
-# Prefer this when inspecting modules (source and/or test paths; multiple OK)
+# Prefer this when inspecting modules (files and/or folders; recursive)
 pnpm test:coverage:file constants/pricing-plans.ts
 pnpm test:coverage:file lib/paths.ts lib/utils.ts
-pnpm test:coverage:file lib/paths.test.ts constants/pricing-plans.ts
+pnpm test:coverage:file lib constants
+pnpm test:coverage:file lib/paths.test.ts actions/create-board
 
 # Full-suite coverage
 pnpm test:coverage
@@ -422,7 +423,7 @@ HTML report: `coverage/index.html` (gitignored).
 | [`vitest.setup.ts`](../vitest.setup.ts)                             | jest-dom on Vitest `expect` — **why:** DOM asserts; see [Already following](#already-following)                                               |
 | [`eslint.config.mjs`](../eslint.config.mjs)                         | `@vitest/eslint-plugin` + `eslint-plugin-jest-dom` + `eslint-plugin-testing-library` on Vitest suites ([above](#vitest-lint--config-choices)) |
 | [`package.json`](../package.json)                                   | `test` scripts · `test:coverage:file` · Testing Library deps (`jest-dom`, `user-event`, …)                                                    |
-| [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) | Colocated source/test → Vitest coverage for that pair only                                                                                    |
+| [`scripts/test-coverage-file.ts`](../scripts/test-coverage-file.ts) | Colocated source/test (files or folders) → Vitest coverage for those pairs                                                                    |
 | [`.vscode/extensions.json`](../.vscode/extensions.json)             | `vitest.explorer`                                                                                                                             |
 | [`.vscode/launch.json`](../.vscode/launch.json)                     | Vitest debug launch configs                                                                                                                   |
 | [`AGENTS.md`](../AGENTS.md)                                         | Short agent rules (point here for the full map)                                                                                               |
