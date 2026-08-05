@@ -1,29 +1,7 @@
 import { startCase } from "es-toolkit/string";
 import { z } from "zod";
 
-export type FieldErrors<T> = {
-  [K in keyof T]: string[];
-};
-
-/** Schema issues with no field path (object `.refine()`, root schema). */
-export type FormErrors = string[];
-
-/** Handler failure: auth, not-found, persist. Shown as a toast. */
-export type ServerError = string;
-
-/**
- * Full result of a `createSafeAction`-wrapped Server Action.
- * This module fills `fieldErrors` / `formErrors` on schema failure; handlers
- * fill `serverError` / `data`. Clients consume the combined shape.
- * See docs/conventions.md.
- */
-export type ActionState<TInput, TOutput> = {
-  /** Schema issues attached to an input field. Shown under that control. */
-  fieldErrors?: FieldErrors<TInput>;
-  formErrors?: FormErrors;
-  serverError?: ServerError;
-  data?: TOutput;
-};
+import { type ActionState, type FieldErrors } from "./create-safe-action.types";
 
 const fieldLabel = (path: PropertyKey[] | undefined) => {
   const field = path?.findLast(

@@ -375,14 +375,15 @@ Use `*.types.ts` next to UI, or `actions/<name>/types.ts` for actions — same i
 
 **Trigger:** will a **second file** need `import type { … }` for this symbol? If no → stay local. If yes → make it importable.
 
-| Need                                          | Do                                                               | Example in / near this repo                                                           |
-| --------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Props only used by that component             | Local, unexported — **no** `*.types.ts`                          | `BoardTitleFormProps`, `CardItemProps`, `NavItemProps`                                |
-| Test passes props in JSX                      | Still **no** types file — props **inline**                       | `render(<BoardTitleForm data={{ … }} />)`                                             |
-| Domain entity shared widely                   | Shared module — **not** `card-item.types.ts`                     | `CardWithList` in `types.ts`; Prisma `Board`                                          |
-| Action I/O imported by callers                | `actions/<name>/types.ts`                                        | `create-board/types.ts` → `InputType`, `ReturnType`                                   |
-| Wrapper / sibling must import component props | Sibling `foo.types.ts` (not `export type` on the component file) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx` |
-| Several siblings share one shape              | One types module in the **same folder**                          | Hypothetical: `list-dnd.types.ts` used by `list-item.tsx` + `list-container.tsx`      |
+| Need                                          | Do                                                               | Example in / near this repo                                                               |
+| --------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Props only used by that component             | Local, unexported — **no** `*.types.ts`                          | `BoardTitleFormProps`, `CardItemProps`, `NavItemProps`                                    |
+| Test passes props in JSX                      | Still **no** types file — props **inline**                       | `render(<BoardTitleForm data={{ … }} />)`                                                 |
+| Domain entity shared widely                   | Shared module — **not** `card-item.types.ts`                     | `CardWithList` in `types.ts`; Prisma `Board`                                              |
+| Action I/O imported by callers                | `actions/<name>/types.ts`                                        | `create-board/types.ts` → `InputType`, `ReturnType`                                       |
+| Wrapper / sibling must import component props | Sibling `foo.types.ts` (not `export type` on the component file) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx`     |
+| Several siblings share one shape              | One types module in the **same folder**                          | Hypothetical: `list-dnd.types.ts` used by `list-item.tsx` + `list-container.tsx`          |
+| `lib/` helper contract imported widely        | Sibling `*.types.ts` (not `export type` on the helper)           | `create-safe-action.types.ts` → `ActionState`, `FieldErrors`, `FormErrors`, `ServerError` |
 
 **Sibling UI example** (only when the import is real):
 
@@ -468,7 +469,7 @@ Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaul
 
 ##### `ActionState` keys — one origin per key
 
-[`ActionState`](../lib/create-safe-action.ts) is the **full result** of a `createSafeAction`-wrapped Server Action — not “only what the validation wrapper writes.” The type lives next to the wrapper because that function **owns the contract** (validate → call handler → return one of these shapes). Keys are named after **where the failure came from**:
+[`ActionState`](../lib/create-safe-action.types.ts) is the **full result** of a `createSafeAction`-wrapped Server Action — not “only what the validation wrapper writes.” The contract lives in the sibling [`create-safe-action.types.ts`](../lib/create-safe-action.types.ts) because many modules `import type` it ([trigger](#when-sibling-types-files-are-needed)); the wrapper imports it like everyone else. Keys are named after **where the failure came from**:
 
 | Key           | Origin                                 | Who writes it      | Example                                 | UI today                                                                         |
 | ------------- | -------------------------------------- | ------------------ | --------------------------------------- | -------------------------------------------------------------------------------- |
@@ -477,13 +478,13 @@ Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaul
 | `serverError` | **Handler** — auth, not-found, persist | Action handler     | `"Unauthorized"`, `"Failed to create."` | Toast via `useAction`’s `onError`                                                |
 | `data`        | Handler success                        | Action handler     | created `Board`                         | `onSuccess`                                                                      |
 
-`FieldErrors`, `FormErrors`, and `ServerError` are exported from [`create-safe-action.ts`](../lib/create-safe-action.ts) so clients (especially [`useAction`](../hooks/use-action.ts)) share one source of truth with `ActionState`. `data` stays as the `TOutput` type parameter — no wrapper alias. (Don’t confuse the `FormErrors` _type_ with the [`FormErrors`](../components/form/form-errors.tsx) _component_.)
+`FieldErrors`, `FormErrors`, and `ServerError` live beside `ActionState` so clients ([`useAction`](../hooks/use-action.ts), every `actions/<name>/types.ts`) share one source of truth. `data` stays as the `TOutput` type parameter — no wrapper alias. (Don’t confuse the `FormErrors` _type_ with the [`FormErrors`](../components/form/form-errors.tsx) _component_.)
 
 Rules that follow from this:
 
 - Never put schema messages on `serverError`, and never put handler failures on `formErrors`. `createSafeAction` only ever sets the schema keys; only handlers set `serverError` / `data`.
 - `onError` fires for `serverError` only — it is the “action failed” toast channel, not “validation failed.”
-- Don’t split `ActionState` into a separate types module: co-locate with the contract owner. If the wrapper is replaced later, move the type with whatever owns the new contract.
+- Import the contract from the types sibling, not through the wrapper — no re-export from `create-safe-action.ts`. If the wrapper is replaced later, the types file moves with whatever owns the new contract.
 
 ##### Zod’s `formErrors` are not “the form failed”
 

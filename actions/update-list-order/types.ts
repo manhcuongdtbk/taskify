@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type ActionState } from "@/lib/create-safe-action";
+import { type ActionState } from "@/lib/create-safe-action.types";
 import { UpdateListOrder } from "./schema";
 import { type List } from "@/app/generated/prisma/client";
 

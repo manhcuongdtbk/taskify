@@ -5,7 +5,7 @@ import {
   type FieldErrors,
   type FormErrors,
   type ServerError,
-} from "@/lib/create-safe-action";
+} from "@/lib/create-safe-action.types";
 
 type Action<TInput, TOutput> = (
   data: TInput,
