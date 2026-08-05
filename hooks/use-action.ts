@@ -1,6 +1,11 @@
 import { useState, useCallback } from "react";
 
-import { type ActionState, type FieldErrors } from "@/lib/create-safe-action";
+import {
+  type ActionState,
+  type FieldErrors,
+  type FormErrors,
+  type ServerError,
+} from "@/lib/create-safe-action";
 
 type Action<TInput, TOutput> = (
   data: TInput,
@@ -8,7 +13,7 @@ type Action<TInput, TOutput> = (
 
 interface UseActionOptions<TOutput> {
   onSuccess?: (data: TOutput) => void;
-  onError?: (error: string) => void;
+  onError?: (error: ServerError) => void;
   onComplete?: () => void;
 }
 
@@ -19,8 +24,12 @@ export const useAction = <TInput, TOutput>(
   const [fieldErrors, setFieldErrors] = useState<
     FieldErrors<TInput> | undefined
   >(undefined);
-  const [formErrors, setFormErrors] = useState<string[] | undefined>(undefined);
-  const [serverError, setServerError] = useState<string | undefined>(undefined);
+  const [formErrors, setFormErrors] = useState<FormErrors | undefined>(
+    undefined,
+  );
+  const [serverError, setServerError] = useState<ServerError | undefined>(
+    undefined,
+  );
   const [data, setData] = useState<TOutput | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
 

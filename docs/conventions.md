@@ -468,19 +468,22 @@ Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaul
 
 ##### `ActionState` keys — one origin per key
 
-[`ActionState`](../lib/create-safe-action.ts) is what every wrapped Server Action returns. Keys are named after **where the failure came from**, so a reader never has to guess:
+[`ActionState`](../lib/create-safe-action.ts) is the **full result** of a `createSafeAction`-wrapped Server Action — not “only what the validation wrapper writes.” The type lives next to the wrapper because that function **owns the contract** (validate → call handler → return one of these shapes). Keys are named after **where the failure came from**:
 
-| Key           | Origin                                 | Example                                 | UI today                                                                         |
-| ------------- | -------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------- |
-| `fieldErrors` | **Schema**, issue attached to an input | `{ title: ["Missing Title"] }`          | Under the control via [`FormErrors`](../components/form/form-errors.tsx)         |
-| `formErrors`  | **Schema**, issue with no field path   | `["Start must be before end"]`          | Exposed by [`useAction`](../hooks/use-action.ts); render where the form needs it |
-| `serverError` | **Handler** — auth, not-found, persist | `"Unauthorized"`, `"Failed to create."` | Toast via `useAction`’s `onError`                                                |
-| `data`        | Handler success                        | created `Board`                         | `onSuccess`                                                                      |
+| Key           | Origin                                 | Who writes it      | Example                                 | UI today                                                                         |
+| ------------- | -------------------------------------- | ------------------ | --------------------------------------- | -------------------------------------------------------------------------------- |
+| `fieldErrors` | **Schema**, issue attached to an input | `createSafeAction` | `{ title: ["Missing Title"] }`          | Under the control via [`FormErrors`](../components/form/form-errors.tsx)         |
+| `formErrors`  | **Schema**, issue with no field path   | `createSafeAction` | `["Start must be before end"]`          | Exposed by [`useAction`](../hooks/use-action.ts); render where the form needs it |
+| `serverError` | **Handler** — auth, not-found, persist | Action handler     | `"Unauthorized"`, `"Failed to create."` | Toast via `useAction`’s `onError`                                                |
+| `data`        | Handler success                        | Action handler     | created `Board`                         | `onSuccess`                                                                      |
+
+`FieldErrors`, `FormErrors`, and `ServerError` are exported from [`create-safe-action.ts`](../lib/create-safe-action.ts) so clients (especially [`useAction`](../hooks/use-action.ts)) share one source of truth with `ActionState`. `data` stays as the `TOutput` type parameter — no wrapper alias. (Don’t confuse the `FormErrors` _type_ with the [`FormErrors`](../components/form/form-errors.tsx) _component_.)
 
 Rules that follow from this:
 
-- Never put schema messages on `serverError`, and never put handler failures on `formErrors`. `createSafeAction` only ever sets the schema keys; only handlers set `serverError`.
+- Never put schema messages on `serverError`, and never put handler failures on `formErrors`. `createSafeAction` only ever sets the schema keys; only handlers set `serverError` / `data`.
 - `onError` fires for `serverError` only — it is the “action failed” toast channel, not “validation failed.”
+- Don’t split `ActionState` into a separate types module: co-locate with the contract owner. If the wrapper is replaced later, move the type with whatever owns the new contract.
 
 ##### Zod’s `formErrors` are not “the form failed”
 
