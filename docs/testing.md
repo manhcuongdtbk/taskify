@@ -389,6 +389,21 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 | `pnpm test:coverage` | One-shot with V8 coverage report (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                           |
 | `pnpm test:inspect`  | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools) |
 
+Pass Vitest CLI args after `--` so pnpm forwards them to the script (not to pnpm itself):
+
+```bash
+pnpm test:run -- lib/paths.test.ts
+pnpm test:coverage -- lib/paths.test.ts
+```
+
+`test:coverage` still reports every path in `coverage.include` ([`vitest.config.mts`](../vitest.config.mts)); many files may show 0% when only one suite ran. Narrow the **report** with Vitest’s coverage filter:
+
+```bash
+pnpm test:coverage -- lib/paths.test.ts --coverage.include=lib/paths.ts
+```
+
+HTML report: `coverage/index.html` (gitignored). No extra package script for this — Vitest CLI is enough ([one tool per job](./vocabulary.md#one-tool-per-job)).
+
 ## Debug
 
 1. **Preferred:** Testing view → **Debug Test** (`vitest.explorer`)
