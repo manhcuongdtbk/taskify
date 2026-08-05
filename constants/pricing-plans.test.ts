@@ -8,11 +8,11 @@ import {
 } from "./pricing-plans";
 
 describe("hasUnlimitedBoards", () => {
-  test("is false for Free (numeric maxBoards)", () => {
+  test("Free plan is limited", () => {
     expect(hasUnlimitedBoards(FREE_PLAN)).toBe(false);
   });
 
-  test("is true for Pro (null maxBoards)", () => {
+  test("Pro plan is unlimited", () => {
     expect(hasUnlimitedBoards(PRO_PLAN)).toBe(true);
   });
 });
@@ -22,7 +22,17 @@ describe("formatBoardLimit", () => {
     { maxBoards: 5, expected: "Up to 5 boards" },
     { maxBoards: 1, expected: "Up to 1 boards" },
     { maxBoards: null, expected: "Unlimited boards" },
-  ])("maxBoards=$maxBoards → $expected", ({ maxBoards, expected }) => {
-    expect(formatBoardLimit(maxBoards)).toBe(expected);
-  });
+  ])(
+    "valid: formats maxBoards=$maxBoards as $expected",
+    ({ maxBoards, expected }) => {
+      expect(formatBoardLimit(maxBoards)).toBe(expected);
+    },
+  );
+
+  test.for([0, -1, 1.5, Number.NaN])(
+    "invalid: throws when maxBoards is not a positive integer ($0)",
+    (maxBoards) => {
+      expect(() => formatBoardLimit(maxBoards)).toThrow(/positive integer/i);
+    },
+  );
 });

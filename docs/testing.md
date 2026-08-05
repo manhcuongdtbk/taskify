@@ -2,10 +2,10 @@
 
 Unit / component tests, E2E, and (later) Storybook. Where each tool’s **job** starts and stops — so we don’t duplicate the same assertions in three places.
 
-|                 |                                                                                                                                                                                                                                        |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Owner / SoT** | This file — Vitest setup map, run/debug, **what to test where** (Vitest / Playwright / Storybook)                                                                                                                                      |
-| **Open when**   | Choosing a **test type** / tool, adding a test or story, changing Vitest/Playwright/Storybook config, or revisiting **jsdom vs Browser Mode** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook)) |
+|                 |                                                                                                                                                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Owner / SoT** | This file — Vitest setup map, run/debug, **what to test where** (Vitest / Playwright / Storybook), **terms & naming**                                                                                                                                                    |
+| **Open when**   | Choosing a **test type** / tool, adding a test or story, naming tests / Vitest vocabulary, changing Vitest/Playwright/Storybook config, or revisiting **jsdom vs Browser Mode** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook)) |
 
 **Implementation today:** [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (**jsdom**). **When needed:** [Playwright](https://playwright.dev) (E2E), [Storybook](https://storybook.js.org) (UI catalog). Stack rationale / learning links / switch triggers: [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook). Index: [`README.md`](./README.md). Agents: [`AGENTS.md`](../AGENTS.md).
 
@@ -99,17 +99,18 @@ Any of:
 
 ### Doc ownership (keep DRY)
 
-| Concern                                                                                | SoT file                                                                                                                                           |
-| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Test **type** → which **tool** · harness · scripts · jsdom vs Browser Mode · Storybook | **This file** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) + [what to test where](#what-to-test-where)) |
-| Mid-suffix companions (`*.test.tsx`, `*.stories.tsx`) · props-in-JSX                   | [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names)                                                               |
-| Folders (`e2e/`, avoid `tests/`, `fixtures/`)                                          | [`project-structure.md`](./project-structure.md)                                                                                                   |
-| Catalog status (Adopted / When needed) for Vitest / Playwright / MSW / Storybook       | [`conventions.md`](./conventions.md) tooling rows → link here for detail                                                                           |
-| Version-matched official docs                                                          | [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs)                                                 |
+| Concern                                                                                   | SoT file                                                                                                                                           |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Test **type** → which **tool** · harness · scripts · jsdom vs Browser Mode · Storybook    | **This file** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) + [what to test where](#what-to-test-where)) |
+| Vitest **authoring terms** (`test` **name**, suite, assertion, …) · how we **name** tests | **This file** ([Vitest terms & naming](#vitest-terms--naming))                                                                                     |
+| Mid-suffix companions (`*.test.tsx`, `*.stories.tsx`) · props-in-JSX                      | [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names)                                                               |
+| Folders (`e2e/`, avoid `tests/`, `fixtures/`)                                             | [`project-structure.md`](./project-structure.md)                                                                                                   |
+| Catalog status (Adopted / When needed) for Vitest / Playwright / MSW / Storybook          | [`conventions.md`](./conventions.md) tooling rows → link here for detail                                                                           |
+| Version-matched official docs                                                             | [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs)                                                 |
 
 ### Official docs (match installed version)
 
-Follow [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) (Vitest / Testing Library / Playwright rows). **Learning entrypoints + stack rationale:** [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) (don’t skip — Vitest’s component docs lean Browser Mode; our default is still jsdom until triggers flip). Next + Vitest install shape: [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest). Handy Vitest pages: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html).
+Follow [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) (Vitest / Testing Library / Playwright rows). **Learning entrypoints + stack rationale:** [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) (don’t skip — Vitest’s component docs lean Browser Mode; our default is still jsdom until triggers flip). Next + Vitest install shape: [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest). Handy Vitest pages: [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) (incl. [Naming Tests](https://vitest.dev/guide/learn/testing-in-practice.html#naming-tests) · [Descriptive Names](https://vitest.dev/guide/learn/testing-in-practice.html#descriptive-names)) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html) · [API: `test`](https://vitest.dev/api/#test). Repo glossary for those words: [Vitest terms & naming](#vitest-terms--naming).
 
 This page is **our** wiring. Tool exclusivity ([one tool per job](./vocabulary.md#one-tool-per-job)):
 
@@ -156,6 +157,51 @@ When fixing a bug in code that Vitest owns ([what to test where](#what-to-test-w
 Do **not** “fix” by weakening assertions or deleting the repro. Prefer real behavior over mocks unless the dependency is slow/flaky/side-effectful ([Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests)).
 
 If the bug needs the real app (Clerk, Stripe Checkout UI, async RSC, multi-page flows), use Playwright when added — don’t force a Vitest suite for that class of bug.
+
+### Vitest terms & naming
+
+Use **Vitest’s words** in docs, PR review, and chat — not near-synonyms from other runners. Match the installed major ([`conventions.md`](./conventions.md#match-installed-official-docs)). Authoring SoT: [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) · [API](https://vitest.dev/api/).
+
+#### Core terms
+
+| Term                   | What Vitest means                                                                             | Notes for this repo                                                                                                                                                                                                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Test**               | One case defined with `test(…)` (or alias `it`)                                               | We use **`test` only** (`consistent-test-it`) — [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html)                                                                                                                                                        |
+| **Test name**          | The string (or function whose `.name` is used) passed as the first argument to **`test`**     | Official term is **name**, not “title”. Applies to **`test` only** — not to `describe`. API: [`test`](https://vitest.dev/api/#test) · [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) (“Each test has a **name**…”)                                    |
+| **Suite**              | A named group of tests created with `describe`                                                | Prefer one `describe` per unit under test; keep nesting shallow — [Grouping with describe](https://vitest.dev/guide/learn/writing-tests.html#grouping-tests-with-describe) · [Organizing](https://vitest.dev/guide/learn/testing-in-practice.html#grouping-with-describe) |
+| **Suite name**         | The string (or function whose `.name` is used) passed as the first argument to **`describe`** | Names the suite in the reporter (`file > suite > test`). Do **not** call this a “test name.”                                                                                                                                                                              |
+| **Assertion**          | A check via `expect(…)` (and matchers)                                                        | At least one per test — we set `expect.requireAssertions: true`                                                                                                                                                                                                           |
+| **Matcher**            | The expectation method (`toBe`, `toEqual`, `toThrow`, …; jest-dom adds DOM matchers)          | Prefer jest-dom matchers in component tests                                                                                                                                                                                                                               |
+| **Test file**          | A file Vitest collects (our include: colocated `*.test.*` only)                               | Never `*.spec.*` for Vitest; never suite folders — see [lint & config](#vitest-lint--config-choices)                                                                                                                                                                      |
+| **Hook**               | Lifecycle helpers: `beforeEach` / `afterEach` / `beforeAll` / `afterAll`                      | Prefer fresh setup per test when cheap; hooks when repetition hurts                                                                                                                                                                                                       |
+| **Parameterized test** | Same body, many rows — prefer **`test.for`** (not `test.each`)                                | Interpolate the **test name** with `$field` / printf placeholders — [Parameterized Tests](https://vitest.dev/guide/learn/writing-tests.html#parameterized-tests)                                                                                                          |
+| **Test context**       | Second arg to the test fn (`{ expect, … }`) / fixtures via `test.extend`                      | Needed for concurrent snapshots; optional otherwise                                                                                                                                                                                                                       |
+| **`vi`**               | Vitest’s mocking / spying / timer API                                                         | **`vi.*` only** — never `jest.*`                                                                                                                                                                                                                                          |
+| **Mock / spy / stub**  | Test doubles via `vi.fn`, `vi.spyOn`, `vi.mock`, …                                            | Mock slow / flaky / side-effectful deps; don’t mock the unit under test — [When to Mock](https://vitest.dev/guide/learn/testing-in-practice.html#when-to-mock)                                                                                                            |
+| **Fake timers**        | `vi.useFakeTimers` / `vi.setSystemTime` for time-dependent code                               | Prefer over real `setTimeout` waits when asserting time                                                                                                                                                                                                                   |
+| **Snapshot**           | `toMatchSnapshot` / `toMatchInlineSnapshot`                                                   | Use sparingly; prefer explicit asserts for domain copy                                                                                                                                                                                                                    |
+| **Environment**        | Where the file runs (`node`, `jsdom`, browser provider, …)                                    | Default **jsdom** for components; pure `*.test.ts` still fine under that config                                                                                                                                                                                           |
+| **Coverage**           | Which source lines ran under tests (`v8` provider here)                                       | `pnpm test:coverage` · scoped: `pnpm test:coverage:paths`                                                                                                                                                                                                                 |
+| **Reporter**           | How results are printed / exported                                                            | Default terminal output is enough locally; CI may add more later                                                                                                                                                                                                          |
+
+**Do not say “test title.”** Say **test name** (first argument to `test`) or **suite name** (first argument to `describe`).
+
+**Test type** (unit / component / E2E / …) is a **repo** word for ownership — [Test types (vocabulary)](#test-types-vocabulary) — not a Vitest API term.
+
+#### How we name tests
+
+Follow Vitest ([Descriptive Names](https://vitest.dev/guide/learn/testing-in-practice.html#descriptive-names) · [Naming Tests](https://vitest.dev/guide/learn/testing-in-practice.html#naming-tests)):
+
+1. Describe **behavior / outcome**, not implementation (`"Free plan is limited"`, not `"calls hasUnlimitedBoards with FREE_PLAN"`).
+2. When the test fails, the **test name** alone should say what broke — output should read like a **specification** of the module.
+3. **One behavior per test.** “And” in a name usually means split.
+4. Under a `describe("fn")`, keep names short; the suite already scopes the subject.
+
+**Repo extras** (examples: [`constants/pricing-plans.test.ts`](../constants/pricing-plans.test.ts)):
+
+- Prefer **domain wording** for outcomes (`limited` / `unlimited`) over raw assertion echo (`is false` / `is true`) when both are clear.
+- When a parameterized table splits happy-path vs rejection, prefix the **test name** with **`valid:`** / **`invalid:`**, then the behavior (`valid: formats maxBoards=5 as Up to 5 boards`, `invalid: throws when maxBoards is not a positive integer (-1)`).
+- Interpolate case data in parameterized **test names** (`$maxBoards`, `$expected`, `$0`) so the reporter shows which row failed.
 
 ### Vitest lint & config choices
 

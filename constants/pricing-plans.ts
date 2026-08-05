@@ -11,12 +11,13 @@ import { USD } from "dinero.js/currencies";
  *
  * ## `maxBoards`
  *
- * - A **number** — that pricing plan is capped (e.g. Free allows 5 boards).
+ * - A **positive integer** (≥ 1) — that pricing plan is capped (e.g. Free allows 5 boards).
  * - **`null`** — that pricing plan has **unlimited** boards (Pro today).
  *
- * Call sites should use `hasUnlimitedBoards(plan)` (or `formatBoardLimit`) —
- * not hardcode “Unlimited” from the plan id, and not re-check `maxBoards === null`
- * inline.
+ * Never use `0` or a negative number as a “cap” — entitlement math treats the value as an
+ * upper bound (`count < maxBoards`). Call sites should use `hasUnlimitedBoards(plan)`
+ * (or `formatBoardLimit`) — not hardcode “Unlimited” from the plan id, and not re-check
+ * `maxBoards === null` inline.
  * Pro’s value is `null` on purpose so UI/limits read the same field as Free;
  * a future paid pricing plan can switch to a number without inventing a second
  * convention.
@@ -49,7 +50,7 @@ export type PlanId = (typeof PLAN_IDS)[keyof typeof PLAN_IDS];
 type FreePlan = {
   id: typeof PLAN_IDS.free;
   name: "Free";
-  /** Max boards allowed on the Free pricing plan. */
+  /** Max boards allowed on the Free pricing plan (positive integer ≥ 1). */
   maxBoards: number;
 };
 
@@ -93,6 +94,21 @@ export const PLANS = {
 export const FREE_PLAN = PLANS.free;
 export const PRO_PLAN = PLANS.pro;
 
+/** Capped plans only — rejects 0, negatives, and non-integers. */
+function assertPositiveMaxBoards(maxBoards: number): void {
+  if (!Number.isInteger(maxBoards) || maxBoards < 1) {
+    throw new Error(
+      `maxBoards must be a positive integer (≥ 1), got ${String(maxBoards)}`,
+    );
+  }
+}
+
+for (const plan of Object.values(PLANS)) {
+  if (plan.maxBoards !== null) {
+    assertPositiveMaxBoards(plan.maxBoards);
+  }
+}
+
 /**
  * Whether a pricing plan allows unlimited boards.
  * True iff `maxBoards === null` (see module header “maxBoards”).
@@ -105,11 +121,12 @@ export const hasUnlimitedBoards = (plan: {
 
 /**
  * UI copy for a pricing plan’s board cap.
- * `null` → “Unlimited boards”; otherwise “Up to N boards”.
+ * `null` → “Unlimited boards”; otherwise “Up to N boards” (N must be a positive integer).
  */
 export const formatBoardLimit = (maxBoards: number | null): string => {
   if (maxBoards === null) {
     return "Unlimited boards";
   }
+  assertPositiveMaxBoards(maxBoards);
   return `Up to ${maxBoards} boards`;
 };
