@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+
+import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
 
 import { CreateBoard } from "./schema";
 
@@ -23,11 +24,7 @@ describe("CreateBoard", () => {
     const result = CreateBoard.safeParse({});
 
     expect(result.success).toBe(false);
-    expect(
-      z.flattenError(
-        (result as Extract<typeof result, { success: false }>).error,
-      ).fieldErrors,
-    ).toStrictEqual({
+    expect(safeParseFieldErrors(result)).toStrictEqual({
       title: ["Title is required"],
       image: ["Image is required"],
     });
@@ -40,11 +37,7 @@ describe("CreateBoard", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(
-      z.flattenError(
-        (result as Extract<typeof result, { success: false }>).error,
-      ).fieldErrors,
-    ).toStrictEqual({
+    expect(safeParseFieldErrors(result)).toStrictEqual({
       title: ["Title is too short"],
     });
   });

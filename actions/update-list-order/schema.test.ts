@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+
+import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
 
 import { UpdateListOrder } from "./schema";
 
@@ -31,11 +32,7 @@ describe("UpdateListOrder", () => {
     const result = UpdateListOrder.safeParse({});
 
     expect(result.success).toBe(false);
-    expect(
-      z.flattenError(
-        (result as Extract<typeof result, { success: false }>).error,
-      ).fieldErrors,
-    ).toStrictEqual({
+    expect(safeParseFieldErrors(result)).toStrictEqual({
       items: ["Invalid input: expected array, received undefined"],
       boardId: ["Invalid input: expected string, received undefined"],
     });
@@ -48,11 +45,7 @@ describe("UpdateListOrder", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(
-      z.flattenError(
-        (result as Extract<typeof result, { success: false }>).error,
-      ).fieldErrors,
-    ).toStrictEqual({
+    expect(safeParseFieldErrors(result)).toStrictEqual({
       items: [
         "Invalid input: expected string, received undefined",
         "Invalid input: expected number, received undefined",

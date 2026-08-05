@@ -209,19 +209,62 @@ const noZustandImportPatterns = [
   },
 ];
 
+/** `lib/testing/**` is Vitest-suite infrastructure — never shipped app code. */
+const testOnlyImportPatterns = [
+  {
+    group: [
+      "@/lib/testing",
+      "@/lib/testing/*",
+      "@/lib/testing/**",
+      "**/lib/testing/*",
+      "**/lib/testing/**",
+    ],
+    message:
+      "lib/testing/** is test-only: import it from *.test.* files. See docs/testing.md.",
+  },
+];
+
 /** Lodash/Underscore banned everywhere we lint (es-toolkit is the utility lib). */
 const noLodashImport = {
   "no-restricted-imports": [
     "error",
     {
       paths: [...noLodashImportPaths, ...noZustandImportPaths],
-      patterns: [...noLodashImportPatterns, ...noZustandImportPatterns],
+      patterns: [
+        ...noLodashImportPatterns,
+        ...noZustandImportPatterns,
+        ...testOnlyImportPatterns,
+      ],
     },
   ],
 };
 
 /** Prefer React 19 ref-as-prop; also re-state Lodash + Zustand-location bans. */
 const noForwardRefImport = {
+  "no-restricted-imports": [
+    "error",
+    {
+      paths: [
+        {
+          name: "react",
+          importNames: ["forwardRef"],
+          message:
+            "Pass `ref` as a normal prop (React 19). Do not use forwardRef. See docs/conventions.md.",
+        },
+        ...noLodashImportPaths,
+        ...noZustandImportPaths,
+      ],
+      patterns: [
+        ...noLodashImportPatterns,
+        ...noZustandImportPatterns,
+        ...testOnlyImportPatterns,
+      ],
+    },
+  ],
+};
+
+/** Same as `noForwardRefImport`, minus the test-only ban — for `lib/testing/**` itself. */
+const noForwardRefImportAllowTestOnly = {
   "no-restricted-imports": [
     "error",
     {
@@ -254,7 +297,7 @@ const noForwardRefImportAllowZustand = {
         },
         ...noLodashImportPaths,
       ],
-      patterns: noLodashImportPatterns,
+      patterns: [...noLodashImportPatterns, ...testOnlyImportPatterns],
     },
   ],
 };
@@ -640,6 +683,14 @@ const eslintConfig = defineConfig([
     files: ["lib/create-store.ts"],
     rules: {
       ...noForwardRefImportAllowZustand,
+    },
+  },
+
+  // Test-only helpers: may import each other; app code may not import them — docs/testing.md
+  {
+    files: ["lib/testing/**/*.{ts,tsx}"],
+    rules: {
+      ...noForwardRefImportAllowTestOnly,
     },
   },
 

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+
+import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
 
 import { UpdateCard } from "./schema";
 
@@ -39,11 +40,7 @@ describe("UpdateCard", () => {
     const result = UpdateCard.safeParse({});
 
     expect(result.success).toBe(false);
-    expect(
-      z.flattenError(
-        (result as Extract<typeof result, { success: false }>).error,
-      ).fieldErrors,
-    ).toStrictEqual({
+    expect(safeParseFieldErrors(result)).toStrictEqual({
       boardId: ["Invalid input: expected string, received undefined"],
       id: ["Invalid input: expected string, received undefined"],
     });
@@ -58,11 +55,7 @@ describe("UpdateCard", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(
-      z.flattenError(
-        (result as Extract<typeof result, { success: false }>).error,
-      ).fieldErrors,
-    ).toStrictEqual({
+    expect(safeParseFieldErrors(result)).toStrictEqual({
       title: ["Title is too short"],
       description: ["Description is too short"],
     });
