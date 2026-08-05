@@ -391,10 +391,11 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 | `pnpm test:inspect`       | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools)   |
 
 ```bash
-# Prefer this when inspecting modules (files and/or folders; recursive)
+# Prefer this when inspecting modules (files and/or folders; recursive).
+# Trailing slash on folders is optional (`lib` and `lib/` are the same).
 pnpm test:coverage:file constants/pricing-plans.ts
 pnpm test:coverage:file lib/paths.ts lib/utils.ts
-pnpm test:coverage:file lib/ constants/
+pnpm test:coverage:file lib constants
 pnpm test:coverage:file lib/paths.test.ts actions/create-board/
 
 # Full-suite coverage
