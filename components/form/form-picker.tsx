@@ -9,12 +9,13 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { defaultImages } from "@/constants/images";
 import { type BoardImageInput } from "@/actions/create-board/types";
+import { type FieldErrors } from "@/lib/create-safe-action.types";
 import { FormErrors } from "./form-errors";
 
 interface FormPickerProps {
   selectedImage?: BoardImageInput;
   onSelect: (image: BoardImageInput) => void;
-  errors?: Record<string, string[] | undefined>;
+  errors?: FieldErrors;
 }
 
 export const FormPicker = ({

@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { type FieldErrors } from "@/lib/create-safe-action.types";
 import { FormErrors } from "./form-errors";
 
 interface FormInputProps {
@@ -14,7 +15,7 @@ interface FormInputProps {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-  errors?: Record<string, string[] | undefined>;
+  errors?: FieldErrors;
   className?: string;
   defaultValue?: string;
   onBlur?: () => void;

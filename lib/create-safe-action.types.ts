@@ -3,8 +3,11 @@ import { type z } from "zod";
 /**
  * Per-field schema issues from `z.flattenError(…).fieldErrors`.
  * Aliased so ActionState stays aligned with Zod’s flatten shape (optional keys).
+ * Default `T` is for form controls that key by string `id`; action results still
+ * pass a concrete input type (`FieldErrors<TInput>`).
  */
-export type FieldErrors<T> = z.core.$ZodFlattenedError<T>["fieldErrors"];
+export type FieldErrors<T = Record<string, unknown>> =
+  z.core.$ZodFlattenedError<T>["fieldErrors"];
 
 /** Schema issues with no field path (object `.refine()`, root schema). */
 export type FormErrors = string[];

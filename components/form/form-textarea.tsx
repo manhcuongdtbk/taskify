@@ -4,6 +4,7 @@ import { type ComponentRef, type KeyboardEventHandler, type Ref } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { type FieldErrors } from "@/lib/create-safe-action.types";
 import { FormErrors } from "./form-errors";
 import { useFormStatus } from "react-dom";
 
@@ -13,7 +14,7 @@ interface FormTextareaProps {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-  errors?: Record<string, string[] | undefined>;
+  errors?: FieldErrors;
   className?: string;
   onBlur?: () => void;
   onClick?: () => void;
