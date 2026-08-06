@@ -16,15 +16,29 @@ export type FormErrors = string[];
 export type ServerError = string;
 
 /**
- * Full result of a `createSafeAction`-wrapped Server Action.
- * The wrapper fills `fieldErrors` / `formErrors` on schema failure; handlers
- * fill `serverError` / `data`. Clients consume the combined shape.
- * See docs/conventions.md.
+ * Schema phase of an action result — written by `createSafeAction` when
+ * `safeParse` fails. `fieldErrors` + `formErrors` are a pair (Zod flatten).
  */
-export type ActionState<TInput, TOutput> = {
+export type SchemaActionErrors<TInput> = {
   /** Schema issues attached to an input field. Shown under that control. */
   fieldErrors?: FieldErrors<TInput>;
   formErrors?: FormErrors;
+};
+
+/**
+ * Handler phase of an action result — written by the action handler after
+ * validation succeeds. `serverError` + `data` are a pair (failure vs success).
+ */
+export type HandlerActionResult<TOutput> = {
   serverError?: ServerError;
   data?: TOutput;
 };
+
+/**
+ * Full result of a `createSafeAction`-wrapped Server Action: schema errors
+ * intersected with handler result so clients (`useAction`) consume one bag.
+ * Runtime fills one phase at a time — not a discriminated union (yet).
+ * See docs/conventions.md.
+ */
+export type ActionState<TInput, TOutput> = SchemaActionErrors<TInput> &
+  HandlerActionResult<TOutput>;

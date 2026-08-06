@@ -376,15 +376,15 @@ Use `*.types.ts` next to UI, or `actions/<name>/types.ts` for actions — same i
 
 **Trigger:** will a **second file** need `import type { … }` for this symbol? If no → stay local. If yes → make it importable.
 
-| Need                                          | Do                                                               | Example in / near this repo                                                               |
-| --------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Props only used by that component             | Local, unexported — **no** `*.types.ts`                          | `BoardTitleFormProps`, `CardItemProps`, `NavItemProps`                                    |
-| Test passes props in JSX                      | Still **no** types file — props **inline**                       | `render(<BoardTitleForm data={{ … }} />)`                                                 |
-| Domain entity shared widely                   | Shared module — **not** `card-item.types.ts`                     | `CardWithList` in `types.ts`; Prisma `Board`                                              |
-| Action I/O imported by callers                | `actions/<name>/types.ts`                                        | `create-board/types.ts` → `InputType`, `ReturnType`                                       |
-| Wrapper / sibling must import component props | Sibling `foo.types.ts` (not `export type` on the component file) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx`     |
-| Several siblings share one shape              | One types module in the **same folder**                          | Hypothetical: `list-dnd.types.ts` used by `list-item.tsx` + `list-container.tsx`          |
-| `lib/` helper contract imported widely        | Sibling `*.types.ts` (not `export type` on the helper)           | `create-safe-action.types.ts` → `ActionState`, `FieldErrors`, `FormErrors`, `ServerError` |
+| Need                                          | Do                                                               | Example in / near this repo                                                                                                              |
+| --------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Props only used by that component             | Local, unexported — **no** `*.types.ts`                          | `BoardTitleFormProps`, `CardItemProps`, `NavItemProps`                                                                                   |
+| Test passes props in JSX                      | Still **no** types file — props **inline**                       | `render(<BoardTitleForm data={{ … }} />)`                                                                                                |
+| Domain entity shared widely                   | Shared module — **not** `card-item.types.ts`                     | `CardWithList` in `types.ts`; Prisma `Board`                                                                                             |
+| Action I/O imported by callers                | `actions/<name>/types.ts`                                        | `create-board/types.ts` → `InputType`, `ReturnType`                                                                                      |
+| Wrapper / sibling must import component props | Sibling `foo.types.ts` (not `export type` on the component file) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx`                                                    |
+| Several siblings share one shape              | One types module in the **same folder**                          | Hypothetical: `list-dnd.types.ts` used by `list-item.tsx` + `list-container.tsx`                                                         |
+| `lib/` helper contract imported widely        | Sibling `*.types.ts` (not `export type` on the helper)           | `create-safe-action.types.ts` → `ActionState` (`SchemaActionErrors` ∩ `HandlerActionResult`), `FieldErrors`, `FormErrors`, `ServerError` |
 
 **Sibling UI example** (only when the import is real):
 
@@ -470,7 +470,14 @@ Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaul
 
 ##### `ActionState` keys — one origin per key
 
-[`ActionState`](../lib/create-safe-action.types.ts) is the **full result** of a `createSafeAction`-wrapped Server Action — not “only what the validation wrapper writes.” The contract lives in the sibling [`create-safe-action.types.ts`](../lib/create-safe-action.types.ts) because many modules `import type` it ([trigger](#when-sibling-types-files-are-needed)); the wrapper imports it like everyone else. Keys are named after **where the failure came from**:
+[`ActionState`](../lib/create-safe-action.types.ts) is the **full result** of a `createSafeAction`-wrapped Server Action — not “only what the validation wrapper writes.” The contract lives in the sibling [`create-safe-action.types.ts`](../lib/create-safe-action.types.ts) because many modules `import type` it ([trigger](#when-sibling-types-files-are-needed)); the wrapper imports it like everyone else.
+
+It is composed as **two phase pairs** intersected into one bag (same runtime shape `useAction` already consumes; not a discriminated union):
+
+- [`SchemaActionErrors`](../lib/create-safe-action.types.ts) — `fieldErrors` + `formErrors` (Zod flatten; written by `createSafeAction`)
+- [`HandlerActionResult`](../lib/create-safe-action.types.ts) — `serverError` + `data` (written by the handler)
+
+Keys are named after **where the failure came from**:
 
 | Key           | Origin                                 | Who writes it      | Example                                 | UI today                                                                         |
 | ------------- | -------------------------------------- | ------------------ | --------------------------------------- | -------------------------------------------------------------------------------- |
