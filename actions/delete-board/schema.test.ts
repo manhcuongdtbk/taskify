@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
+import { invalidTypeString } from "@/lib/testing/zod/default-issue-messages";
 
 import { DeleteBoard } from "./schema";
 
@@ -19,7 +20,7 @@ describe("DeleteBoard", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      id: ["Invalid input: expected string, received undefined"],
+      id: [invalidTypeString],
     });
   });
 });

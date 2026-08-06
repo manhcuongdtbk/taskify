@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { z } from "zod";
 
 import { safeParseFieldErrors } from "./safe-parse-field-errors";
+import { invalidTypeString } from "./default-issue-messages";
 
 const Schema = z.object({
   id: z.string(),
@@ -13,7 +14,7 @@ describe("safeParseFieldErrors", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      id: ["Invalid input: expected string, received undefined"],
+      id: [invalidTypeString],
     });
   });
 

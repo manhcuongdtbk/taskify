@@ -2,6 +2,10 @@ import { describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 
 import { createSafeAction } from "./create-safe-action";
+import {
+  tooSmallNumber,
+  tooBigString,
+} from "@/lib/testing/zod/default-issue-messages";
 
 const Schema = z.object({
   title: z.string().min(3),
@@ -120,13 +124,13 @@ describe("createSafeAction", () => {
       case: "a string that is too long",
       schema: z.object({ title: z.string().max(3) }),
       input: { title: "Roadmap" },
-      expected: { title: ["Too big: expected string to have <=3 characters"] },
+      expected: { title: [tooBigString(3)] },
     },
     {
       case: "a number below its minimum",
       schema: z.object({ order: z.number().min(3) }),
       input: { order: 1 },
-      expected: { order: ["Too small: expected number to be >=3"] },
+      expected: { order: [tooSmallNumber(3)] },
     },
   ])(
     "invalid: keeps Zod's message for $case",

@@ -1,6 +1,12 @@
 import { describe, expect, test } from "vitest";
 
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
+import {
+  invalidFormatUrl,
+  invalidTypeObject,
+  invalidTypeString,
+  tooSmallString,
+} from "@/lib/testing/zod/default-issue-messages";
 
 import { CreateBoard } from "./schema";
 
@@ -28,8 +34,8 @@ describe("CreateBoard", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      title: ["Invalid input: expected string, received undefined"],
-      image: ["Invalid input: expected object, received undefined"],
+      title: [invalidTypeString],
+      image: [invalidTypeObject],
     });
   });
 
@@ -38,7 +44,7 @@ describe("CreateBoard", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      title: ["Too small: expected string to have >=3 characters"],
+      title: [tooSmallString(3)],
     });
   });
 
@@ -50,7 +56,7 @@ describe("CreateBoard", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      image: ["Too small: expected string to have >=1 characters"],
+      image: [tooSmallString(1)],
     });
   });
 
@@ -69,7 +75,7 @@ describe("CreateBoard", () => {
 
       expect(result.success).toBe(false);
       expect(safeParseFieldErrors(result)).toStrictEqual({
-        image: ["Invalid URL"],
+        image: [invalidFormatUrl],
       });
     },
   );

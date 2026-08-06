@@ -1,6 +1,10 @@
 import { describe, expect, test } from "vitest";
 
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
+import {
+  invalidTypeString,
+  tooSmallString,
+} from "@/lib/testing/zod/default-issue-messages";
 
 import { UpdateCard } from "./schema";
 
@@ -41,8 +45,8 @@ describe("UpdateCard", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      boardId: ["Invalid input: expected string, received undefined"],
-      id: ["Invalid input: expected string, received undefined"],
+      boardId: [invalidTypeString],
+      id: [invalidTypeString],
     });
   });
 
@@ -56,8 +60,8 @@ describe("UpdateCard", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      title: ["Too small: expected string to have >=3 characters"],
-      description: ["Too small: expected string to have >=3 characters"],
+      title: [tooSmallString(3)],
+      description: [tooSmallString(3)],
     });
   });
 });

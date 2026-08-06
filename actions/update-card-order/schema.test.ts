@@ -1,6 +1,12 @@
 import { describe, expect, test } from "vitest";
 
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
+import {
+  invalidTypeArray,
+  invalidTypeDate,
+  invalidTypeNumber,
+  invalidTypeString,
+} from "@/lib/testing/zod/default-issue-messages";
 
 import { UpdateCardOrder } from "./schema";
 
@@ -34,8 +40,8 @@ describe("UpdateCardOrder", () => {
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
-      items: ["Invalid input: expected array, received undefined"],
-      boardId: ["Invalid input: expected string, received undefined"],
+      items: [invalidTypeArray],
+      boardId: [invalidTypeString],
     });
   });
 
@@ -48,11 +54,11 @@ describe("UpdateCardOrder", () => {
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
       items: [
-        "Invalid input: expected string, received undefined",
-        "Invalid input: expected number, received undefined",
-        "Invalid input: expected string, received undefined",
-        "Invalid input: expected date, received undefined",
-        "Invalid input: expected date, received undefined",
+        invalidTypeString,
+        invalidTypeNumber,
+        invalidTypeString,
+        invalidTypeDate,
+        invalidTypeDate,
       ],
     });
   });
