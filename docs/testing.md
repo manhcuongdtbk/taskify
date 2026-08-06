@@ -228,7 +228,7 @@ vi.mock("stripe", () => ({
 
 The assertions target the real helpers (`toStripeUnitAmount`, `toStripeCurrency`), never the fake.
 
-**Mock — the shape our first Prisma suite will use** (plan P1, [`lib/create-audit-log.ts`](../lib/create-audit-log.ts)). Here the point _is_ the call: we verify the row we would have written, without a database.
+**Mock — the shape our first Prisma suite uses** ([`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts)). Here the point _is_ the call: we verify the row we would have written, without a database.
 
 ```ts
 // lib/prisma.ts exports the client as `default`
@@ -332,7 +332,8 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 
 ## TODO
 
-- [x] First colocated suite(s) — pure `lib/` helpers + Zod `actions/*/schema.ts` (P0). Remaining Vitest backlog (P1 mocked I/O / stores / `use-action`, P2 components, P3 MSW + reorder, P4 polish): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
+- [x] First colocated suite(s) — pure `lib/` helpers + Zod `actions/*/schema.ts` (P0).
+- [x] Mocked I/O / stores / `use-action` / first Prisma Client mock (`create-audit-log`) (P1). Remaining Vitest backlog (P2 components, P3 MSW + reorder, P4 polish): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
 - [ ] Client component suites (jest-dom for DOM asserts; `userEvent.setup()` for interactions) — plan P2
 - [ ] Drop `vite-tsconfig-paths` for Vite native `resolve.tsconfigPaths` if the deprecation warning stays noisy
 - [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md) · plan P3
@@ -485,7 +486,7 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 
 **Do not add `"type": "module"` to root [`package.json`](../package.json)** to “match” Prisma blog samples. Those samples are bare Node/Vitest packages. This app relies on Next.js, Vitest/Vite, and `node --import tsx` for scripts; forcing package-wide ESM can break CJS assumptions. Revisit only if a concrete Node entrypoint fails without it.
 
-**Not yet:** Client-mock suites / `lib/__mocks__/prisma.ts` — add with the first Client-using unit test (plan P1 / `create-audit-log`), not for types-only helpers.
+**Landed:** Client mock via inline `vi.mock` factory in [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) (no `lib/__mocks__/prisma.ts` yet — add that file if multiple suites need the same stub). Types-only helpers still skip Client mocks.
 
 ### Storybook (when needed)
 

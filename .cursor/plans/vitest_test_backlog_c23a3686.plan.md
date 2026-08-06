@@ -1,6 +1,6 @@
 ---
 name: Vitest test backlog
-overview: "P0 done on test/vitest-p0-pure-unit (PR #5): pure unit suites, Zod test helpers, createSafeAction unit coverage, ActionState/FieldErrors, nested CreateBoard.image + cssUrl. Remaining: P1–P4 (mocked I/O beyond createSafeAction, components incl. FormPicker a11y + FormPopover controlled-title TDD + FormData.get as-string cleanup, MSW, polish)."
+overview: "P0 (PR #5) + P1 done on test/vitest-p1-mocked-unit: fetcher, env, 3 Zustand stores, use-action, create-audit-log (Clerk + Prisma vi.mock factories). Remaining: P2–P4 (components incl. FormPicker a11y + FormPopover controlled-title TDD + FormData.get as-string cleanup, MSW, polish)."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
@@ -12,8 +12,8 @@ todos:
     content: Self-review the P0 diff, then push and open PR to main
     status: completed
   - id: p1-mocked-unit
-    content: "TODO later — P1: fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock via Vitest vi.mock factory or lib/__mocks__/prisma (no vitest-mock-extended by default) for create-audit-log. create-safe-action unit suite already shipped in P0 PR."
-    status: pending
+    content: "P1: fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock (vi.mock factory) for create-audit-log + Clerk mocks; pnpm test:run green"
+    status: completed
   - id: p2-components
     content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces"
     status: pending
@@ -80,15 +80,25 @@ Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldError
 
 ---
 
+## P1 — Done: unit with mocks + client state
+
+Shipped on `test/vitest-p1-mocked-unit`. Colocated suites:
+
+| Target                                                                           | Assert / change                                                                                  |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [`lib/fetcher.ts`](../../lib/fetcher.ts)                                         | Stub `fetch`: ok → JSON body; `!ok` throws with status + statusText                              |
+| [`lib/env.ts`](../../lib/env.ts)                                                 | `stubEnv` + `resetModules`: development / production / test NODE_ENV flags                       |
+| [`stores/use-pro-modal-store.ts`](../../stores/use-pro-modal-store.ts)           | `getState()` open / close                                                                        |
+| [`stores/use-mobile-sidebar-store.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                             |
+| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)         | open sets id; close clears; second open replaces id                                              |
+| [`hooks/use-action.ts`](../../hooks/use-action.ts)                               | `renderHook`: success / serverError / field+form errors / falsy result; loading + callbacks      |
+| [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts)                       | Clerk + `@/lib/prisma` `vi.mock` factories: write row; missing auth; create reject → `{ error }` |
+
+Still deferred: heavy Clerk+Prisma paths (`subscription`, `organization-limit`); `unsplash` / `prisma` singleton; no `vitest-mock-extended`.
+
+---
+
 ## TODO later
-
-### P1 — Unit with mocks + client state
-
-- [`lib/fetcher.ts`](../../lib/fetcher.ts), [`lib/env.ts`](../../lib/env.ts)
-- Three Zustand stores; [`hooks/use-action.ts`](../../hooks/use-action.ts)
-- **Prisma Client mock (first):** [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts) via Vitest `vi.mock` **factory** or colocated `lib/__mocks__/prisma.ts` stubbing only methods under test — see [`docs/testing.md`](../../docs/testing.md) (Prisma-related). Do **not** add `vitest-mock-extended` unless a narrow stub becomes painful. Types-only helpers (e.g. `generate-log-message`) stay without Client mocks. Blog series index: [Testing with Prisma](https://www.prisma.io/blog/series/testing-with-prisma) (parts 1–2 when implementing; 3–5 later).
-- Still skip or defer heavy Clerk+Prisma paths (`subscription`, `organization-limit`) until that pattern is proven; `unsplash` / `prisma` singleton itself are not unit targets
-- **Done early in P0 PR:** [`lib/create-safe-action.ts`](../../lib/create-safe-action.ts) unit suite — do not re-open unless expanding handler/integration coverage
 
 ### P2 — Component static + interactive
 
