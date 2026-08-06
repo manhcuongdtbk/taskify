@@ -65,7 +65,7 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 
 ## P0 — Done: pure unit (`*.test.ts`) + related hardening (PR #5)
 
-Shipped on `test/vitest-p0-pure-unit` → [`PR #5`](https://github.com/manhcuongdtbk/taskify/pull/5). Colocated suites and supporting changes cover:
+Shipped on `test/vitest-p0-pure-unit` → [PR #5](https://github.com/manhcuongdtbk/taskify/pull/5). Colocated suites and supporting changes cover:
 
 | Target                                                             | Assert / change                                                                                          |
 | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
