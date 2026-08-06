@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { useAction } from "@/hooks/use-action";
 import { createBoard } from "@/actions/create-board";
+import { type BoardImageInput } from "@/actions/create-board/types";
 import { FormInput } from "./form-input";
 import { FormSubmit } from "./form-submit";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { type BaseUIRenderForwardingProps } from "@/types";
 import { X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { FormPicker } from "./form-picker";
-import { type ComponentRef, useRef } from "react";
+import { type ComponentRef, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
@@ -35,6 +36,7 @@ export const FormPopover = ({
   const openProModal = useProModalStore((state) => state.open);
   const router = useRouter();
   const closeRef = useRef<ComponentRef<"button">>(null);
+  const [selectedImage, setSelectedImage] = useState<BoardImageInput>();
 
   const { execute, fieldErrors } = useAction(createBoard, {
     onSuccess: (data) => {
@@ -55,11 +57,18 @@ export const FormPopover = ({
     },
   });
 
-  const handleSubmit = (formData: FormData) => {
-    const title = formData.get("title") as string;
-    const image = formData.get("image") as string;
+  const handleSelectImage = (image: BoardImageInput) => {
+    setSelectedImage(image);
+  };
 
-    execute({ title, image });
+  const handleSubmit = (formData: FormData) => {
+    const title = formData.get("title");
+
+    execute({
+      title: typeof title === "string" ? title : "",
+      // Sent unchecked so an empty picker fails in the schema as "Missing Image".
+      image: selectedImage as BoardImageInput,
+    });
   };
 
   return (
@@ -87,8 +96,12 @@ export const FormPopover = ({
         />
         <form className="space-y-4" action={handleSubmit}>
           <div className="space-y-4">
-            <FormPicker id="image" errors={fieldErrors} />
-            {/* TODO: Fix input value is cleared after submitting with an invalid value */}
+            <FormPicker
+              selectedImage={selectedImage}
+              onSelect={handleSelectImage}
+              errors={fieldErrors}
+            />
+            {/* TODO: title clears after invalid submit — controlled title after failing test; see vitest backlog p2-form-popover-controlled-title */}
             <FormInput
               id="title"
               label="Board title"

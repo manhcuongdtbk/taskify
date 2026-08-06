@@ -5,3 +5,6 @@ import { CreateBoard } from "./schema";
 
 export type InputType = z.infer<typeof CreateBoard>;
 export type ReturnType = ActionState<InputType, Board>;
+
+/** Produced by components/form/form-picker.tsx. */
+export type BoardImageInput = InputType["image"];

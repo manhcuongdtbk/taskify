@@ -483,6 +483,7 @@ Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaul
 Rules that follow from this:
 
 - Never put schema messages on `serverError`, and never put handler failures on `formErrors`. `createSafeAction` only ever sets the schema keys; only handlers set `serverError` / `data`.
+- A handler that re-checks the **shape** of its input is a schema rule in the wrong place: move it into `schema.ts` so it reaches the right input as a `fieldErrors` entry. `serverError` stays for auth, not-found and persistence.
 - `onError` fires for `serverError` only — it is the “action failed” toast channel, not “validation failed.”
 - Import the contract from the types sibling, not through the wrapper — no re-export from `create-safe-action.ts`. If the wrapper is replaced later, the types file moves with whatever owns the new contract.
 
@@ -494,7 +495,9 @@ No current `actions/*/schema.ts` emits pathless issues. When adding a cross-fiel
 
 ##### Friendly copy policy
 
-- Don’t add presentation copy to individual action schemas. The shared map turns missing values into `"Missing <Field>"`, wrong types into `"Invalid <Field>"`, and short strings into `"<Field> must be at least N characters"`.
+- Don’t add presentation copy to individual action schemas. The shared map turns missing values into `"Missing <Field>"`, wrong types and failed `.refine()` checks into `"Invalid <Field>"`, and short strings into `"<Field> must be at least N characters"`.
+- A field-level `.refine()` needs its own `error` **only when the label alone can’t tell the user what to fix**. No schema needs one today; the map keeps `"Invalid <Field>"` as the floor so a future check never falls back to Zod’s bare `"Invalid input"`.
+- **Group related inputs under a nested object** when one control produces several values: `z.flattenError` keys nested issues by the **outer** field, so [`CreateBoard.image`](../actions/create-board/schema.ts) fills one `fieldErrors.image` slot under [`FormPicker`](../components/form/form-picker.tsx) instead of stacking a message per sub-field, and an unselected picker reads `"Missing Image"`.
 - **Phrase copy without a copula.** Labels come from field names, and a template like `"<Field> is required"` reads wrong for plural fields (`"Tags is required"`). Plurality can’t be inferred from a name (`address`, `status`), so use forms that work for both — `"Missing Tags"`, `"Tags must be at least 3 characters"`.
 - Per-parse customization has lower precedence than schema-level `error`; schema-level copy would bypass the shared policy.
 - Unknown issue kinds fall back to Zod’s default instead of inventing incomplete translations.

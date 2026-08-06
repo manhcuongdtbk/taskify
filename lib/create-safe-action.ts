@@ -24,6 +24,9 @@ const actionValidationError: z.core.$ZodErrorMap = (issue) => {
     return issue.input === undefined ? `Missing ${label}` : `Invalid ${label}`;
   }
 
+  // A `.refine()` that carries its own copy never reaches this map.
+  if (issue.code === "custom") return `Invalid ${label}`;
+
   if (issue.code === "too_small" && issue.origin === "string") {
     const minimum = Number(issue.minimum);
 

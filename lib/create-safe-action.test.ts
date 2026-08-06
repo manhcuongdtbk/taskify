@@ -88,6 +88,25 @@ describe("createSafeAction", () => {
     );
   });
 
+  test.for([
+    {
+      case: "labels a refine that carries no copy of its own",
+      schema: z.object({ image: z.string().refine(() => false) }),
+      expected: { image: ["Invalid Image"] },
+    },
+    {
+      case: "keeps a refine's own copy, which outranks this map",
+      schema: z.object({
+        image: z.string().refine(() => false, { error: "Pick an image" }),
+      }),
+      expected: { image: ["Pick an image"] },
+    },
+  ])("invalid: $case", async ({ schema, expected }) => {
+    await expect(fieldErrorsFor(schema, { image: "x" })).resolves.toStrictEqual(
+      expected,
+    );
+  });
+
   test("invalid: keeps the character count singular when the minimum is 1", async () => {
     await expect(
       fieldErrorsFor(z.object({ title: z.string().min(1) }), { title: "" }),
