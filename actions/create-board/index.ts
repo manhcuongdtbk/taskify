@@ -19,7 +19,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -28,27 +28,12 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!canCreate && !isPro) {
     return {
-      error:
+      serverError:
         "You have reached your limit of free boards. Please upgrade to create more.",
     };
   }
 
   const { title, image } = data;
-
-  const [imageId, imageThumbUrl, imageFullUrl, imageLinkHTML, imageUserName] =
-    image.split("|");
-
-  if (
-    !imageId ||
-    !imageThumbUrl ||
-    !imageFullUrl ||
-    !imageLinkHTML ||
-    !imageUserName
-  ) {
-    return {
-      error: "Missing fields. Failed to create board.",
-    };
-  }
 
   let board;
 
@@ -57,11 +42,11 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       data: {
         title,
         orgId,
-        imageId,
-        imageThumbUrl,
-        imageFullUrl,
-        imageLinkHTML,
-        imageUserName,
+        imageId: image.id,
+        imageThumbUrl: image.thumbUrl,
+        imageFullUrl: image.fullUrl,
+        imageLinkHTML: image.linkHTML,
+        imageUserName: image.userName,
       },
     });
 
@@ -77,7 +62,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     });
   } catch {
     return {
-      error: "Failed to create.",
+      serverError: "Failed to create.",
     };
   }
 

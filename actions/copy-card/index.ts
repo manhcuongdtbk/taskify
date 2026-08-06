@@ -14,7 +14,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -28,7 +28,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     });
 
     if (!cardToCopy) {
-      return { error: "Card not found" };
+      return { serverError: "Card not found" };
     }
 
     const lastCard = await prisma.card.findFirst({
@@ -55,7 +55,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       action: ACTION.CREATE,
     });
   } catch {
-    return { error: "Failed to copy." };
+    return { serverError: "Failed to copy." };
   }
 
   revalidatePath(`/board/${boardId}`);

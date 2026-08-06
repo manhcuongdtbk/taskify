@@ -14,7 +14,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -35,7 +35,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       action: ACTION.UPDATE,
     });
   } catch {
-    return { error: "Failed to update." };
+    return { serverError: "Failed to update." };
   }
 
   revalidatePath(`/board/${boardId}`);

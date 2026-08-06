@@ -1,26 +1,58 @@
+import { startCase } from "es-toolkit/string";
 import { z } from "zod";
 
-export type FieldErrors<T> = {
-  [K in keyof T]: string[];
+import { type ActionState } from "./create-safe-action.types";
+
+const fieldLabel = (path: PropertyKey[] | undefined) => {
+  const field = path?.findLast(
+    (part): part is string => typeof part === "string",
+  );
+
+  if (!field) return "Field";
+
+  return startCase(field).replace(/\bId\b/g, "ID");
 };
 
-export type ActionState<TInput, TOutput> = {
-  fieldErrors?: FieldErrors<TInput>;
-  error?: string | null;
-  data?: TOutput;
+/**
+ * Phrasing avoids a copula so it reads correctly for singular and plural field
+ * names alike ("Missing Tags", not "Tags is required").
+ */
+const actionValidationError: z.core.$ZodErrorMap = (issue) => {
+  const label = fieldLabel(issue.path);
+
+  if (issue.code === "invalid_type") {
+    return issue.input === undefined ? `Missing ${label}` : `Invalid ${label}`;
+  }
+
+  // A `.refine()` that carries its own copy never reaches this map.
+  if (issue.code === "custom") return `Invalid ${label}`;
+
+  if (issue.code === "too_small" && issue.origin === "string") {
+    const minimum = Number(issue.minimum);
+
+    return `${label} must be at least ${minimum} ${minimum === 1 ? "character" : "characters"}`;
+  }
+
+  return undefined;
 };
 
 export const createSafeAction = <TInput, TOutput>(
-  schema: z.Schema<TInput>, // TODO: use something non deprecated instead of `z.Schema`
+  schema: z.ZodType<TInput>,
   handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>,
 ) => {
   return async (data: TInput): Promise<ActionState<TInput, TOutput>> => {
-    const validationResult = schema.safeParse(data);
+    const validationResult = schema.safeParse(data, {
+      error: actionValidationError,
+    });
 
     if (!validationResult.success) {
+      const { fieldErrors, formErrors } = z.flattenError(
+        validationResult.error,
+      );
+
       return {
-        fieldErrors: validationResult.error.flatten()
-          .fieldErrors as FieldErrors<TInput>, // TODO: upgrade zod related code to use non deprecated code. More info: https://zod.dev/v4/changelog?id=deprecates-flatten#deprecates-flatten
+        fieldErrors,
+        ...(formErrors.length > 0 && { formErrors }),
       };
     }
 

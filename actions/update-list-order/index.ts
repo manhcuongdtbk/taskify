@@ -12,7 +12,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -30,7 +30,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
     lists = await prisma.$transaction(transaction);
   } catch {
-    return { error: "Failed to reorder." };
+    return { serverError: "Failed to reorder." };
   }
 
   revalidatePath(`/board/${boardId}`);

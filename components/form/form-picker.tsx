@@ -8,18 +8,24 @@ import { useFormStatus } from "react-dom";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { defaultImages } from "@/constants/images";
+import { type BoardImageInput } from "@/actions/create-board/types";
+import { type FieldErrors } from "@/lib/create-safe-action.types";
 import { FormErrors } from "./form-errors";
 
 interface FormPickerProps {
-  id: string;
-  errors?: Record<string, string[] | undefined>;
+  selectedImage?: BoardImageInput;
+  onSelect: (image: BoardImageInput) => void;
+  errors?: FieldErrors;
 }
 
-export const FormPicker = ({ id, errors }: FormPickerProps) => {
+export const FormPicker = ({
+  selectedImage,
+  onSelect,
+  errors,
+}: FormPickerProps) => {
   const { pending } = useFormStatus();
   const [images, setImages] = useState<AssetBasic[]>(defaultImages);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -66,25 +72,23 @@ export const FormPicker = ({ id, errors }: FormPickerProps) => {
             )}
             onClick={() => {
               if (pending) return;
-              setSelectedImageId(image.id);
+
+              onSelect({
+                id: image.id,
+                thumbUrl: image.urls.thumb,
+                fullUrl: image.urls.full,
+                linkHTML: image.links.html,
+                userName: image.user.name,
+              });
             }}
           >
-            <input
-              type="radio"
-              id={id}
-              name={id}
-              className="hidden"
-              checked={selectedImageId === image.id}
-              disabled={pending}
-              value={`${image.id}|${image.urls.thumb}|${image.urls.full}|${image.links.html}|${image.user.name}`}
-            />
             <Image
               alt={image.description || "Unsplash Image"}
               src={image.urls.thumb}
               fill
               className="rounded-sm object-cover"
             />
-            {selectedImageId === image.id && (
+            {selectedImage?.id === image.id && (
               <div className="absolute inset-y-0 flex h-full w-full items-center justify-center bg-black/30">
                 <Check className="h-4 w-4 text-white" />
               </div>

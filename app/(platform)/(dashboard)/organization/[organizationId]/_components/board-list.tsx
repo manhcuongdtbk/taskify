@@ -14,6 +14,7 @@ import {
 } from "@/constants/pricing-plans";
 import { checkSubscription } from "@/lib/subscription";
 import { paths } from "@/lib/paths";
+import { cssUrl } from "@/lib/utils";
 
 export const BoardList = async () => {
   const { orgId } = await auth();
@@ -50,7 +51,7 @@ export const BoardList = async () => {
           <Link
             href={paths.board(board.id)}
             key={board.id}
-            style={{ backgroundImage: `url(${board.imageThumbUrl})` }}
+            style={{ backgroundImage: cssUrl(board.imageThumbUrl) }}
             className="group relative aspect-video h-full w-full overflow-hidden rounded-sm bg-sky-700 bg-cover bg-center bg-no-repeat p-2"
           >
             <div className="absolute inset-0 bg-black/30 transition group-hover:bg-black/40" />

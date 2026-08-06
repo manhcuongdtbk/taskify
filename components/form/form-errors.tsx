@@ -1,14 +1,16 @@
 import { XCircle } from "lucide-react";
 
+import { type FieldErrors } from "@/lib/create-safe-action.types";
+
 interface FormErrorsProps {
   id: string;
-  errors?: Record<string, string[] | undefined>;
+  errors?: FieldErrors;
 }
 
 export const FormErrors = ({ id, errors }: FormErrorsProps) => {
-  const errorMessage = errors?.[id]?.join(", ");
+  const messages = errors?.[id];
 
-  if (!errorMessage) return null;
+  if (!messages?.length) return null;
 
   return (
     <div
@@ -16,7 +18,7 @@ export const FormErrors = ({ id, errors }: FormErrorsProps) => {
       aria-live="polite"
       className="mt-2 text-xs text-rose-500"
     >
-      {errors?.[id]?.map((error: string) => (
+      {messages.map((error) => (
         <div
           key={error}
           className="flex items-center rounded-xs border border-rose-500 bg-rose-500/10 p-2 font-medium"

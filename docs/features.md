@@ -34,7 +34,7 @@ Source of truth: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts).
 | **Free**     | Default | No paid subscription required; board limits from `FREE_PLAN.maxBoards` |
 | **Pro**      | Paid    | Monthly subscription; price / Stripe product fields from `PRO_PLAN`    |
 
-**Board caps:** on each pricing plan, `maxBoards` is a number (capped) or `null` (unlimited). Pro uses `null` today — see [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) (`hasUnlimitedBoards`).
+**Board caps:** on each pricing plan, `maxBoards` is a positive integer ≥ 1 (capped) or `null` (unlimited). Pro uses `null` today — see [`constants/pricing-plans.ts`](../constants/pricing-plans.ts) (`hasUnlimitedBoards`).
 
 More pricing plans are expected. Keep definitions in that module only. Named types there (`FreePlan`, `ProPlan`, …) + `satisfies` are the shape contract for each pricing-plan entry — useful now as documentation/checks, and as the base when you export a `Plan` union, narrow by `plan.id`, build plan lists/maps, or add another paid pricing plan. See the file header for the full growth notes.
 

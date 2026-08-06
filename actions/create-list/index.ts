@@ -14,7 +14,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (!userId || !orgId) {
     return {
-      error: "Unauthorized",
+      serverError: "Unauthorized",
     };
   }
 
@@ -28,7 +28,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     });
 
     if (!board) {
-      return { error: "Board not found." };
+      return { serverError: "Board not found." };
     }
 
     const lastList = await prisma.list.findFirst({
@@ -50,7 +50,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       action: ACTION.CREATE,
     });
   } catch {
-    return { error: "Failed to create." };
+    return { serverError: "Failed to create." };
   }
 
   revalidatePath(`/board/${boardId}`);

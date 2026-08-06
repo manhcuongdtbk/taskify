@@ -1,14 +1,17 @@
 import { z } from "zod";
 
+// https-only: these URLs are painted into CSS background-image via cssUrl().
+// TODO: (docs/data.md) allowlist Unsplash hosts; server-verify photo by id.
+const httpsUrl = z.url({ protocol: /^https$/ });
+
 export const CreateBoard = z.object({
-  title: z
-    .string({
-      error: (issue) =>
-        issue.input === undefined ? "Title is required" : "Title is required", // https://zod.dev/v4/changelog?id=drops-invalid_type_error-and-required_error#drops-invalid_type_error-and-required_error
-    })
-    .min(3, { error: "Title is too short" }),
-  image: z.string({
-    error: (issue) =>
-      issue.input === undefined ? "Image is required" : "Image is required",
+  title: z.string().min(3),
+  // Nested so the picker's five values share one error slot, keyed `image`.
+  image: z.object({
+    id: z.string().min(1),
+    thumbUrl: httpsUrl,
+    fullUrl: httpsUrl,
+    linkHTML: httpsUrl,
+    userName: z.string().min(1),
   }),
 });

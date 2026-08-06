@@ -2,10 +2,10 @@
 
 Unit / component tests, E2E, and (later) Storybook. Where each tool’s **job** starts and stops — so we don’t duplicate the same assertions in three places.
 
-|                 |                                                                                                                                                                                                                                        |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Owner / SoT** | This file — Vitest setup map, run/debug, **what to test where** (Vitest / Playwright / Storybook)                                                                                                                                      |
-| **Open when**   | Choosing a **test type** / tool, adding a test or story, changing Vitest/Playwright/Storybook config, or revisiting **jsdom vs Browser Mode** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook)) |
+|                 |                                                                                                                                                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Owner / SoT** | This file — Vitest setup map, run/debug, **what to test where** (Vitest / Playwright / Storybook), **terms & naming**                                                                                                                                                    |
+| **Open when**   | Choosing a **test type** / tool, adding a test or story, naming tests / Vitest vocabulary, changing Vitest/Playwright/Storybook config, or revisiting **jsdom vs Browser Mode** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook)) |
 
 **Implementation today:** [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (**jsdom**). **When needed:** [Playwright](https://playwright.dev) (E2E), [Storybook](https://storybook.js.org) (UI catalog). Stack rationale / learning links / switch triggers: [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook). Index: [`README.md`](./README.md). Agents: [`AGENTS.md`](../AGENTS.md).
 
@@ -99,17 +99,19 @@ Any of:
 
 ### Doc ownership (keep DRY)
 
-| Concern                                                                                | SoT file                                                                                                                                           |
-| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Test **type** → which **tool** · harness · scripts · jsdom vs Browser Mode · Storybook | **This file** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) + [what to test where](#what-to-test-where)) |
-| Mid-suffix companions (`*.test.tsx`, `*.stories.tsx`) · props-in-JSX                   | [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names)                                                               |
-| Folders (`e2e/`, avoid `tests/`, `fixtures/`)                                          | [`project-structure.md`](./project-structure.md)                                                                                                   |
-| Catalog status (Adopted / When needed) for Vitest / Playwright / MSW / Storybook       | [`conventions.md`](./conventions.md) tooling rows → link here for detail                                                                           |
-| Version-matched official docs                                                          | [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs)                                                 |
+| Concern                                                                                   | SoT file                                                                                                                                           |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Test **type** → which **tool** · harness · scripts · jsdom vs Browser Mode · Storybook    | **This file** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) + [what to test where](#what-to-test-where)) |
+| Vitest **authoring terms** (`test` **name**, suite, assertion, …) · how we **name** tests | **This file** ([Vitest terms & naming](#vitest-terms--naming))                                                                                     |
+| Mid-suffix companions (`*.test.tsx`, `*.stories.tsx`) · props-in-JSX                      | [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names)                                                               |
+| Folders (`e2e/`, avoid `tests/`, `fixtures/`)                                             | [`project-structure.md`](./project-structure.md)                                                                                                   |
+| Test-only helper folder (`lib/testing/`)                                                  | **This file** ([Test-only helpers](#test-only-helpers-libtesting))                                                                                 |
+| Catalog status (Adopted / When needed) for Vitest / Playwright / MSW / Storybook          | [`conventions.md`](./conventions.md) tooling rows → link here for detail                                                                           |
+| Version-matched official docs                                                             | [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs)                                                 |
 
 ### Official docs (match installed version)
 
-Follow [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) (Vitest / Testing Library / Playwright rows). **Learning entrypoints + stack rationale:** [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) (don’t skip — Vitest’s component docs lean Browser Mode; our default is still jsdom until triggers flip). Next + Vitest install shape: [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest). Handy Vitest pages: [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html).
+Follow [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) (Vitest / Testing Library / Playwright rows). **Learning entrypoints + stack rationale:** [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) (don’t skip — Vitest’s component docs lean Browser Mode; our default is still jsdom until triggers flip). Next + Vitest install shape: [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest). Handy Vitest pages: [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) (incl. [Naming Tests](https://vitest.dev/guide/learn/testing-in-practice.html#naming-tests) · [Descriptive Names](https://vitest.dev/guide/learn/testing-in-practice.html#descriptive-names)) · [Debugging](https://vitest.dev/guide/debugging.html) · [Coverage](https://vitest.dev/guide/coverage.html) · [API: `test`](https://vitest.dev/api/#test). Repo glossary for those words: [Vitest terms & naming](#vitest-terms--naming).
 
 This page is **our** wiring. Tool exclusivity ([one tool per job](./vocabulary.md#one-tool-per-job)):
 
@@ -145,6 +147,19 @@ test("submits on click", async () => {
 - Suffix split: `*.test.*` = Vitest (colocated only — no `__tests__/` / `tests/` / root `test/`), `e2e/*.spec.*` = Playwright ([why not `tests/`](#playwright-folder-e2e-not-tests)) — [enforced](#vitest-lint--config-choices)
 - Bug fixes: [reproduce with a failing test first](#fixing-bugs-with-tests-agents)
 
+### Test-only helpers (`lib/testing/`)
+
+Helpers that exist **only** to serve suites live in [`lib/testing/`](../lib/testing/) — not loose in `lib/`, where they read like shipped app code.
+
+- **Import from suites only.** ESLint `no-restricted-imports` bans `@/lib/testing/**` everywhere except `**/*.test.{ts,tsx}` (`lib/testing/**` may import its own siblings) — [`eslint.config.mjs`](../eslint.config.mjs).
+- **Group by concern.** Nest under a library/domain folder when the helper is tied to one stack (e.g. [`lib/testing/zod/`](../lib/testing/zod/) for Zod `safeParse` helpers). Keep the `lib/testing/` root for cross-cutting helpers later (render wrappers, …) — don’t invent empty sibling folders early.
+- **Cover executable helper logic.** `lib/testing/**` stays in [`vitest.config.mts`](../vitest.config.mts) coverage; test-only location controls imports, not whether branches deserve verification.
+- **Still Vitest-tested.** Each helper keeps a colocated `*.test.ts` (same colocation rule as everywhere else).
+- **Add one only when a pattern repeats.** Today: [`safe-parse-field-errors.ts`](../lib/testing/zod/safe-parse-field-errors.ts) (narrow a failed Zod `safeParse` → `fieldErrors`) and [`default-issue-messages.ts`](../lib/testing/zod/default-issue-messages.ts) (Zod English default **issue messages** derived from a failed parse, so schema suites don’t hardcode copy). Prefer plain code in the suite until repetition is real.
+- **Zod default issue-message names** ([`default-issue-messages.ts`](../lib/testing/zod/default-issue-messages.ts)): `{issueCodeInCamelCase}{ExpectedKind}` — camelCase of Zod’s issue `code`, then the expected type/format (e.g. `invalid_type` + string → `invalidTypeString`; `too_small` + string → `tooSmallString`; `invalid_format` + url → `invalidFormatUrl`). JSDoc cites the Zod `code`. Don’t invent parallel terms like “missing” when Zod says `invalid_type`.
+- **`invalid_type` vs “missing”.** Zod has no separate missing-field issue. Omitting a required key (or passing `undefined`) is still `invalid_type`, with an issue message like `… received undefined`. That is what `invalidTypeString` / `invalidTypeNumber` / … capture. The same `code` applies when the value is present but the wrong type (`… received number`, etc.) — **same code, different issue message** — so those helpers must not be used for wrong-type cases.
+- **Not a suite folder.** `lib/testing/` holds helpers; cases stay colocated with the module under test ([`project-structure.md`](./project-structure.md)).
+
 ### Fixing bugs with tests (agents)
 
 When fixing a bug in code that Vitest owns ([what to test where](#what-to-test-where)):
@@ -157,6 +172,113 @@ Do **not** “fix” by weakening assertions or deleting the repro. Prefer real 
 
 If the bug needs the real app (Clerk, Stripe Checkout UI, async RSC, multi-page flows), use Playwright when added — don’t force a Vitest suite for that class of bug.
 
+### Vitest terms & naming
+
+Use **Vitest’s words** in docs, PR review, and chat — not near-synonyms from other runners. Match the installed major ([`conventions.md`](./conventions.md#match-installed-official-docs)). Authoring SoT: [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html) · [API](https://vitest.dev/api/).
+
+#### Core terms
+
+| Term                   | What Vitest means                                                                             | Notes for this repo                                                                                                                                                                                                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Test**               | One case defined with `test(…)` (or alias `it`)                                               | We use **`test` only** (`consistent-test-it`) — [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html)                                                                                                                                                        |
+| **Test name**          | The string (or function whose `.name` is used) passed as the first argument to **`test`**     | Official term is **name**, not “title”. Applies to **`test` only** — not to `describe`. API: [`test`](https://vitest.dev/api/#test) · [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) (“Each test has a **name**…”)                                    |
+| **Suite**              | A named group of tests created with `describe`                                                | Prefer one `describe` per unit under test; keep nesting shallow — [Grouping with describe](https://vitest.dev/guide/learn/writing-tests.html#grouping-tests-with-describe) · [Organizing](https://vitest.dev/guide/learn/testing-in-practice.html#grouping-with-describe) |
+| **Suite name**         | The string (or function whose `.name` is used) passed as the first argument to **`describe`** | Names the suite in the reporter (`file > suite > test`). Do **not** call this a “test name.”                                                                                                                                                                              |
+| **Assertion**          | A check via `expect(…)` (and matchers)                                                        | At least one per test — we set `expect.requireAssertions: true`                                                                                                                                                                                                           |
+| **Matcher**            | The expectation method (`toBe`, `toStrictEqual`, `toThrow`, …; jest-dom adds DOM matchers)    | Prefer `toStrictEqual` over `toEqual` ([lint](#vitest-lint--config-choices)); jest-dom matchers in component tests                                                                                                                                                        |
+| **Test file**          | A file Vitest collects (our include: colocated `*.test.*` only)                               | Never `*.spec.*` for Vitest; never suite folders — see [lint & config](#vitest-lint--config-choices)                                                                                                                                                                      |
+| **Hook**               | Lifecycle helpers: `beforeEach` / `afterEach` / `beforeAll` / `afterAll`                      | Prefer fresh setup per test when cheap; hooks when repetition hurts                                                                                                                                                                                                       |
+| **Parameterized test** | Same body, many rows — **`test.for` only** (`test.each` / `describe.each` fail ESLint)        | Interpolate the **test name** with `$field` / printf placeholders — [Parameterized Tests](https://vitest.dev/guide/learn/writing-tests.html#parameterized-tests) · [lint table](#vitest-lint--config-choices)                                                             |
+| **Test context**       | Second arg to the test fn (`{ expect, … }`) / fixtures via `test.extend`                      | Needed for concurrent snapshots; optional otherwise                                                                                                                                                                                                                       |
+| **`vi`**               | Vitest’s mocking / spying / timer API                                                         | **`vi.*` only** — never `jest.*`                                                                                                                                                                                                                                          |
+| **Test double**        | Umbrella for stub / mock / spy — any stand-in for a real dependency                           | Not a Vitest API word. Definitions + examples: [Test doubles](#test-doubles-stub-vs-mock-vs-spy)                                                                                                                                                                          |
+| **Fake timers**        | `vi.useFakeTimers` / `vi.setSystemTime` for time-dependent code                               | Prefer over real `setTimeout` waits when asserting time                                                                                                                                                                                                                   |
+| **Snapshot**           | `toMatchSnapshot` / `toMatchInlineSnapshot`                                                   | Use sparingly; prefer explicit asserts for domain copy                                                                                                                                                                                                                    |
+| **Environment**        | Where the file runs (`node`, `jsdom`, browser provider, …)                                    | Default **jsdom** for components; pure `*.test.ts` still fine under that config                                                                                                                                                                                           |
+| **Coverage**           | Which source lines ran under tests (`v8` provider here)                                       | `pnpm test:coverage` · scoped: `pnpm test:coverage:paths`                                                                                                                                                                                                                 |
+| **Reporter**           | How results are printed / exported                                                            | Default terminal output is enough locally; CI may add more later                                                                                                                                                                                                          |
+
+**Do not say “test title.”** Say **test name** (first argument to `test`) or **suite name** (first argument to `describe`).
+
+**Test type** (unit / component / E2E / …) is a **repo** word for ownership — [Test types (vocabulary)](#test-types-vocabulary) — not a Vitest API term.
+
+#### Test doubles: stub vs mock vs spy
+
+**Test double** is the umbrella word for any fake you swap in for a real dependency. Vitest’s docs call almost all of them “mocking” ([Mocking](https://vitest.dev/guide/mocking.html)) and only use “stub” for [`vi.stubEnv`](https://vitest.dev/api/vi.html#vi-stubenv) / [`vi.stubGlobal`](https://vitest.dev/api/vi.html#vi-stubglobal) — so the distinction below is **our vocabulary** for review conversations, not a Vitest API split.
+
+The three differ by **what the test does with the double**, not by which `vi.*` function created it:
+
+| Double   | Purpose                                                      | Does the double appear in an `expect`? | Typical API                                         |
+| -------- | ------------------------------------------------------------ | -------------------------------------- | --------------------------------------------------- |
+| **Stub** | Let the code **run** (satisfy an import / constructor / env) | **No** — you assert on the real output | `vi.mock` factory, `vi.stubEnv`, `vi.stubGlobal`    |
+| **Mock** | Record calls on a fake **you supplied**                      | **Yes** — `toHaveBeenCalledWith(…)`    | `vi.fn`, `vi.mock` factory returning `vi.fn()`      |
+| **Spy**  | Watch a function that **already exists** on a real object    | **Yes**                                | `vi.spyOn` (keeps real impl unless you override it) |
+
+**Stub — in this repo today.** `lib/stripe.ts` constructs a Stripe client at module load, which would demand `STRIPE_SECRET_KEY`. The fake class exists only so the import succeeds; no test mentions it:
+
+```5:11:lib/stripe.test.ts
+vi.mock("stripe", () => ({
+  default: class Stripe {
+    constructor() {
+      // Avoid needing STRIPE_SECRET_KEY when importing helpers under test.
+    }
+  },
+}));
+```
+
+The assertions target the real helpers (`toStripeUnitAmount`, `toStripeCurrency`), never the fake.
+
+**Mock — the shape our first Prisma suite will use** (plan P1, [`lib/create-audit-log.ts`](../lib/create-audit-log.ts)). Here the point _is_ the call: we verify the row we would have written, without a database.
+
+```ts
+// lib/prisma.ts exports the client as `default`
+vi.mock("@/lib/prisma", () => ({
+  default: { auditLog: { create: vi.fn() } },
+}));
+
+test("writes an audit log row for the action", async () => {
+  await createAuditLog({ entityId: "board_1", action: ACTION.CREATE /* … */ });
+
+  expect(prisma.auditLog.create).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({ entityId: "board_1" }),
+    }),
+  );
+});
+```
+
+**Spy — when the real function should stay reachable.** `vi.spyOn` wraps something that already exists, so you can assert calls and still let the original run (or replace it for one test):
+
+```ts
+const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+renderBoardList({ boards: [] });
+
+expect(warn).toHaveBeenCalledOnce();
+```
+
+**Rule of thumb:** if you can delete the double from your mental model of the assertion, it’s a **stub**. If the assertion names it, it’s a **mock** (you created the fake) or a **spy** (you wrapped an existing function).
+
+**Coverage note:** doubles live in the test file, so they never add coverage themselves. A stub can still make source lines run — importing `./stripe` with the Stripe stub executes the `new Stripe(...)` line in [`lib/stripe.ts`](../lib/stripe.ts) — but that measures **our** module, not the vendor SDK.
+
+`restoreMocks: true` ([config](#vitest-lint--config-choices)) resets spies/mocks between tests; `vi.stubEnv` / `vi.stubGlobal` need `unstubEnvs` / `unstubGlobals` or manual cleanup.
+
+#### How we name tests
+
+Follow Vitest ([Descriptive Names](https://vitest.dev/guide/learn/testing-in-practice.html#descriptive-names) · [Naming Tests](https://vitest.dev/guide/learn/testing-in-practice.html#naming-tests) · [Testing Edge Cases](https://vitest.dev/guide/learn/testing-in-practice.html#testing-edge-cases)):
+
+1. Describe **behavior / outcome**, not implementation (`"Free plan is limited"`, not `"calls hasUnlimitedBoards with FREE_PLAN"`).
+2. When the test fails, the **test name** alone should say what broke — output should read like a **specification** of the module.
+3. **One behavior per test.** “And” in a name usually means split.
+4. Under a `describe("fn")`, keep names short; the suite already scopes the subject.
+5. **Don’t oversample the same branch.** Cover the main contract, **boundaries**, and **error paths** — not every valid input that hits identical logic (e.g. one positive `maxBoards` is enough for `formatBoardLimit`; keep `0` / `-1` / non-integers as rejects).
+
+**Repo extras** (examples: [`constants/pricing-plans.test.ts`](../constants/pricing-plans.test.ts) · [`actions/*/schema.test.ts`](../actions/)):
+
+- Prefer **domain wording** for outcomes (`limited` / `unlimited`) over raw assertion echo (`is false` / `is true`) when both are clear.
+- When a suite (or parameterized table) splits happy-path vs rejection, prefix the **test name** with **`valid:`** / **`invalid:`**, then the behavior — e.g. `valid: accepts a copy payload`, `invalid: requires id and boardId`, `valid: formats maxBoards=1 as Up to 1 boards`, `invalid: throws when maxBoards is not a positive integer (-1)`.
+- Interpolate case data in parameterized **test names** (`$maxBoards`, `$expected`, `$0`) so the reporter shows which row failed.
+
 ### Vitest lint & config choices
 
 Why we set these (not just what). Enforcement lives in [`vitest.config.mts`](../vitest.config.mts) and [`eslint.config.mjs`](../eslint.config.mjs). Prefer official docs for the installed Vitest / plugin versions ([`conventions.md`](./conventions.md)).
@@ -164,7 +286,7 @@ Why we set these (not just what). Enforcement lives in [`vitest.config.mts`](../
 | Choice                                                                  | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Reference                                                                                                                                                                                                                                                                   |
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `setupFiles` → [`vitest.setup.ts`](../vitest.setup.ts) + jest-dom       | **Problem:** component tests need DOM asserts; Vitest matchers aren’t DOM-aware and Testing Library doesn’t ship matchers. **Fix:** jest-dom (ecosystem companion). Wire once via `import "@testing-library/jest-dom/vitest"` — not the default Jest entry. **No `tsconfig` change:** setup is already in `"include": ["**/*.ts"]`; skip official `"types": ["vitest/globals", "@testing-library/jest-dom"]` — we don’t use Vitest globals, and the default jest-dom types target Jest (the `/vitest` import augments Vitest instead). | [Why above](#already-following) · [jest-dom → With Vitest](https://github.com/testing-library/jest-dom#with-vitest) · [setupFiles](https://vitest.dev/config/setupfiles)                                                                                                    |
-| `@testing-library/user-event` (dep only — no `setupFiles`)              | **Problem:** interactive tests need realistic click/type; `fireEvent` is one low-level dispatch. **Fix:** user-event (ecosystem companion). **Config:** none in Vitest — `import userEvent` + `userEvent.setup()` before `render` per test (v14 instance API). Prefer over `fireEvent`; no shared test-utils helper yet.                                                                                                                                                                                                               | [Why above](#already-following) · [user-event intro](https://testing-library.com/docs/user-event/intro) · [ecosystem](https://testing-library.com/docs/dom-testing-library/install/#ecosystem)                                                                              |
+| `@testing-library/user-event` (dep only — no `setupFiles`)              | **Problem:** interactive tests need realistic click/type; `fireEvent` is one low-level dispatch. **Fix:** user-event (ecosystem companion). **Config:** none in Vitest — `import userEvent` + `userEvent.setup()` before `render` per test (v14 instance API). Prefer over `fireEvent`; no shared render wrapper yet (`lib/testing/` holds only non-render helpers today).                                                                                                                                                             | [Why above](#already-following) · [user-event intro](https://testing-library.com/docs/user-event/intro) · [ecosystem](https://testing-library.com/docs/dom-testing-library/install/#ecosystem)                                                                              |
 | `restoreMocks: true`                                                    | Spies/mocks (especially AI-written) often skip cleanup; restore between tests                                                                                                                                                                                                                                                                                                                                                                                                                                                          | [Writing Tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai.html)                                                                                                                                                                                          |
 | `expect.requireAssertions: true`                                        | Runtime fail if a test never calls Vitest `expect` (empty / accidental pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                           | [expect.requireAssertions](https://vitest.dev/config/expect.html#expect-requireassertions)                                                                                                                                                                                  |
 | ESLint Vitest `recommended` (not `all`)                                 | Correctness / anti-footgun baseline. `all` is mostly style, padding (Prettier’s job), and downgrades many rules to `warn`                                                                                                                                                                                                                                                                                                                                                                                                              | [`@vitest/eslint-plugin`](https://github.com/vitest-dev/eslint-plugin-vitest) shareable configs                                                                                                                                                                             |
@@ -179,9 +301,10 @@ Why we set these (not just what). Enforcement lives in [`vitest.config.mts`](../
 | `consistent-test-it` → `test`                                           | Vitest guides lead with `test`; `it` is an identical alias — pick one                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/consistent-test-it.md)                                                                                                  |
 | `consistent-vitest-vi` → `vi`                                           | Docs document the helper as `vi.*`; `vitest` is the same object under another name                                                                                                                                                                                                                                                                                                                                                                                                                                                     | [Vi API](https://vitest.dev/api/vi.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/consistent-vitest-vi.md)                                                                                                                          |
 | `prefer-importing-vitest-globals`                                       | We do **not** enable Vitest `globals`; always `import { … } from "vitest"`                                                                                                                                                                                                                                                                                                                                                                                                                                                             | [Using Global Imports](https://vitest.dev/guide/learn/writing-tests.html#using-global-imports) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/prefer-importing-vitest-globals.md)                                                         |
-| `consistent-each-for`                                                   | Prefer `test.for` over Jest-style `test.each` in new code                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/consistent-each-for.md)                                                                                                 |
+| `consistent-each-for` → `.for`                                          | **`test.for` / `describe.for` only** — `.each` fails lint (Jest-compat; Vitest prefers `.for` + test context). Options required or the rule is a no-op.                                                                                                                                                                                                                                                                                                                                                                                | [Parameterized Tests](https://vitest.dev/guide/learn/writing-tests.html#parameterized-tests) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/consistent-each-for.md) · [`eslint.config.mjs`](../eslint.config.mjs)                         |
 | `hoisted-apis-on-top`                                                   | `vi.mock` / `vi.hoisted` are hoisted — keep them at the top of the file                                                                                                                                                                                                                                                                                                                                                                                                                                                                | [vi.mock](https://vitest.dev/api/vi.html#vi-mock) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/hoisted-apis-on-top.md)                                                                                                                  |
 | `no-alias-methods`                                                      | Prefer full matcher names (`toHaveBeenCalled`) over aliases (`toBeCalled`)                                                                                                                                                                                                                                                                                                                                                                                                                                                             | [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/no-alias-methods.md)                                                                                                                                                                         |
+| `prefer-strict-equal`                                                   | Prefer **`toStrictEqual`** over `toEqual` (catches `undefined` keys, sparse arrays, class vs plain object). Use `toEqual` only when the looser compare is intentional                                                                                                                                                                                                                                                                                                                                                                  | [toStrictEqual](https://vitest.dev/api/expect.html#tostrictequal) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/prefer-strict-equal.md)                                                                                                  |
 | `no-test-prefixes`                                                      | Prefer `.only` / `.skip` over `f` / `x` prefixes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/no-test-prefixes.md)                                                                                                                                                                         |
 | `prefer-hooks-on-top` · `prefer-hooks-in-order` · `no-duplicate-hooks`  | Stable setup/teardown layout; no accidental double hooks                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | [rules](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules)                                                                                                                                                                                            |
 | `max-nested-describe` (`max: 3`)                                        | Keep `describe` nesting shallow                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) · [rule](https://github.com/vitest-dev/eslint-plugin-vitest/blob/main/docs/rules/max-nested-describe.md)                                                                                                 |
@@ -209,15 +332,17 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 
 ## TODO
 
-- [ ] First colocated suite(s) — start with pure `lib/` / Zod `actions/*/schema.ts`, then a client component (jest-dom for DOM asserts; `userEvent.setup()` for interactions)
+- [x] First colocated suite(s) — pure `lib/` helpers + Zod `actions/*/schema.ts` (P0). Remaining Vitest backlog (P1 mocked I/O / stores / `use-action`, P2 components, P3 MSW + reorder, P4 polish): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
+- [ ] Client component suites (jest-dom for DOM asserts; `userEvent.setup()` for interactions) — plan P2
 - [ ] Drop `vite-tsconfig-paths` for Vite native `resolve.tsconfigPaths` if the deprecation warning stays noisy
-- [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md)
+- [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md) · plan P3
 - [ ] Playwright for critical flows (auth, board, billing) — `e2e/*.spec.ts` only (never `*.test.*`; only E2E tool; no Cypress)
 - [ ] Storybook when [catalog triggers](#storybook-when-needed) pass — catalog/workshop only; colocated `*.stories.tsx` (not CI component-test owner unless [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) rewritten)
 - [ ] Revisit Vitest Browser Mode only if [triggers](#trigger-checklist-for-switching-the-component-default) fire — pilot jsdom vs Browser Mode before blanket switch; update decision record + config together
 - [ ] CI: run `pnpm test:run` (and optionally `pnpm test:coverage`) on PRs when suites exist
 - [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
-- [ ] Tighten `coverage.include` / thresholds once suites exist and the report is noisy
+- [ ] Tighten `coverage.include` / thresholds once suites exist and the report is noisy — plan P4
+- [ ] **Follow-up PR (after Vitest P0):** evaluate / add [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) to harden Zod usage ([ecosystem](https://zod.dev/ecosystem)) — not in the current P0 PR; pick rules that fit Zod 4 + our `import { z } from "zod"` style ([one tool per job](./vocabulary.md#one-tool-per-job): lint aid, not a second schema stack)
 
 ## Out of scope for now
 
@@ -260,7 +385,7 @@ Visual regression only? ──yes──► Playwright (for now)
 
 ### Test types (vocabulary)
 
-| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                                        | Typical files                | Taskify examples                                                                       |
+| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                                        | Typical files                | Examples                                                                               |
 | --------------------------- | ------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------- |
 | **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                                           | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/fetcher.ts`, `lib/paths.ts`, `lib/generate-log-message.ts` |
 | **Component (static)**      | Given props, the right roles/text/structure appear           | jsdom                    | **Vitest** + Testing Library                                                         | `foo.test.tsx`               | Modal header title, disabled submit, empty list copy                                   |
@@ -305,6 +430,63 @@ Playwright              →  product works end-to-end (real app + real browser)
 Storybook               →  humans browse / compose UI (catalog — when triggered)
 ```
 
+### Prisma-related code (what to test how)
+
+Prisma shows up in tests in **different layers**. Official [unit testing](https://www.prisma.io/docs/orm/prisma-client/testing/unit-testing) / [integration testing](https://www.prisma.io/docs/orm/prisma-client/testing/integration-testing) pages may still show **Jest** and older layouts. Prefer **this section** as repo wiring, and treat Prisma’s [Testing with Prisma blog series](https://www.prisma.io/blog/series/testing-with-prisma) as optional background (Vitest-oriented; verified on Prisma 7 / Vitest 4 in recent updates). Schema/Client patterns: [`prisma.md`](./prisma.md). Backlog: [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md).
+
+**Blog series — read when** (full series is five parts; do not treat parts 1–2 as the whole series):
+
+| Part                                                                         | Topic                             | Read when                                       |
+| ---------------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------- |
+| [1 – Mocking Client](https://www.prisma.io/blog/testing-series-1-8eRB5p0Y8o) | `vi.mock` / fake Client           | First Vitest suite that **calls** Prisma Client |
+| [2 – Unit testing](https://www.prisma.io/blog/testing-series-2-xPhjjmIEsM)   | What to test / skip around Client | Same milestone                                  |
+| [3 – Integration](https://www.prisma.io/blog/testing-series-3-aBUyF8nxAn)    | Real DB                           | If we add Vitest integration against Postgres   |
+| [4 – E2E](https://www.prisma.io/blog/testing-series-4-OVXtDis201)            | Playwright + Prisma cleanup       | When Playwright lands                           |
+| [5 – CI](https://www.prisma.io/blog/testing-series-5-xWogenROXm)             | Pipelines                         | When CI runs those suites                       |
+
+Parts **1–2** are the least you need for current/near-term Client unit tests. Types-only helpers (below) do not require the series.
+
+**Vocabulary**
+
+| Term        | Meaning here                                                                              |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| **Fixture** | Plain object shaped like a model row (or a partial of one) — not a replacement for Client |
+| **Mock**    | Fake dependency (`vi.mock` / stubbed Client methods) so tests don’t hit the DB            |
+| **Spy**     | Assert a mocked method was called (and with what args)                                    |
+
+**Decide in order** (stop at the first match):
+
+1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-log-message.ts`](../lib/generate-log-message.ts) + [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
+2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a **mocked** [`lib/prisma.ts`](../lib/prisma.ts) when that suite lands. First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching (blog part 2).
+3. **Need real SQL / relations** → integration against a test DB (later; blog part 3 / Prisma integration docs) — not default for app helpers.
+4. **Full product journey** → **Playwright** (blog part 4 when relevant).
+
+```text
+Uses Prisma Client? ──no──► types-only unit (no Client mock)
+         │ yes
+Custom logic around queries? ──no──► skip Vitest (thin wrapper)
+         │ yes
+Need real DB correctness? ──no──► Vitest + mocked Client (when added)
+         │ yes
+                         └──► integration DB or Playwright
+```
+
+**How to mock Client (Vitest only — no extra package by default)**
+
+Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) · [Vi](https://vitest.dev/api/vi.html)) already supports:
+
+- **`vi.mock` factory** returning only the methods under test as `vi.fn()` (preferred for a small surface like `auditLog.create`)
+- **Colocated `lib/__mocks__/prisma.ts`** loaded by `vi.mock("@/lib/prisma")` without a factory ([`__mocks__` convention](https://vitest.dev/api/vi.html#vi-mock)) — `__mocks__` dirs are allowed; catch-all `__tests__/` / `tests/` are not
+- **Automock** (`vi.mock` with no factory and no `__mocks__` file): Vitest recursively replaces exports (nested objects / class instances); useful for plain modules — Prisma Client is a heavy instance/Proxy, so prefer an explicit factory or `__mocks__` stub of methods you call
+
+**Do not add `vitest-mock-extended` by default.** The Prisma blog uses `mockDeep` for convenience. Vitest does not require it. Add that package only if a narrow manual stub becomes painful (many models, interactive `$transaction`, etc.) — [one tool per job](./vocabulary.md#one-tool-per-job).
+
+**Types-only + full model type (named cast):** Use when production takes a **full Prisma model type** but the test only cares about a few fields. Prefer keeping the production param as the model type (e.g. `AuditLog`) when call sites pass real rows. In the test, use a **named cast** helper that accepts `Pick<…>` of fields under test and returns `as AuditLog` — do **not** invent unused columns (`id`, timestamps, …) only to satisfy TypeScript. See `auditLogForMessage` in [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts). Zod schema suites and other plain-input unit tests do not need this pattern.
+
+**Do not add `"type": "module"` to root [`package.json`](../package.json)** to “match” Prisma blog samples. Those samples are bare Node/Vitest packages. This app relies on Next.js, Vitest/Vite, and `node --import tsx` for scripts; forcing package-wide ESM can break CJS assumptions. Revisit only if a concrete Node entrypoint fails without it.
+
+**Not yet:** Client-mock suites / `lib/__mocks__/prisma.ts` — add with the first Client-using unit test (plan P1 / `create-audit-log`), not for types-only helpers.
+
 ### Storybook (when needed)
 
 **Not** a Vitest or Playwright replacement, and **not** our component-test tool until this doc explicitly reassigns ownership ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook)). Planned order: Playwright E2E first, Storybook later. Prefer [Storybook](https://storybook.js.org) over Ladle/Histoire ([`conventions.md`](./conventions.md)).
@@ -324,12 +506,32 @@ Storybook               →  humans browse / compose UI (catalog — when trigge
 
 ## Run
 
-| Script               | When                                                                                                                                          |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm test`          | Local watch (humans)                                                                                                                          |
-| `pnpm test:run`      | One-shot — agents, CI, pre-commit checks                                                                                                      |
-| `pnpm test:coverage` | One-shot with V8 coverage report (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                           |
-| `pnpm test:inspect`  | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools) |
+| Script                     | When                                                                                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm test`                | Local watch (humans)                                                                                                                              |
+| `pnpm test:run`            | One-shot — agents, CI, pre-commit checks                                                                                                          |
+| `pnpm test:coverage`       | One-shot with V8 coverage for the whole suite (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                  |
+| `pnpm test:coverage:paths` | Coverage for colocated source ↔ `*.test.*` pair(s) (files and/or folders) — [`scripts/test-coverage-paths.ts`](../scripts/test-coverage-paths.ts) |
+| `pnpm test:inspect`        | Pause for Chrome DevTools (`chrome://inspect`) — [Node inspector](https://vitest.dev/guide/debugging.html#node-inspector-e-g-chrome-devtools)     |
+
+```bash
+# Prefer this when inspecting modules (files and/or folders; recursive).
+# Trailing slash on folders is optional (`lib` and `lib/` are the same).
+pnpm test:coverage:paths constants/pricing-plans.ts
+pnpm test:coverage:paths lib/paths.ts lib/utils.ts
+pnpm test:coverage:paths lib constants
+pnpm test:coverage:paths lib/paths.test.ts actions/create-board/
+
+# Full-suite coverage
+pnpm test:coverage
+
+# Manual Vitest filters (extra args after the script name; do not insert `--` —
+# pnpm would forward a literal `--` and break flags like --coverage.include)
+pnpm test:run lib/paths.test.ts
+pnpm test:coverage lib/paths.test.ts --coverage.include=lib/paths.ts
+```
+
+HTML report: `coverage/index.html` (gitignored).
 
 ## Debug
 
@@ -340,14 +542,15 @@ Storybook               →  humans browse / compose UI (catalog — when trigge
 
 ## File map
 
-| Path                                                    | Role                                                                                                                                          |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`vitest.config.mts`](../vitest.config.mts)             | Vitest + `setupFiles` + `*.test.*` include + `restoreMocks` + `requireAssertions` + V8 coverage                                               |
-| [`vitest.setup.ts`](../vitest.setup.ts)                 | jest-dom on Vitest `expect` — **why:** DOM asserts; see [Already following](#already-following)                                               |
-| [`eslint.config.mjs`](../eslint.config.mjs)             | `@vitest/eslint-plugin` + `eslint-plugin-jest-dom` + `eslint-plugin-testing-library` on Vitest suites ([above](#vitest-lint--config-choices)) |
-| [`package.json`](../package.json)                       | `test` scripts · Testing Library deps (`jest-dom`, `user-event`, …)                                                                           |
-| [`.vscode/extensions.json`](../.vscode/extensions.json) | `vitest.explorer`                                                                                                                             |
-| [`.vscode/launch.json`](../.vscode/launch.json)         | Vitest debug launch configs                                                                                                                   |
-| [`AGENTS.md`](../AGENTS.md)                             | Short agent rules (point here for the full map)                                                                                               |
-| `**/foo.test.ts(x)`                                     | Colocated Vitest suites (never `*.spec.*`)                                                                                                    |
-| `e2e/**/*.spec.ts(x)`                                   | Playwright only (when added; never `*.test.*`)                                                                                                |
+| Path                                                                  | Role                                                                                                                                          |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`vitest.config.mts`](../vitest.config.mts)                           | Vitest + `setupFiles` + `*.test.*` include + `restoreMocks` + `requireAssertions` + V8 coverage                                               |
+| [`vitest.setup.ts`](../vitest.setup.ts)                               | jest-dom on Vitest `expect` — **why:** DOM asserts; see [Already following](#already-following)                                               |
+| [`eslint.config.mjs`](../eslint.config.mjs)                           | `@vitest/eslint-plugin` + `eslint-plugin-jest-dom` + `eslint-plugin-testing-library` on Vitest suites ([above](#vitest-lint--config-choices)) |
+| [`package.json`](../package.json)                                     | `test` scripts · `test:coverage:paths` · Testing Library deps (`jest-dom`, `user-event`, …)                                                   |
+| [`scripts/test-coverage-paths.ts`](../scripts/test-coverage-paths.ts) | Colocated source/test (files or folders) → Vitest coverage for those pairs                                                                    |
+| [`.vscode/extensions.json`](../.vscode/extensions.json)               | `vitest.explorer`                                                                                                                             |
+| [`.vscode/launch.json`](../.vscode/launch.json)                       | Vitest debug launch configs                                                                                                                   |
+| [`AGENTS.md`](../AGENTS.md)                                           | Short agent rules (point here for the full map)                                                                                               |
+| `**/foo.test.ts(x)`                                                   | Colocated Vitest suites (never `*.spec.*`)                                                                                                    |
+| `e2e/**/*.spec.ts(x)`                                                 | Playwright only (when added; never `*.test.*`)                                                                                                |

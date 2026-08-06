@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { BoardNavbar } from "./_components/board-navbar";
 import { paths } from "@/lib/paths";
+import { cssUrl } from "@/lib/utils";
 
 export async function generateMetadata({
   params,
@@ -52,7 +53,7 @@ export default async function BoardIdLayout({
 
   return (
     <div
-      style={{ backgroundImage: `url(${board.imageFullUrl})` }}
+      style={{ backgroundImage: cssUrl(board.imageFullUrl) }}
       className="relative h-full bg-cover bg-center bg-no-repeat"
     >
       <BoardNavbar data={board} />
