@@ -478,7 +478,7 @@ Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaul
 | `serverError` | **Handler** — auth, not-found, persist | Action handler     | `"Unauthorized"`, `"Failed to create."` | Toast via `useAction`’s `onError`                                                |
 | `data`        | Handler success                        | Action handler     | created `Board`                         | `onSuccess`                                                                      |
 
-`FieldErrors`, `FormErrors`, and `ServerError` live beside `ActionState` so clients ([`useAction`](../hooks/use-action.ts), every `actions/<name>/types.ts`) share one source of truth. `data` stays as the `TOutput` type parameter — no wrapper alias. (Don’t confuse the `FormErrors` _type_ with the [`FormErrors`](../components/form/form-errors.tsx) _component_.)
+`FieldErrors`, `FormErrors`, and `ServerError` live beside `ActionState` so clients ([`useAction`](../hooks/use-action.ts), every `actions/<name>/types.ts`) share one source of truth. `FieldErrors` is an alias of Zod’s [`$ZodFlattenedError`](https://zod.dev/error-formatting) `fieldErrors` (optional keys — only failing fields), so `createSafeAction` can return `z.flattenError` output without a cast. `data` stays as the `TOutput` type parameter — no wrapper alias. (Don’t confuse the `FormErrors` _type_ with the [`FormErrors`](../components/form/form-errors.tsx) _component_.)
 
 Rules that follow from this:
 

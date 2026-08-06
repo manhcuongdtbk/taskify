@@ -160,7 +160,7 @@ describe("createSafeAction", () => {
     const handler = vi.fn();
     const action = createSafeAction(z.string().min(3), handler);
 
-    await expect(action("ab" as never)).resolves.toStrictEqual({
+    await expect(action("ab")).resolves.toStrictEqual({
       fieldErrors: {},
       formErrors: ["Field must be at least 3 characters"],
     });

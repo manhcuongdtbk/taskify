@@ -1,7 +1,7 @@
 import { startCase } from "es-toolkit/string";
 import { z } from "zod";
 
-import { type ActionState, type FieldErrors } from "./create-safe-action.types";
+import { type ActionState } from "./create-safe-action.types";
 
 const fieldLabel = (path: PropertyKey[] | undefined) => {
   const field = path?.findLast(
@@ -51,7 +51,7 @@ export const createSafeAction = <TInput, TOutput>(
       );
 
       return {
-        fieldErrors: fieldErrors as FieldErrors<TInput>,
+        fieldErrors,
         ...(formErrors.length > 0 && { formErrors }),
       };
     }

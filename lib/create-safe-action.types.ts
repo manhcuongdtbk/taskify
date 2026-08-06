@@ -1,6 +1,10 @@
-export type FieldErrors<T> = {
-  [K in keyof T]: string[];
-};
+import { type z } from "zod";
+
+/**
+ * Per-field schema issues from `z.flattenError(…).fieldErrors`.
+ * Aliased so ActionState stays aligned with Zod’s flatten shape (optional keys).
+ */
+export type FieldErrors<T> = z.core.$ZodFlattenedError<T>["fieldErrors"];
 
 /** Schema issues with no field path (object `.refine()`, root schema). */
 export type FormErrors = string[];
