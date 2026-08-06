@@ -44,7 +44,7 @@ describe("UpdateListOrder", () => {
     });
   });
 
-  test("invalid: rejects items with invalid fields", () => {
+  test("invalid: rejects items with omitted fields", () => {
     const result = UpdateListOrder.safeParse({
       items: [{ id: "list_1" }],
       boardId: "board_1",

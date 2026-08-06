@@ -1,7 +1,9 @@
 /**
  * Test-only — Zod’s current English default issue messages, derived from a
  * failed `safeParse` so schema suites don’t hardcode copy. Names follow Zod
- * issue `code`s (`invalid_type`, `too_small`, …). `lib/testing/**` must not be
+ * issue `code`s (`invalid_type`, `too_small`, …). `invalidType*` helpers are
+ * specifically `invalid_type` with `received undefined` (omitted/undefined
+ * required values) — not wrong-type payloads. `lib/testing/**` must not be
  * imported by app code (ESLint). See docs/testing.md.
  */
 
