@@ -6,12 +6,10 @@ import {
   useCardModalStore,
 } from "@/stores/use-card-modal-store";
 import { useQuery } from "@tanstack/react-query";
-import { fetcher } from "@/lib/fetcher";
-import { CardWithList } from "@/types";
+import { cardQueries } from "@/lib/api/card";
 import { CardModalHeader } from "./card-modal-header";
 import { CardModalDescription } from "./card-modal-description";
 import { CardModalActions } from "./card-modal-actions";
-import { type AuditLog } from "@/app/generated/prisma/client";
 import { CardModalActivity } from "./card-modal-activity";
 
 export const CardModal = () => {
@@ -19,19 +17,8 @@ export const CardModal = () => {
   const isOpen = useCardModalStore(selectCardModalIsOpen);
   const handleClose = useCardModalStore((state) => state.close);
 
-  // TODO: fix the eslint error
-  // eslint-disable-next-line @tanstack/query/prefer-query-options
-  const { data: cardData } = useQuery<CardWithList>({
-    queryKey: ["card", id],
-    queryFn: () => fetcher(`/api/cards/${id}`),
-  });
-
-  // TODO: fix the eslint error
-  // eslint-disable-next-line @tanstack/query/prefer-query-options
-  const { data: auditLogsData } = useQuery<AuditLog[]>({
-    queryKey: ["card-logs", id],
-    queryFn: () => fetcher(`/api/cards/${id}/logs`),
-  });
+  const { data: cardData } = useQuery(cardQueries.detail(id));
+  const { data: auditLogsData } = useQuery(cardQueries.logs(id));
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

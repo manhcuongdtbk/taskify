@@ -139,8 +139,9 @@ Still prefer the **server** for secrets, Prisma, and most first-load data. Use t
 | **Adopted pick** (Query + `fetch`, avoid SWR, optimistic rules) | [`conventions.md`](./conventions.md#common-practices-catalog)                                                                                                   |
 | **How** (`useQuery`, keys, staleTime, …)                        | [TanStack Query docs](https://tanstack.com/query/latest/docs/framework/react/overview)                                                                          |
 | **Transport**                                                   | Web `fetch` via [`lib/fetcher.ts`](../lib/fetcher.ts) — not Next’s server `fetch`                                                                               |
+| **Client Query factories** (keys + `queryFn`, later mutations)  | [`lib/api/<resource>.ts`](../lib/api/) — e.g. [`card.ts`](../lib/api/card.ts) (`cardQueries`). ≠ [`app/api/`](../app/api/) Route Handlers. Any remote origin.   |
 
-**In this repo today:** card modal (`components/modals/card-modal`) — `useQuery` → Route Handlers; after Action success, `queryClient.invalidateQueries`. Provider: `providers/query-provider.tsx`.
+**In this repo today:** card modal uses `cardQueries` from [`lib/api/card.ts`](../lib/api/card.ts) → our Route Handlers; after Action success, `invalidateQueries` via the same factory. Provider: `providers/query-provider.tsx`. Do **not** put factories under modal UI folders or invent global `queries/` / `mutations/` / `keys/` trees — [`project-structure.md`](./project-structure.md).
 
 ## Where Next is thin (teach here)
 
