@@ -46,6 +46,8 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 - [ ] **TanStack Query patterns** — `prefer-query-options`, provider nesting; guidance in [`conventions.md`](./conventions.md). Add `docs/tanstack-query.md` only if that outgrows a catalog row — see [TanStack Query](#tanstack-query-client-only)
 - [ ] **Align Action client UX with `useActionState` / `useFormStatus`** — keep toasts/field-error behavior; prefer React hooks + [Forms](https://nextjs.org/docs/app/guides/forms) over a forever-custom `useAction` ([`useActionState`](https://react.dev/reference/react/useActionState), [`useFormStatus`](https://react.dev/reference/react/useFormStatus))
 - [ ] **Unsplash** — whether client + public key stays acceptable vs server-only fetch (production Unsplash app TODO in `lib/unsplash.ts`)
+- [ ] **Board image URL allowlist** — constrain `CreateBoard.image` URLs to known Unsplash hosts (and related link hosts) after https-only + `cssUrl` ([`create-board/schema.ts`](../actions/create-board/schema.ts), [`cssUrl`](../lib/utils.ts))
+- [ ] **Server-verify Unsplash photo by id** — on create, fetch/confirm the photo server-side and persist those URLs so the client cannot spoof `thumbUrl` / `fullUrl` / attribution ([`create-board`](../actions/create-board/index.ts))
 - [ ] **Stronger DAL / DTO** — only if authorization-near-data keeps getting duplicated; don’t invent `dal.ts` for fashion (see [DAL and DTO](#dal-and-dto-not-auth-only))
 
 ## Out of scope for now

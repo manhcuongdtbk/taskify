@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
-import { absoluteUrl, cn } from "./utils";
+import { absoluteUrl, cn, cssUrl } from "./utils";
 
 describe("cn", () => {
   test("merges class names", () => {
@@ -27,5 +27,21 @@ describe("absoluteUrl", () => {
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://app.example");
 
     expect(absoluteUrl("/board/1")).toBe("https://app.example/board/1");
+  });
+});
+
+describe("cssUrl", () => {
+  test("quotes the URL for CSS url()", () => {
+    expect(cssUrl("https://images.unsplash.com/photo.jpg")).toBe(
+      'url("https://images.unsplash.com/photo.jpg")',
+    );
+  });
+
+  test("escapes quotes so a value cannot break out of url()", () => {
+    expect(
+      cssUrl('https://evil.example/x.jpg");color:red;background:url("y'),
+    ).toBe(
+      'url("https://evil.example/x.jpg\\");color:red;background:url(\\"y")',
+    );
   });
 });

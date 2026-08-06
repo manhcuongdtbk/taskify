@@ -58,14 +58,21 @@ describe("CreateBoard", () => {
     { case: "thumbUrl", value: { ...image, thumbUrl: "not-a-url" } },
     { case: "fullUrl", value: { ...image, fullUrl: "not-a-url" } },
     { case: "linkHTML", value: { ...image, linkHTML: "not-a-url" } },
-  ])("invalid: rejects an image whose $case is not a URL", ({ value }) => {
-    const result = CreateBoard.safeParse({ title: "Roadmap", image: value });
+    {
+      case: "thumbUrl over http",
+      value: { ...image, thumbUrl: "http://images.unsplash.com/photo.jpg" },
+    },
+  ])(
+    "invalid: rejects an image whose $case is not a https URL",
+    ({ value }) => {
+      const result = CreateBoard.safeParse({ title: "Roadmap", image: value });
 
-    expect(result.success).toBe(false);
-    expect(safeParseFieldErrors(result)).toStrictEqual({
-      image: ["Invalid URL"],
-    });
-  });
+      expect(result.success).toBe(false);
+      expect(safeParseFieldErrors(result)).toStrictEqual({
+        image: ["Invalid URL"],
+      });
+    },
+  );
 
   test("invalid: reports the whole image group under one key", () => {
     const result = CreateBoard.safeParse({ title: "Roadmap", image: {} });
