@@ -9,7 +9,7 @@ Ephemeral **browser UI state** shared across components — modals open/closed, 
 
 **Implementation today:** [Zustand](https://zustand.docs.pmnd.rs). Catalog picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
 
-**Do not** put server/domain data here (boards, cards, billing). That stays Prisma / Server Actions / TanStack Query — [`data.md`](./data.md).
+**Do not** put remote/API payload data here (boards, cards, billing rows). That is TanStack Query / RSC / Actions — [`data.md`](./data.md) ([Query vs this page](./data.md#tanstack-query-client-only)). This file is only **ephemeral UI intent** (which modal, which id, sidebar open).
 
 Official Zustand docs cover the API well but say little about _how we compose it with React naming, Next.js, and this repo’s factory_. This page is that missing layer.
 
@@ -18,7 +18,7 @@ Official Zustand docs cover the API well but say little about _how we compose it
 - **Multiple small stores** — one file per concern under `stores/use-*-store.ts` (not one global store)
 - Domain/event action names (`open`, `close`) — not React `on*` / `handle*` on the store
 - Slice selectors at every call site (no bare `useXStore()`)
-- **Derived flags via `select*`** — don’t store booleans that are pure invariants of other fields (e.g. card modal open ⇔ `id`); use a Redux-style `select*` when the read is reused (component + test, etc.) — [below](#state-vs-actions)
+- **Derived flags via `select*`** — don’t store booleans that are pure invariants of other fields — [Derived flags](#derived-flags-select--prefer-over-redundant-state)
 - One factory [`lib/create-store.ts`](../lib/create-store.ts) (sole `zustand` import; wires `devtools`)
 - React UI boundary keeps `on*` props and `handle*` locals — see [React vs store naming](#react-vs-store-naming)
 
@@ -226,9 +226,17 @@ type CardModalStore = {
 - **Actions** — what events can happen (`open`, `close`)
 - **Derived** — values computed in selectors (e.g. `selectCardModalIsOpen`), not stored — [Zustand: derived state](https://zustand.docs.pmnd.rs/learn/guides/beginner-typescript)
 
-**Do not store flags that only restate an invariant.** If open ⇔ `id` is set, keep `id` only and export `selectCardModalIsOpen` (Redux-style `select*` — intentional for familiarity and reuse across component + tests). Inline `(s) => s.id !== undefined` is fine for a one-off; prefer a named `select*` when the same derivation appears in more than one place.
+#### Derived flags (`select*`) — prefer over redundant state
 
-**Storing derived / computed state is a last resort** — only when the value is a real **variant** (mode / phase that is not a pure function of other fields, or that callers set independently). A redundant `isOpen` beside `id` is not that; Pro / mobile sidebar keep stored `isOpen` because open/closed is the _only_ fact (no id to derive from).
+**Do not store flags that only restate an invariant.** Card modal: open ⇔ `id` is set → keep `id` only; export `selectCardModalIsOpen` for semantic reads.
+
+| Approach                           | When                                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Named **`select*`** (Redux-style)  | Derivation reused (component + test, or several call sites). ESLint allows `select*` next to `use*Store`. |
+| Inline `(s) => s.id !== undefined` | One-off read; no need to export.                                                                          |
+| Stored `isOpen` beside `id`        | **Avoid** — two fields that can drift.                                                                    |
+| Stored `isOpen` with **no** id     | **OK** — Pro / mobile sidebar: open/closed is the only fact.                                              |
+| Stored derived “mode” / variant    | **Last resort** — only if it is **not** a pure function of other fields (callers set it independently).   |
 
 Prefer **event / domain verbs** on the store ([TkDodo: actions as events](https://tkdodo.eu/blog/working-with-zustand)), not `setIsOpen` as the primary API, and not React’s `onOpen` / `handleOpen` as store keys.
 

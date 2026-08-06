@@ -4,9 +4,8 @@ import { fetcher } from "@/lib/fetcher";
 import { type CardWithList } from "@/types";
 
 /**
- * Client Query factory for card remote data (any origin via fetcher).
- * Co-locate queryKey + queryFn; add cardMutations here when Query owns writes.
- * Not Route Handlers — those live under `app/api/`.
+ * Card remote-data factory for TanStack Query (client).
+ * See docs/data.md (TanStack Query) — why lib/api vs app/api and queryOptions.
  */
 export const cardQueries = {
   all: () => ["card"] as const,
