@@ -1,18 +1,18 @@
 ---
 name: Vitest test backlog
-overview: "P0 done (pure Vitest unit suites for lib helpers, pricing helpers, Stripe money helpers, and all 14 action Zod schemas). Remaining backlog: P1–P4 (mocked I/O, components incl. FormPicker a11y + FormPopover controlled-title TDD + FormData.get as-string cleanup, MSW, polish)."
+overview: "P0 done on test/vitest-p0-pure-unit (PR #5): pure unit suites, Zod test helpers, createSafeAction unit coverage, ActionState/FieldErrors, nested CreateBoard.image + cssUrl. Remaining: P1–P4 (mocked I/O beyond createSafeAction, components incl. FormPicker a11y + FormPopover controlled-title TDD + FormData.get as-string cleanup, MSW, polish)."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
     status: completed
   - id: p0-pure-unit
-    content: "P0: Colocated unit tests for generate-log-message, paths, utils, pricing helpers, stripe helpers, all 14 action schemas; pnpm test:run green"
+    content: "P0: Colocated unit tests for generate-log-message, paths, utils (incl. cssUrl), pricing helpers, stripe helpers, all 14 action schemas, create-safe-action, lib/testing/zod helpers; pnpm test:run green"
     status: completed
   - id: review-then-pr
     content: Self-review the P0 diff, then push and open PR to main
     status: completed
   - id: p1-mocked-unit
-    content: "TODO later — P1: create-safe-action, fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock via Vitest vi.mock factory or lib/__mocks__/prisma (no vitest-mock-extended by default) for create-audit-log"
+    content: "TODO later — P1: fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock via Vitest vi.mock factory or lib/__mocks__/prisma (no vitest-mock-extended by default) for create-audit-log. create-safe-action unit suite already shipped in P0 PR."
     status: pending
   - id: p2-components
     content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces"
@@ -61,18 +61,22 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 
 ---
 
-## P0 — Done: pure unit (`*.test.ts`)
+## P0 — Done: pure unit (`*.test.ts`) + related hardening (PR #5)
 
-Shipped on `test/vitest-p0-pure-unit` (PR to `main`). Colocated suites cover:
+Shipped on `test/vitest-p0-pure-unit` → [`PR #5`](https://github.com/manhcuongdtbk/taskify/pull/5). Colocated suites and supporting changes cover:
 
-| Target                                                             | Assert                                                                                             |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| [`lib/generate-log-message.ts`](../../lib/generate-log-message.ts) | CREATE / UPDATE / DELETE / default strings for each `ACTION`                                       |
-| [`lib/paths.ts`](../../lib/paths.ts)                               | Route builders return expected path strings                                                        |
-| [`lib/utils.ts`](../../lib/utils.ts)                               | `cn` merge/dedupe; `absoluteUrl` with stubbed `NEXT_PUBLIC_APP_URL`                                |
-| [`constants/pricing-plans.ts`](../../constants/pricing-plans.ts)   | `hasUnlimitedBoards`, `formatBoardLimit` for Free vs Pro                                           |
-| [`lib/stripe.ts`](../../lib/stripe.ts) helpers only                | `stripeTimestampToDate`, `toStripeUnitAmount`, `toStripeCurrency` (Stripe client mocked on import) |
-| All 14 [`actions/*/schema.ts`](../../actions/)                     | `.safeParse` happy path + required/min-length failures                                             |
+| Target                                                             | Assert / change                                                                                          |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| [`lib/generate-log-message.ts`](../../lib/generate-log-message.ts) | CREATE / UPDATE / DELETE / default strings for each `ACTION`                                             |
+| [`lib/paths.ts`](../../lib/paths.ts)                               | Route builders return expected path strings                                                              |
+| [`lib/utils.ts`](../../lib/utils.ts)                               | `cn` merge/dedupe; `absoluteUrl`; `cssUrl` quotes/escapes for CSS `url()`                                |
+| [`constants/pricing-plans.ts`](../../constants/pricing-plans.ts)   | `hasUnlimitedBoards`, `formatBoardLimit` for Free vs Pro                                                 |
+| [`lib/stripe.ts`](../../lib/stripe.ts) helpers only                | `stripeTimestampToDate`, `toStripeUnitAmount`, `toStripeCurrency` (Stripe client mocked on import)       |
+| All 14 [`actions/*/schema.ts`](../../actions/)                     | `.safeParse` happy path + required/min-length failures via default issue-message helpers                 |
+| [`lib/create-safe-action.ts`](../../lib/create-safe-action.ts)     | Unit suite: validation mapping, friendly copy, handler pass-through (shipped early; was listed under P1) |
+| [`lib/testing/zod/`](../../lib/testing/zod/)                       | `safeParseFieldErrors`, `default-issue-messages` (`invalidType*` = `received undefined` only)            |
+
+Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldErrors` typing, nested `CreateBoard.image`, https-only image URLs, board backgrounds painted via `cssUrl`, Vitest docs/conventions updates.
 
 ---
 
@@ -80,10 +84,11 @@ Shipped on `test/vitest-p0-pure-unit` (PR to `main`). Colocated suites cover:
 
 ### P1 — Unit with mocks + client state
 
-- [`lib/create-safe-action.ts`](../../lib/create-safe-action.ts), [`lib/fetcher.ts`](../../lib/fetcher.ts), [`lib/env.ts`](../../lib/env.ts)
+- [`lib/fetcher.ts`](../../lib/fetcher.ts), [`lib/env.ts`](../../lib/env.ts)
 - Three Zustand stores; [`hooks/use-action.ts`](../../hooks/use-action.ts)
 - **Prisma Client mock (first):** [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts) via Vitest `vi.mock` **factory** or colocated `lib/__mocks__/prisma.ts` stubbing only methods under test — see [`docs/testing.md`](../../docs/testing.md) (Prisma-related). Do **not** add `vitest-mock-extended` unless a narrow stub becomes painful. Types-only helpers (e.g. `generate-log-message`) stay without Client mocks. Blog series index: [Testing with Prisma](https://www.prisma.io/blog/series/testing-with-prisma) (parts 1–2 when implementing; 3–5 later).
 - Still skip or defer heavy Clerk+Prisma paths (`subscription`, `organization-limit`) until that pattern is proven; `unsplash` / `prisma` singleton itself are not unit targets
+- **Done early in P0 PR:** [`lib/create-safe-action.ts`](../../lib/create-safe-action.ts) unit suite — do not re-open unless expanding handler/integration coverage
 
 ### P2 — Component static + interactive
 
