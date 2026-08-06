@@ -18,9 +18,13 @@ export const issueMessageOf = (result: ZodSafeParseResult<unknown>) => {
   }
 
   const { formErrors, fieldErrors } = flattenError(result.error);
-  const fromFields = Object.values(fieldErrors).flat()[0];
+  const issueMessage = formErrors[0] ?? Object.values(fieldErrors).flat()[0];
 
-  return formErrors[0] ?? fromFields!;
+  if (issueMessage === undefined) {
+    throw new Error("Expected at least one issue message");
+  }
+
+  return issueMessage;
 };
 
 /** `invalid_type` — expected string, received `undefined`. */

@@ -21,6 +21,12 @@ describe("zod default issue messages", () => {
     );
   });
 
+  test("issueMessageOf throws when the failed parse has no issue messages", () => {
+    expect(() =>
+      issueMessageOf({ success: false, error: new z.ZodError([]) }),
+    ).toThrow("Expected at least one issue message");
+  });
+
   test("issueMessageOf falls back to first fieldError when formErrors is empty", () => {
     // Example 1: a plain `z.string()` failure is reported as a "form" (top-level) issue message.
     expect(issueMessageOf(z.string().safeParse(undefined))).toBe(
