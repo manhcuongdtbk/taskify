@@ -184,7 +184,8 @@ const vitestArgs = [
 
 const result = spawnSync("pnpm", vitestArgs, {
   stdio: "inherit",
-  shell: false,
+  // Windows resolves `pnpm` through the `pnpm.CMD` shim, which needs a shell.
+  shell: process.platform === "win32",
   cwd: root,
 });
 

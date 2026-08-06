@@ -61,6 +61,12 @@ export const FormPopover = ({
     setSelectedImage(image);
   };
 
+  // FormPicker unmounts on close and refetches new images, so a kept selection
+  // would be submitted without any check mark to show it.
+  const handleOpenChange = (open: boolean) => {
+    if (!open) setSelectedImage(undefined);
+  };
+
   const handleSubmit = (formData: FormData) => {
     const title = formData.get("title");
 
@@ -72,7 +78,7 @@ export const FormPopover = ({
   };
 
   return (
-    <Popover>
+    <Popover onOpenChange={handleOpenChange}>
       <PopoverTrigger render={children} />
       <PopoverContent
         align={align}
