@@ -59,6 +59,8 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 
 **Conventions:** colocated `*.test.ts(x)` next to source; `import { describe, expect, test, vi } from "vitest"`; `vi.*` only; `test.for` for table-driven cases; no real network/DB.
 
+**Per-P plans (until this backlog is finished):** each priority keeps its own execution plan under `.cursor/plans/` so the next P can look back at approach and doubles. P0 was compressed into this backlog only (no separate plan file). P1+: keep the phase plan committed — P1 is [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md).
+
 ---
 
 ## P0 — Done: pure unit (`*.test.ts`) + related hardening (PR #5)
@@ -82,7 +84,7 @@ Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldError
 
 ## P1 — Done: unit with mocks + client state
 
-Shipped on `test/vitest-p1-mocked-unit`. Colocated suites:
+Shipped on `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7). Execution plan (look-back): [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md). Colocated suites:
 
 | Target                                                                           | Assert / change                                                                                  |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
