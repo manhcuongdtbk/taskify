@@ -1,45 +1,40 @@
 import { afterEach, describe, expect, test } from "vitest";
 
-import { useCardModalStore } from "./use-card-modal-store";
+import {
+  selectCardModalIsOpen,
+  useCardModalStore,
+} from "./use-card-modal-store";
 
 describe("useCardModalStore", () => {
   afterEach(() => {
     useCardModalStore.getState().close();
   });
 
-  test("starts closed with no id", () => {
-    expect(useCardModalStore.getState()).toMatchObject({
-      id: undefined,
-      isOpen: false,
-    });
+  test("starts with no id", () => {
+    expect(useCardModalStore.getState().id).toBeUndefined();
+    expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(false);
   });
 
-  test("open sets id and isOpen", () => {
+  test("open sets id", () => {
     useCardModalStore.getState().open("card_1");
 
-    expect(useCardModalStore.getState()).toMatchObject({
-      id: "card_1",
-      isOpen: true,
-    });
+    expect(useCardModalStore.getState().id).toBe("card_1");
+    expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(true);
   });
 
-  test("close clears id and isOpen", () => {
+  test("close clears id", () => {
     useCardModalStore.getState().open("card_1");
     useCardModalStore.getState().close();
 
-    expect(useCardModalStore.getState()).toMatchObject({
-      id: undefined,
-      isOpen: false,
-    });
+    expect(useCardModalStore.getState().id).toBeUndefined();
+    expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(false);
   });
 
   test("open replaces a previous id", () => {
     useCardModalStore.getState().open("card_1");
     useCardModalStore.getState().open("card_2");
 
-    expect(useCardModalStore.getState()).toMatchObject({
-      id: "card_2",
-      isOpen: true,
-    });
+    expect(useCardModalStore.getState().id).toBe("card_2");
+    expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(true);
   });
 });

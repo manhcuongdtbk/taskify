@@ -1,7 +1,10 @@
 "use client";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useCardModalStore } from "@/stores/use-card-modal-store";
+import {
+  selectCardModalIsOpen,
+  useCardModalStore,
+} from "@/stores/use-card-modal-store";
 import { useQuery } from "@tanstack/react-query";
 import { fetcher } from "@/lib/fetcher";
 import { CardWithList } from "@/types";
@@ -13,7 +16,7 @@ import { CardModalActivity } from "./card-modal-activity";
 
 export const CardModal = () => {
   const id = useCardModalStore((state) => state.id);
-  const isOpen = useCardModalStore((state) => state.isOpen);
+  const isOpen = useCardModalStore(selectCardModalIsOpen);
   const handleClose = useCardModalStore((state) => state.close);
 
   // TODO: fix the eslint error
