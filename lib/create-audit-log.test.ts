@@ -1,4 +1,12 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  type MockInstance,
+  test,
+  vi,
+} from "vitest";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
@@ -26,6 +34,14 @@ const auditInput = {
 };
 
 describe("createAuditLog", () => {
+  let logSpy: MockInstance<typeof console.log>;
+
+  // Every failure path is swallowed through console.log — silence it for the
+  // whole suite so the failure cases don't dump stack traces into the output.
+  beforeEach(() => {
+    logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -90,7 +106,6 @@ describe("createAuditLog", () => {
   });
 
   test("returns a failure when auditLog.create rejects", async () => {
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
     authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
       ReturnType<typeof auth>
     >);
@@ -105,7 +120,7 @@ describe("createAuditLog", () => {
     const result = await createAuditLog(auditInput);
 
     expect(createMock).toHaveBeenCalledOnce();
-    expect(log).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
+    expect(logSpy).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
     expect(result).toStrictEqual({
       error: "Failed to create audit log",
     });
