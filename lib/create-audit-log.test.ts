@@ -42,7 +42,7 @@ describe("createAuditLog", () => {
     } as Awaited<ReturnType<typeof currentUser>>);
     createMock.mockResolvedValue({} as never);
 
-    await expect(createAuditLog(auditInput)).resolves.toBeUndefined();
+    const result = await createAuditLog(auditInput);
 
     expect(createMock).toHaveBeenCalledExactlyOnceWith({
       data: {
@@ -56,6 +56,7 @@ describe("createAuditLog", () => {
         userName: "Ada Lovelace",
       },
     });
+    expect(result).toBeUndefined();
   });
 
   test.for([
@@ -80,10 +81,12 @@ describe("createAuditLog", () => {
       user as Awaited<ReturnType<typeof currentUser>>,
     );
 
-    await expect(createAuditLog(auditInput)).resolves.toStrictEqual({
+    const result = await createAuditLog(auditInput);
+
+    expect(createMock).not.toHaveBeenCalled();
+    expect(result).toStrictEqual({
       error: "Failed to create audit log",
     });
-    expect(createMock).not.toHaveBeenCalled();
   });
 
   test("returns a failure when auditLog.create rejects", async () => {
@@ -99,9 +102,12 @@ describe("createAuditLog", () => {
     } as Awaited<ReturnType<typeof currentUser>>);
     createMock.mockRejectedValue(new Error("db down"));
 
-    await expect(createAuditLog(auditInput)).resolves.toStrictEqual({
+    const result = await createAuditLog(auditInput);
+
+    expect(createMock).toHaveBeenCalledOnce();
+    expect(log).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
+    expect(result).toStrictEqual({
       error: "Failed to create audit log",
     });
-    expect(log).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
   });
 });

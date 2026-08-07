@@ -99,15 +99,15 @@ Any of:
 
 ### Doc ownership (keep DRY)
 
-| Concern                                                                                   | SoT file                                                                                                                                           |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Test **type** → which **tool** · harness · scripts · jsdom vs Browser Mode · Storybook    | **This file** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) + [what to test where](#what-to-test-where)) |
-| Vitest **authoring terms** (`test` **name**, suite, assertion, …) · how we **name** tests | **This file** ([Vitest terms & naming](#vitest-terms--naming))                                                                                     |
-| Mid-suffix companions (`*.test.tsx`, `*.stories.tsx`) · props-in-JSX                      | [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names)                                                               |
-| Folders (`e2e/`, avoid `tests/`, `fixtures/`)                                             | [`project-structure.md`](./project-structure.md)                                                                                                   |
-| Test-only helper folder (`lib/testing/`)                                                  | **This file** ([Test-only helpers](#test-only-helpers-libtesting))                                                                                 |
-| Catalog status (Adopted / When needed) for Vitest / Playwright / MSW / Storybook          | [`conventions.md`](./conventions.md) tooling rows → link here for detail                                                                           |
-| Version-matched official docs                                                             | [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs)                                                 |
+| Concern                                                                                                      | SoT file                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Test **type** → which **tool** · harness · scripts · jsdom vs Browser Mode · Storybook                       | **This file** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) + [what to test where](#what-to-test-where)) |
+| Vitest **authoring terms** (`test` **name**, suite, assertion, …) · how we **name** tests · **expect order** | **This file** ([Vitest terms & naming](#vitest-terms--naming) · [expects follow execution order](#expects-follow-execution-order-hard-rule))       |
+| Mid-suffix companions (`*.test.tsx`, `*.stories.tsx`) · props-in-JSX                                         | [`conventions.md`](./conventions.md#companion-files-role-mid-suffixes-vs-bare-names)                                                               |
+| Folders (`e2e/`, avoid `tests/`, `fixtures/`)                                                                | [`project-structure.md`](./project-structure.md)                                                                                                   |
+| Test-only helper folder (`lib/testing/`)                                                                     | **This file** ([Test-only helpers](#test-only-helpers-libtesting))                                                                                 |
+| Catalog status (Adopted / When needed) for Vitest / Playwright / MSW / Storybook                             | [`conventions.md`](./conventions.md) tooling rows → link here for detail                                                                           |
+| Version-matched official docs                                                                                | [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs)                                                 |
 
 ### Official docs (match installed version)
 
@@ -144,6 +144,7 @@ test("submits on click", async () => {
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
 - Colocated `*.test.ts` / `*.test.tsx` (**Vitest only**; never `*.spec.*`) — [`conventions.md`](./conventions.md) · [`project-structure.md`](./project-structure.md)
 - Explicit Vitest imports (no `globals`); `vi.*` only (Jest is never used here)
+- **Expects follow execution order** — hard rule; [below](#expects-follow-execution-order-hard-rule)
 - ESLint on `**/*.test.{ts,tsx}` (not `e2e/`): [`@vitest/eslint-plugin`](https://github.com/vitest-dev/eslint-plugin-vitest) (`recommended` + repo extras) + [`eslint-plugin-jest-dom`](https://github.com/testing-library/eslint-plugin-jest-dom) (`flat/recommended`) + [`eslint-plugin-testing-library`](https://github.com/testing-library/eslint-plugin-testing-library) (`flat/react`) — runner hygiene, prefer jest-dom matchers, and Testing Library query/async practices; rationale in [Vitest lint & config choices](#vitest-lint--config-choices) · [`eslint.config.mjs`](../eslint.config.mjs)
 - Suffix split: `*.test.*` = Vitest (colocated only — no `__tests__/` / `tests/` / root `test/`), `e2e/*.spec.*` = Playwright ([why not `tests/`](#playwright-folder-e2e-not-tests)) — [enforced](#vitest-lint--config-choices)
 - Bug fixes: [reproduce with a failing test first](#fixing-bugs-with-tests-agents)
@@ -185,7 +186,7 @@ Use **Vitest’s words** in docs, PR review, and chat — not near-synonyms from
 | **Test name**          | The string (or function whose `.name` is used) passed as the first argument to **`test`**     | Official term is **name**, not “title”. Applies to **`test` only** — not to `describe`. API: [`test`](https://vitest.dev/api/#test) · [Writing Tests](https://vitest.dev/guide/learn/writing-tests.html) (“Each test has a **name**…”)                                    |
 | **Suite**              | A named group of tests created with `describe`                                                | Prefer one `describe` per unit under test; keep nesting shallow — [Grouping with describe](https://vitest.dev/guide/learn/writing-tests.html#grouping-tests-with-describe) · [Organizing](https://vitest.dev/guide/learn/testing-in-practice.html#grouping-with-describe) |
 | **Suite name**         | The string (or function whose `.name` is used) passed as the first argument to **`describe`** | Names the suite in the reporter (`file > suite > test`). Do **not** call this a “test name.”                                                                                                                                                                              |
-| **Assertion**          | A check via `expect(…)` (and matchers)                                                        | At least one per test — we set `expect.requireAssertions: true`                                                                                                                                                                                                           |
+| **Assertion**          | A check via `expect(…)` (and matchers)                                                        | At least one per test — we set `expect.requireAssertions: true`. **Order:** [expects follow execution order](#expects-follow-execution-order-hard-rule)                                                                                                                   |
 | **Matcher**            | The expectation method (`toBe`, `toStrictEqual`, `toThrow`, …; jest-dom adds DOM matchers)    | Prefer `toStrictEqual` over `toEqual` ([lint](#vitest-lint--config-choices)); jest-dom matchers in component tests                                                                                                                                                        |
 | **Test file**          | A file Vitest collects (our include: colocated `*.test.*` only)                               | Never `*.spec.*` for Vitest; never suite folders — see [lint & config](#vitest-lint--config-choices)                                                                                                                                                                      |
 | **Hook**               | Lifecycle helpers: `beforeEach` / `afterEach` / `beforeAll` / `afterAll`                      | Prefer fresh setup per test when cheap; hooks when repetition hurts                                                                                                                                                                                                       |
@@ -272,14 +273,15 @@ Resource **factories** ([`lib/api/card.ts`](../lib/api/card.ts); term: [`vocabul
 
 1. Stub `fetch` (or mock `fetcher`) so the call is hermetic.
 2. Assert `queryFn` is present if needed, then **cast only the call shape** so you can invoke with no args.
-3. Assert the resolved value with `expect(…).resolves.toStrictEqual(…)` — that owns the runtime contract, not the cast.
+3. Await the result, then assert in **execution order** (fetch → body) — [expects follow execution order](#expects-follow-execution-order-hard-rule).
 
 ```ts
 const { queryFn } = cardQueries.detail("card_1");
 // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
-await expect((queryFn as () => Promise<unknown>)()).resolves.toStrictEqual(
-  card,
-);
+const body = await (queryFn as () => Promise<unknown>)();
+
+expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
+expect(body).toStrictEqual(card);
 ```
 
 **Return type on the cast — `unknown` vs accurate vs `any`:**
@@ -309,6 +311,45 @@ Follow Vitest ([Descriptive Names](https://vitest.dev/guide/learn/testing-in-pra
 - Prefer **domain wording** for outcomes (`limited` / `unlimited`) over raw assertion echo (`is false` / `is true`) when both are clear.
 - When a suite (or parameterized table) splits happy-path vs rejection, prefix the **test name** with **`valid:`** / **`invalid:`**, then the behavior — e.g. `valid: accepts a copy payload`, `invalid: requires id and boardId`, `valid: formats maxBoards=1 as Up to 1 boards`, `invalid: throws when maxBoards is not a positive integer (-1)`.
 - Interpolate case data in parameterized **test names** (`$maxBoards`, `$expected`, `$0`) so the reporter shows which row failed.
+
+#### Expects follow execution order (hard rule)
+
+**Must:** after the act under test, write `expect(…)` in the **same order the code ran** — calls and side effects first, then resulting state / return value. The test body should read like a short timeline of the behavior.
+
+| Prefer                                                      | Avoid                                    |
+| ----------------------------------------------------------- | ---------------------------------------- |
+| `action` → `onSuccess` → `onComplete` → settled `isLoading` | Settled `isLoading` first, `action` last |
+| `fetch` → `json` → body                                     | Body first, then `fetch` / `json`        |
+| `handler` called (or not) → returned `ActionState`          | Result first, then “was handler called?” |
+
+```ts
+// hooks/use-action.test.tsx — success path
+await act(async () => {
+  await result.current.execute({ title: "Roadmap" });
+});
+
+expect(action).toHaveBeenCalledExactlyOnceWith({ title: "Roadmap" });
+expect(result.current.data).toStrictEqual({ id: "board_1" });
+expect(onSuccess).toHaveBeenCalledExactlyOnceWith({ id: "board_1" });
+expect(onError).not.toHaveBeenCalled();
+expect(onComplete).toHaveBeenCalledOnce();
+expect(result.current.isLoading).toBe(false);
+```
+
+```ts
+// lib/fetcher.test.ts — happy path
+const body = await fetcher<{ id: string }>("/api/cards/card_1");
+
+expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
+expect(json).toHaveBeenCalledOnce();
+expect(body).toStrictEqual({ id: "card_1" });
+```
+
+**Why:** failures and reviews match the implementation story (`onSuccess` then `onComplete` in [`use-action.ts`](../hooks/use-action.ts)). Order does not change pass/fail for independent matchers, but wrong order is a **repo convention violation** — fix it in review.
+
+**When there is only one assert** (pure return, schema `safeParse` shape, store field), order is moot. **When several asserts span calls + state**, chronological order is required. Prefer `const result = await …` + ordered expects over `await expect(…).resolves…` then a mock assert that happened earlier — unless a single `rejects`/`resolves` is the whole test.
+
+Examples already following this: [`hooks/use-action.test.tsx`](../hooks/use-action.test.tsx) · [`lib/fetcher.test.ts`](../lib/fetcher.test.ts) · [`lib/create-safe-action.test.ts`](../lib/create-safe-action.test.ts) · [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) · [`lib/api/card.test.ts`](../lib/api/card.test.ts).
 
 ### Vitest lint & config choices
 

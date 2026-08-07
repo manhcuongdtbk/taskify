@@ -25,12 +25,12 @@ describe("useAction", () => {
       await result.current.execute({ title: "Roadmap" });
     });
 
-    expect(result.current.isLoading).toBe(false);
+    expect(action).toHaveBeenCalledExactlyOnceWith({ title: "Roadmap" });
     expect(result.current.data).toStrictEqual({ id: "board_1" });
     expect(onSuccess).toHaveBeenCalledExactlyOnceWith({ id: "board_1" });
     expect(onError).not.toHaveBeenCalled();
     expect(onComplete).toHaveBeenCalledOnce();
-    expect(action).toHaveBeenCalledExactlyOnceWith({ title: "Roadmap" });
+    expect(result.current.isLoading).toBe(false);
   });
 
   test("sets isLoading while the action is in flight", async () => {
@@ -76,11 +76,13 @@ describe("useAction", () => {
       await result.current.execute({ title: "Roadmap" });
     });
 
+    expect(action).toHaveBeenCalledExactlyOnceWith({ title: "Roadmap" });
     expect(result.current.serverError).toBe("Unauthorized");
-    expect(result.current.data).toBeUndefined();
     expect(onError).toHaveBeenCalledExactlyOnceWith("Unauthorized");
+    expect(result.current.data).toBeUndefined();
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onComplete).toHaveBeenCalledOnce();
+    expect(result.current.isLoading).toBe(false);
   });
 
   test("reflects field and form errors without calling onSuccess", async () => {
@@ -98,6 +100,7 @@ describe("useAction", () => {
       await result.current.execute({ title: "" });
     });
 
+    expect(action).toHaveBeenCalledExactlyOnceWith({ title: "" });
     expect(result.current.fieldErrors).toStrictEqual({
       title: ["Missing Title"],
     });
@@ -121,11 +124,12 @@ describe("useAction", () => {
       await result.current.execute({ title: "Roadmap" });
     });
 
-    expect(result.current.isLoading).toBe(false);
+    expect(action).toHaveBeenCalledExactlyOnceWith({ title: "Roadmap" });
     expect(result.current.data).toBeUndefined();
     expect(result.current.serverError).toBeUndefined();
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
     expect(onComplete).toHaveBeenCalledOnce();
+    expect(result.current.isLoading).toBe(false);
   });
 });

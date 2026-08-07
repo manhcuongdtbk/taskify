@@ -15,11 +15,11 @@ describe("fetcher", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(
-      fetcher<{ id: string }>("/api/cards/card_1"),
-    ).resolves.toStrictEqual({ id: "card_1" });
+    const body = await fetcher<{ id: string }>("/api/cards/card_1");
+
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
     expect(json).toHaveBeenCalledOnce();
+    expect(body).toStrictEqual({ id: "card_1" });
   });
 
   test("throws with status and statusText when the response is not ok", async () => {
@@ -35,6 +35,7 @@ describe("fetcher", () => {
     await expect(fetcher("/api/missing")).rejects.toThrow(
       "Request failed: 404 Not Found",
     );
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/missing");
     expect(json).not.toHaveBeenCalled();
   });
 });

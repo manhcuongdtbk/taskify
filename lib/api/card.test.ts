@@ -32,10 +32,10 @@ describe("cardQueries", () => {
 
     const { queryFn } = cardQueries.detail("card_1");
     // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
-    await expect((queryFn as () => Promise<unknown>)()).resolves.toStrictEqual(
-      card,
-    );
+    const body = await (queryFn as () => Promise<unknown>)();
+
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
+    expect(body).toStrictEqual(card);
   });
 
   test("logs builds key and enables when id is set", () => {
@@ -59,9 +59,9 @@ describe("cardQueries", () => {
 
     const { queryFn } = cardQueries.logs("card_1");
     // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
-    await expect((queryFn as () => Promise<unknown>)()).resolves.toStrictEqual(
-      logs,
-    );
+    const body = await (queryFn as () => Promise<unknown>)();
+
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1/logs");
+    expect(body).toStrictEqual(logs);
   });
 });
