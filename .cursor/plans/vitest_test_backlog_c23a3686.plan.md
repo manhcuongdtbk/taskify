@@ -1,6 +1,6 @@
 ---
 name: Vitest test backlog
-overview: "P0 (PR #5) + P1 done on test/vitest-p1-mocked-unit: fetcher, env, 3 Zustand stores, use-action, create-audit-log (Clerk + Prisma vi.mock factories). Remaining: P2–P4 (components incl. FormPicker a11y + FormPopover controlled-title TDD + FormData.get as-string cleanup, MSW, polish)."
+overview: "P0 (PR #5) + P1 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P2–P4."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
@@ -15,7 +15,7 @@ todos:
     content: "P1: fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock (vi.mock factory) for create-audit-log + Clerk mocks; pnpm test:run green"
     status: completed
   - id: p2-components
-    content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces"
+    content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces; 100% colocated peers; raise overall coverage vs P1 ledger"
     status: pending
   - id: p2-form-picker-a11y
     content: "TODO later — FormPicker a11y: failing colocated test first (keyboard reach/activate → onSelect), then fix div+onClick; use defaultImages (no MSW). See docs/testing.md Fixing bugs with tests"
@@ -45,10 +45,10 @@ todos:
     content: "TODO later — card-modal-description: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow"
     status: pending
   - id: p3-msw-reorder
-    content: "TODO later — P3: Add MSW; card-modal Query; form-picker Unsplash fetch mock; list-container DropResult/reorder"
+    content: "TODO later — P3: Add MSW; card-modal Query; form-picker Unsplash fetch mock; list-container DropResult/reorder; 100% colocated peers; raise overall coverage vs P2 ledger"
     status: pending
   - id: p4-polish
-    content: "TODO later — P4: Broader role/a11y asserts (beyond FormPicker); thin leftovers; coverage/CI tighten; confirm no remaining formData.get as string in app UI"
+    content: "TODO later — P4: Broader role/a11y asserts; thin leftovers; raise overall coverage vs P3; then coverage.include/CI thresholds; confirm no remaining formData.get as string in app UI"
     status: pending
 isProject: false
 ---
@@ -60,6 +60,28 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 **Conventions:** colocated `*.test.ts(x)` next to source; `import { describe, expect, test, vi } from "vitest"`; `vi.*` only; `test.for` for table-driven cases; no real network/DB.
 
 **Per-P plans (until this backlog is finished):** each priority keeps its own execution plan under `.cursor/plans/` so the next P can look back at approach and doubles. P0 was compressed into this backlog only (no separate plan file). P1+: keep the phase plan committed — P1 is [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md).
+
+## Freeze & coverage ratchet (until this backlog is done)
+
+SoT detail: [`docs/testing.md`](../../docs/testing.md) (**Vitest backlog freeze & coverage ratchet**).
+
+| Rule                     | Meaning                                                                                                                                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No new features**      | No new product capability until P2–P4 are finished. Tests, docs/plans, TDD-forced fixes, and backlog-listed cleanups only.                                                                                     |
+| **New test → 100% peer** | Each new/expanded `*.test.*` must drive its colocated source peer(s) to **100%** stmts / branch / funcs / lines (`pnpm test:coverage:paths …`).                                                                |
+| **End of P → overall ↑** | Closing a P requires `pnpm test:coverage` **All files** statements **strictly above** the previous closed P in the ledger (other metrics must not regress). Do not shrink `coverage.include` to fake the rise. |
+
+### Coverage ledger
+
+Record from `pnpm test:coverage` summary **after each P is merged** (same `vitest.config.mts` include) — not while the PR is still in review. Until then, current numbers live only in a fresh local/CI run under gitignored `coverage/` ([`docs/testing.md`](../../docs/testing.md)).
+
+| Closed P | Date | Stmts % | Branch % | Funcs % | Lines % | Notes                                                 |
+| -------- | ---- | ------- | -------- | ------- | ------- | ----------------------------------------------------- |
+| P0       |      |         |          |         |         | Fill after merge if known; else leave blank           |
+| P1       |      |         |          |         |         | Fill when PR merges — baseline for P2                 |
+| P2       |      |         |          |         |         | Must beat P1 stmts (and not regress others)           |
+| P3       |      |         |          |         |         | Must beat P2                                          |
+| P4       |      |         |          |         |         | Must beat P3; then formal thresholds / include polish |
 
 ---
 
@@ -141,7 +163,8 @@ Already done (narrowed, no cast): [`form-popover.tsx`](../../components/form/for
 
 ### P4 — Polish
 
-- Broader role/a11y asserts in other component suites (FormPicker keyboard covered under P2); thin leftovers; coverage/CI tighten
+- Broader role/a11y asserts in other component suites (FormPicker keyboard covered under P2); thin leftovers
+- Raise overall coverage vs P3 ledger; then tighten `coverage.include` / CI Vitest `thresholds` ([freeze rules](../../docs/testing.md) drop after backlog done)
 - Confirm no remaining `formData.get(…) as string` under app UI / form components (ripgrep gate)
 
 ### Follow-up (separate PR after P0)

@@ -27,7 +27,7 @@ isProject: false
 
 **Status:** done — branch `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7). Parent backlog: [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md).
 
-**Look-back for P2+:** reuse stub/mock vocabulary in [`docs/testing.md`](../../docs/testing.md); `vi.stubGlobal("fetch")` / `vi.stubEnv` + `resetModules` / store `.getState()` + `close()` reset / `renderHook` + stable options / Clerk + `@/lib/prisma` `vi.mock` factories (no `vitest-mock-extended`).
+**Look-back for P2+:** reuse stub/mock vocabulary in [`docs/testing.md`](../../docs/testing.md); `vi.stubGlobal("fetch")` / `vi.stubEnv` + `resetModules` / store `.getState()` + `close()` reset / `renderHook` + stable options / Clerk + `@/lib/prisma` `vi.mock` factories (no `vitest-mock-extended`). Freeze + coverage ratchet: [`docs/testing.md`](../../docs/testing.md) · ledger in [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (fill after P1 merges).
 
 Original delivery shape: branch from `main`, add colocated suites, `pnpm test:run` green, update backlog, self-review, push, open PR.
 
