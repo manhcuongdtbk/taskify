@@ -45,7 +45,7 @@ todos:
     content: "TODO later — card-modal-description: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow"
     status: pending
   - id: p3-msw-reorder
-    content: "TODO later — P3: Add MSW; card-modal Query; form-picker Unsplash fetch mock; list-container DropResult/reorder; 100% colocated peers; raise overall coverage vs P2 ledger"
+    content: "TODO later — P3: Add MSW; card-modal components using cardQueries; form-picker Unsplash fetch mock; list-container DropResult/reorder; 100% colocated peers; raise overall coverage vs P2 ledger"
     status: pending
   - id: p4-polish
     content: "TODO later — P4: Broader role/a11y asserts; thin leftovers; raise overall coverage vs P3; then coverage.include/CI thresholds; confirm no remaining formData.get as string in app UI"
@@ -65,11 +65,11 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 
 SoT detail: [`docs/testing.md`](../../docs/testing.md) (**Vitest backlog freeze & coverage ratchet**).
 
-| Rule                     | Meaning                                                                                                                                                                                                        |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No new features**      | No new product capability until P2–P4 are finished. Tests, docs/plans, TDD-forced fixes, and backlog-listed cleanups only.                                                                                     |
-| **New test → 100% peer** | Each new/expanded `*.test.*` must drive its colocated source peer(s) to **100%** stmts / branch / funcs / lines (`pnpm test:coverage:paths …`).                                                                |
-| **End of P → overall ↑** | Closing a P requires `pnpm test:coverage` **All files** statements **strictly above** the previous closed P in the ledger (other metrics must not regress). Do not shrink `coverage.include` to fake the rise. |
+| Rule                     | Meaning                                                                                                                                                                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No new features**      | No new product capability until P2–P4 are finished. Tests, docs/plans, TDD-forced fixes, backlog-listed cleanups, and **store/Query hygiene** paired with colocated suites ([`docs/testing.md`](../../docs/testing.md)) only. |
+| **New test → 100% peer** | Each new/expanded `*.test.*` must drive its colocated source peer(s) to **100%** stmts / branch / funcs / lines (`pnpm test:coverage:paths …`).                                                                               |
+| **End of P → overall ↑** | Closing a P requires `pnpm test:coverage` **All files** statements **strictly above** the previous closed P in the ledger (other metrics must not regress). Do not shrink `coverage.include` to fake the rise.                |
 
 ### Coverage ledger
 
@@ -114,9 +114,12 @@ Shipped on `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuong
 | [`lib/env.ts`](../../lib/env.ts)                                                 | `stubEnv` + `resetModules`: development / production / test NODE_ENV flags                       |
 | [`stores/use-pro-modal-store.ts`](../../stores/use-pro-modal-store.ts)           | `getState()` open / close                                                                        |
 | [`stores/use-mobile-sidebar-store.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                             |
-| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)         | open sets id; close clears; second open replaces id                                              |
+| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)         | open sets id; `selectCardModalIsOpen`; close clears; second open replaces id                     |
 | [`hooks/use-action.ts`](../../hooks/use-action.ts)                               | `renderHook`: success / serverError / field+form errors / falsy result; loading + callbacks      |
 | [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts)                       | Clerk + `@/lib/prisma` `vi.mock` factories: write row; missing auth; create reject → `{ error }` |
+| [`lib/api/card.ts`](../../lib/api/card.ts)                                       | Resource factory unit suite: query keys + `queryFn` URLs via fetcher stub                        |
+
+Also in this PR (store/Query hygiene under freeze — [`docs/testing.md`](../../docs/testing.md)): move card Query factories to `lib/api` with `queryOptions`; derive card-modal open from `id` via `selectCardModalIsOpen` (+ ESLint `select*` exports); card-modal consumers rewired; expect-order polish on `create-safe-action` tests.
 
 Still deferred: heavy Clerk+Prisma paths (`subscription`, `organization-limit`); `unsplash` / `prisma` singleton; no `vitest-mock-extended`.
 
@@ -159,7 +162,7 @@ Already done (narrowed, no cast): [`form-popover.tsx`](../../components/form/for
 
 ### P3 — Component + HTTP (MSW) + reorder
 
-- Add MSW; card-modal Query; form-picker **network** Unsplash mock (happy/error paths beyond `defaultImages`); list-container `DropResult` logic (no pointer DnD)
+- Add MSW; **card-modal components** that consume existing [`cardQueries`](../../lib/api/card.ts) (factories already unit-tested in P1 — do not reinvent Query wiring); form-picker **network** Unsplash mock (happy/error paths beyond `defaultImages`); list-container `DropResult` logic (no pointer DnD)
 
 ### P4 — Polish
 

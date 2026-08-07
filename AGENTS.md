@@ -35,7 +35,7 @@ APIs and defaults may differ from training data (Vitest 3 vs 4). Match the insta
 - **File suffixes / layout:** `*.test.*` = Vitest colocated (never `__tests__/`, `tests/`, or root `test/`); `e2e/*.spec.*` = Playwright only — never mix. See [`docs/testing.md`](docs/testing.md).
 - **Terms / naming:** use Vitest’s **test name** (not “title”); follow naming guidance in [`docs/testing.md`](docs/testing.md).
 - **Component env:** default **jsdom** + Testing Library — **not** Vitest Browser Mode unless [`testing.md` triggers](docs/testing.md#trigger-checklist-for-switching-the-component-default) say so (Vitest’s component guide prefers Browser Mode; our wiring wins).
-- Bug fixes: for Vitest-owned code, write a **failing** regression test first, then fix the implementation — don’t weaken the test to make it pass. Details: [`docs/testing.md`](docs/testing.md) · [Vitest: Fixing Bugs with Tests](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests).
+- **Bug fixes:** for Vitest-owned code, write a **failing** regression test first, then fix the implementation — don’t weaken the test to make it pass. Details: [`docs/testing.md`](docs/testing.md) · [Vitest: Fixing Bugs with Tests](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests).
 - **Expect order:** after the act, `expect(…)` must follow **execution order** (calls/side effects → result). Hard rule: [`docs/testing.md`](docs/testing.md).
 - **Mocks / files / scope / Storybook:** follow [`docs/testing.md`](docs/testing.md) — don’t invent Jest, Cypress, or Storybook-as-CI-test-runner.
 

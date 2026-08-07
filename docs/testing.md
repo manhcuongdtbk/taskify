@@ -421,7 +421,11 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 
 **Hard rules while** [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md) **is unfinished** (P2–P4 still open):
 
-1. **No new product features** — no new user-facing capability, schema/API surface, or parallel “while we’re here” product work. Allowed: tests, test doubles, docs/plans, tiny production fixes **forced by a failing test** (TDD / regression), and backlog-listed cleanups (e.g. FormData casts after their suites).
+1. **No new product features** — no new user-facing capability, schema/API surface, or parallel “while we’re here” product work. Allowed:
+   - Tests, test doubles, docs/plans
+   - Tiny production fixes **forced by a failing test** (TDD / regression)
+   - Backlog-listed cleanups (e.g. FormData casts after their suites)
+   - **Store / Query hygiene** paired with a colocated suite in the same P — e.g. derive a `select*` instead of a duplicate flag, move inline `useQuery({ queryKey, queryFn })` into a [`lib/api/`](../lib/api/) resource factory, or ESLint that enforces those exports. Must stay behind the suite’s peer(s); not a license for unrelated refactors or new product surface. P1 examples: [`selectCardModalIsOpen`](../stores/use-card-modal-store.ts), [`lib/api/card.ts`](../lib/api/card.ts).
 2. **New `*.test.*` → 100% on its colocated peer(s)** — for every new (or expanded) suite, the source file(s) that suite owns must reach **100%** statements, branches, functions, and lines under V8. Check with `pnpm test:coverage:paths <peer>` (or scoped `--coverage.include`). Do **not** count incidental imports (e.g. store tests importing `create-store`) as “owned” unless you add a dedicated colocated suite for that module.
 3. **End of each P → overall coverage must rise** — **after the P merges** (not mid-review), run `pnpm test:coverage` and record the **All files** summary (stmts / branch / funcs / lines) in the backlog plan’s [coverage ledger](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md). Each closed P must be **strictly higher** on overall **statements** (and should not regress the other three) vs the previous closed P’s ledger row. Do **not** game the ratchet by shrinking `coverage.include` mid-backlog. **Live numbers** are not stored in git — regenerate with `pnpm test:coverage` and open gitignored [`coverage/`](../coverage/) (see [Coverage reports](#coverage-reports-vitest-output)).
 

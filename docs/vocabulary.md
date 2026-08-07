@@ -165,74 +165,18 @@ Same drift / same “one English word, several jobs” risk. **Full write-ups** 
 
 ## Factory
 
-**Factory** is everyday engineering jargon, not a TanStack- or Next-specific API. Docs (ours and many libraries’) often say “factory” without a glossary entry because they assume the common meaning. That vagueness is [function-era pattern drift](#function-era-pattern-drift): the word outlived the class shape.
+**Factory** is everyday engineering jargon (not a TanStack/Next API name). Docs often use it without defining it — [function-era pattern drift](#function-era-pattern-drift): the word outlived the class shape.
 
-### What it means
+A **factory** is a function (or small module of functions) that **creates and returns a configured value** — options, store hooks, mock exports — so callers don’t hand-build that value in many places.
 
-A **factory** is a function (or small module of functions) whose job is to **create and return a configured value** — options objects, store instances, mocks, test fixtures — instead of callers hand-building that value in many places.
-
-**Why bother:** one place owns shape and defaults; call sites stay short; keys / types / middleware stay consistent when something changes.
-
-**Not the same as:** a React component (renders UI), a Route Handler (serves HTTP), or a Zod schema (validates). A factory **produces** configuration or instances those other pieces **consume**.
-
-### Relation to the GoF “Factory” patterns
-
-**Yes, related — same English idea, different strictness.**
-
-The Gang of Four (GoF) [Factory Method](https://refactoring.guru/design-patterns/factory-method) and [Abstract Factory](https://refactoring.guru/design-patterns/abstract-factory) patterns also exist to **centralize creation**: callers ask for a product and do not know (or care) which concrete class was constructed.
-
-|                          | **GoF Factory Method / Abstract Factory**                                      | **“Factory” in this repo / Query / Vitest**                                      |
-| ------------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| **Shared**               | Hide _how_ something is built; one place to change creation                    | Same                                                                             |
-| **Typical shape**        | Classes, creator interfaces, polymorphic products, often `new` behind a method | Plain functions or an object of functions that **return data / options / hooks** |
-| **Goal emphasis**        | Swap implementations without changing callers (plugin-style OO)                | Reuse one correct config (keys, `queryFn`, DevTools wiring, mock exports)        |
-| **Do we implement GoF?** | —                                                                              | **No.** We borrow the _word_ and the _intent_, not the class hierarchy           |
-
-#### Side by side (same “hide creation” idea)
-
-**GoF-style Factory Method** (illustrative only — not used in this repo). Caller depends on an abstract product; a creator subclass picks the concrete class:
+|                          | **GoF Factory Method / Abstract Factory** | **“Factory” here / Query / Vitest**                             |
+| ------------------------ | ----------------------------------------- | --------------------------------------------------------------- |
+| **Shared**               | Hide _how_ something is built             | Same                                                            |
+| **Shape**                | Classes, creators, polymorphic products   | Plain functions / object of functions returning data or options |
+| **Do we implement GoF?** | —                                         | **No** — borrow the word and intent, not the class hierarchy    |
 
 ```ts
-interface Notifier {
-  send(message: string): void;
-}
-
-class EmailNotifier implements Notifier {
-  send(message: string) {
-    /* SMTP… */
-  }
-}
-
-class SmsNotifier implements Notifier {
-  send(message: string) {
-    /* SMS gateway… */
-  }
-}
-
-/** Creator — subclasses decide which Notifier to `new` */
-abstract class AlertService {
-  abstract createNotifier(): Notifier; // ← Factory Method
-
-  notify(message: string) {
-    this.createNotifier().send(message);
-  }
-}
-
-class EmailAlertService extends AlertService {
-  createNotifier() {
-    return new EmailNotifier(); // swap SmsNotifier here without changing notify()
-  }
-}
-
-new EmailAlertService().notify("Board archived");
-```
-
-What matters in GoF: **polymorphic products** + **creator hierarchy** so you can ship a different `Notifier` without editing `notify`.
-
-**Colloquial factory in this repo** — no classes, no `new`, no swap-the-implementation hierarchy. A function builds a **config object** callers pass to Query:
-
-```ts
-// lib/api/card.ts
+// lib/api/card.ts — colloquial resource factory
 export const cardQueries = {
   all: () => ["card"] as const,
   detail: (id: string | undefined) =>
@@ -243,198 +187,56 @@ export const cardQueries = {
     }),
 };
 
-// callers — they never hand-roll the key or URL
 useQuery(cardQueries.detail(id));
-queryClient.invalidateQueries({ queryKey: cardQueries.detail(id).queryKey });
 ```
 
-| Question                       | GoF example above                                    | `cardQueries`                                                 |
-| ------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------- |
-| What is created?               | A **runtime object** (`EmailNotifier`) with behavior | A **plain options value** (`{ queryKey, queryFn, enabled }`)  |
-| Why hide creation?             | Swap email vs SMS behind `createNotifier()`          | One correct key + URL everywhere (modal, invalidation, tests) |
-| Inheritance / interfaces?      | Yes                                                  | No                                                            |
-| Is this “the Factory pattern”? | Yes (Factory Method sketch)                          | **No** — only the everyday word “factory”                     |
+**Rule of thumb:** UML with `Creator` / `ConcreteProduct` → GoF. `cardQueries.detail(id)` or `vi.mock("…", () => ({ … }))` → **colloquial** factory. Saying it “builds” a value in ordinary English is **not** the [Builder](#builder) pattern.
 
-**Rule of thumb:** UML with `Creator` / `ConcreteProduct` → GoF. `cardQueries.detail(id)` or `vi.mock("…", () => ({ … }))` → **colloquial** factory. (We may say it “builds” a value in ordinary English — that is **not** the [Builder](#builder) pattern.)
+| We say                       | What it is                                                           | Where                                                                            |
+| ---------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Resource / Query factory** | `cardQueries`-style module: `queryKey` + `queryOptions`              | [`lib/api/card.ts`](../lib/api/card.ts) · why/layout: [`data.md`](./data.md)     |
+| **Store factory**            | [`createStore`](../lib/create-store.ts) — sole Zustand import        | [`client-ui-state.md`](./client-ui-state.md)                                     |
+| **`vi.mock` factory**        | Callback that supplies mocked exports                                | [`testing.md`](./testing.md) · [vi.mock](https://vitest.dev/api/vi.html#vi-mock) |
+| **`factories/` (folder)**    | Optional **test data builders** (fixtures) — see [Builder](#builder) | [`project-structure.md`](./project-structure.md)                                 |
 
-Do **not** read our docs as “we adopted the Factory design pattern.” Read them as “this module **builds** the thing callers reuse.”
-
-### Why library docs feel vague
-
-Authors reuse “factory” as a **habit name** for co-located creation helpers. They show an example and move on. That is especially true for TanStack Query:
-
-| Source                                                                                                                         | Does it define “factory”?                             | What it actually teaches                                                                                                           |
-| ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Official [Query Options](https://tanstack.com/query/v5/docs/framework/react/guides/query-options) (v5 — match installed major) | **No** glossary term                                  | A helper like `groupOptions(id)` that returns `queryOptions({ queryKey, queryFn, … })` for reuse with `useQuery` / prefetch / etc. |
-| Official [Query Keys](https://tanstack.com/query/v5/docs/framework/react/guides/query-keys)                                    | Mentions community **Query Key Factory** package only | How keys work; points out for larger apps                                                                                          |
-| [TkDodo — Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys)                                       | Yes, as a **pattern name**                            | Object of functions that **produce query keys** (`todoKeys.detail(id)`), for hierarchy and invalidation                            |
-| Community [`@lukemorales/query-key-factory`](https://github.com/lukemorales/query-key-factory)                                 | Package **named** factory                             | Typesafe key store — optional; we do **not** depend on it                                                                          |
-
-So when Query people say “query key factory,” they usually mean TkDodo’s object-of-key-helpers (or that package) — **not** a core export named `factory`, and **not** GoF Factory Method. Our **resource factory** goes one step further: keys **and** `queryFn` / options together (aligned with official `queryOptions`, not keys-only).
-
-### In this repo
-
-| We say                       | What it is                                                                                                            | Where                                                                                                |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Resource / Query factory** | Module (e.g. `cardQueries`) with `all` / `detail` / `logs` — builds `queryKey` + `queryOptions` for a remote resource | [`lib/api/card.ts`](../lib/api/card.ts) · why/layout: [`data.md`](./data.md) · example above         |
-| **Store factory**            | [`createStore`](../lib/create-store.ts) — sole Zustand import; returns a typed store hook with DevTools wired         | [`client-ui-state.md`](./client-ui-state.md)                                                         |
-| **`vi.mock` factory**        | Callback Vitest runs to supply the mocked module exports                                                              | Vitest’s own word — [`testing.md`](./testing.md) · [vi.mock](https://vitest.dev/api/vi.html#vi-mock) |
-| **`factories/` (folder)**    | Optional home for **test data builders** (fixtures) — “builder” here = fixture helper; see [Builder](#builder)        | [`project-structure.md`](./project-structure.md) — When needed; not the same as `lib/api/`           |
-
-That `cardQueries` shape matches the official `groupOptions(id)` idea from [Query Options](https://tanstack.com/query/v5/docs/framework/react/guides/query-options), grouped per resource like TkDodo’s key factories.
-
-### Same word elsewhere (so you don’t mix them up)
-
-| Ecosystem                   | Typical “factory”                                                                 | Same idea?                                                                                                                          |
-| --------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Testing** (Vitest / Jest) | `vi.mock` / `jest.mock` **factory** function; sometimes fixture factories         | Creates fakes / data for tests (colloquial)                                                                                         |
-| **Zustand / store libs**    | `create` / wrapper that builds a store                                            | Creates a configured store (colloquial)                                                                                             |
-| **React**                   | Rarely official; people say “component factory” for `createElement`-style helpers | Colloquial                                                                                                                          |
-| **NestJS / DI**             | Provider factories                                                                | Framework creation hooks (closer to “inject a creator,” still not always full GoF)                                                  |
-| **GoF / Java**              | Factory Method / Abstract Factory class hierarchies                               | The **formal** patterns — ancestor of the word; see [Relation to the GoF “Factory” patterns](#relation-to-the-gof-factory-patterns) |
-
-If a doc says “factory” and you are unsure which kind, check **what it returns** (query options, store, mock module, fixture object) and which concern file owns that return type.
+Official Query helper is [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options) (no glossary “factory”). Community “query key factory” usually means key helpers only; our resource factories add `queryFn` too — details: [`data.md`](./data.md).
 
 ## Builder
 
-**Builder** is also everyday engineering jargon — and, separately, a GoF design pattern. Docs and APIs mix the everyday verb (“this builds a path / query / fixture”) with fluent **`.foo().bar().build()`** APIs and the formal pattern. Same [function-era pattern drift](#function-era-pattern-drift) as [Factory](#factory).
+**Builder** is everyday jargon and, separately, a GoF pattern. Docs mix “builds a path,” fluent `.foo().bar().build()`, and GoF — same [function-era pattern drift](#function-era-pattern-drift) as [Factory](#factory).
 
-### What it means (everyday)
+A **builder** assembles a value **in steps** (or looks like it): chain options, then produce the finished object. People also say “path builder” for a one-shot helper with **no** `.build()` and **no** GoF structure.
 
-A **builder** is anything whose job is to **assemble a value in steps** (or look like it does): set fields, chain options, then produce the finished object. People also say “path builder,” “query builder,” or “test data builder” for small helpers that return a string / query / fixture — even when there is **no** `.build()` and **no** GoF structure.
-
-**Why bother:** many optional parts, readable step-by-step setup, or one place to normalize before the final value exists.
-
-### Relation to the GoF “Builder” pattern
-
-**Yes, related — same English idea, different strictness.**
-
-GoF [Builder](https://refactoring.guru/design-patterns/builder) separates **how you assemble** a complex object from the finished product. Classic roles: Builder (steps), ConcreteBuilder, Product, optional Director (fixed recipe). Modern TypeScript usually collapses that into one **fluent** class: chain setters that return `this`, then `build()`.
-
-|                          | **GoF Builder**                                                            | **“Builder” in many JS/TS libs**                                      |
-| ------------------------ | -------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| **Shared**               | Assemble something complex without a telescoping constructor               | Same impulse                                                          |
-| **Typical shape**        | Builder + Product (+ Director); step methods; often `build()`              | Fluent chain (`where().orderBy()`), or a plain helper named “builder” |
-| **Goal emphasis**        | Same construction process → different representations; many optional parts | Readable chaining / stepwise config                                   |
-| **Do we implement GoF?** | —                                                                          | **Almost never as UML.** We use library fluent APIs or tiny helpers.  |
-
-#### Side by side
-
-**GoF-style / fluent Builder** (illustrative — not a pattern we maintain in-app):
+|                          | **GoF Builder**                                              | **“Builder” in many JS/TS libs**                           |
+| ------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------- |
+| **Shared**               | Assemble something complex without a telescoping constructor | Same impulse                                               |
+| **Shape**                | Builder + Product (+ Director); often `build()`              | Fluent chain, or a plain helper named “builder”            |
+| **Do we implement GoF?** | —                                                            | **Almost never** — use library fluent APIs or tiny helpers |
 
 ```ts
-class BoardCreateBuilder {
-  #title = "";
-  #orgId = "";
-  #imageId?: string;
-
-  title(title: string) {
-    this.#title = title;
-    return this; // fluent
-  }
-
-  orgId(orgId: string) {
-    this.#orgId = orgId;
-    return this;
-  }
-
-  imageId(imageId: string) {
-    this.#imageId = imageId;
-    return this;
-  }
-
-  build() {
-    if (!this.#title || !this.#orgId) {
-      throw new Error("title and orgId required");
-    }
-    return {
-      title: this.#title,
-      orgId: this.#orgId,
-      imageId: this.#imageId,
-    };
-  }
-}
-
-const input = new BoardCreateBuilder()
-  .title("Q3 roadmap")
-  .orgId("org_1")
-  .imageId("img_9")
-  .build();
-```
-
-What matters in GoF/fluent Builder: **stepwise assembly**, then one **finished product**.
-
-**Colloquial “builder” in this repo** — [`lib/paths.ts`](../lib/paths.ts) is often called a path builder in frontend habits ([`nextjs.md`](./nextjs.md)). It is just functions that return a string/`Route`. No chain, no `build()`, not GoF:
-
-```ts
+// Colloquial “path builder” — not GoF
 export const paths = {
   board: (boardId: string) => route(`/board/${boardId}`),
-  organizationBilling: (organizationId: string) =>
-    route(`/organization/${organizationId}/billing`),
 };
-
-// usage
-router.push(paths.board(boardId));
 ```
 
-| Question                       | Fluent / GoF Builder above                   | `paths.board`                                 |
-| ------------------------------ | -------------------------------------------- | --------------------------------------------- |
-| What is created?               | A **multi-field object** after several steps | A **path string** in one call                 |
-| Steps / `build()`?             | Yes                                          | No                                            |
-| Is this “the Builder pattern”? | Yes (fluent sketch of GoF)                   | **No** — everyday “helper that builds a path” |
+Vendor fluent APIs (Prisma `findMany` chains, Zod `.trim().min(3)`) are **shaped like** builders; consume them via [Match installed official docs](#match-installed-official-docs) — don’t invent a parallel `BoardBuilder` unless stepwise domain construction really hurts.
 
-**Library fluent builders you will meet** (closer to GoF’s _chaining_ habit, still not our code owning the pattern):
+### Factory vs Builder
 
-```ts
-// Prisma Client — chain filters, then execute (query builder style)
-await prisma.card.findMany({
-  where: { listId },
-  orderBy: { order: "asc" },
-});
+| Lead with…  | When the hard part is…                            | Example                                    |
+| ----------- | ------------------------------------------------- | ------------------------------------------ |
+| **Factory** | **Which** thing / one-shot correct config         | `cardQueries.detail(id)`, `createStore(…)` |
+| **Builder** | **How** to assemble many optional / ordered parts | Fluent chains, rich test fixtures          |
 
-// Zod — chain refinements on a schema (fluent API; product is the schema)
-z.string().trim().min(3).max(50);
-```
+In **this repo’s docs**, prefer **factory** for `lib/api/*`, `createStore`, `vi.mock` factories; **builder** for fluent/stepwise assembly, “path builder” prose, and `factories/` fixture helpers. If someone says “builder” but means `cardQueries`, they mean [Factory](#factory).
 
-Those are **vendor APIs shaped like builders**. Prefer their official docs for the installed version ([Match installed official docs](#match-installed-official-docs)); do not invent a parallel “BoardBuilder” class unless stepwise domain construction really hurts without it.
-
-### Factory vs Builder (don’t collapse them)
-
-Both are **creational**. Rough split used in pattern literature and reviews:
-
-| Lead with…  | When the hard part is…                                                      | Example                                                                       |
-| ----------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| **Factory** | **Which** thing to create (or one-shot “give me the right config/instance”) | `cardQueries.detail(id)`, `createStore(…)`, `createNotifier()`                |
-| **Builder** | **How** to assemble many optional / ordered parts into one product          | `new XBuilder().a().b().build()`, SQL/Prisma-style chains, rich test fixtures |
-
-They can combine: a factory might _return_ a builder, or a builder’s `build()` might call a factory. In **this repo’s docs**, prefer:
-
-- **factory** for `lib/api/*`, `createStore`, `vi.mock` factories
-- **builder** for fluent/stepwise assembly, path helpers when we say “path builder,” and `factories/` **test data builders** (fixture helpers — name overlaps; see below)
-
-If someone says “builder” but means `cardQueries`, they almost certainly mean **colloquial factory**. Point them at [Factory](#factory).
-
-### In this repo / stack
-
-| We say                                         | What it is                                      | GoF Builder?                                                                           |
-| ---------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
-| **Path builders / `paths.*`**                  | Functions returning typed routes                | No — colloquial                                                                        |
-| **Test data builders** (optional `factories/`) | Helpers that assemble fixture objects for tests | Sometimes fluent; often just `makeCard({ … })` — still called builders in test culture |
-| **Prisma / Zod chains**                        | Library fluent APIs                             | Vendor shape ≈ builder; we consume, don’t re-implement                                 |
-| Homegrown `FooBuilder` classes                 | —                                               | **Avoid** unless a domain object truly needs stepwise construction                     |
-
-### Same word elsewhere
-
-| Ecosystem      | Typical “builder”                 | Notes                                                                                 |
-| -------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
-| **GoF**        | Builder pattern                   | Formal — [refactoring.guru/builder](https://refactoring.guru/design-patterns/builder) |
-| **ORMs / SQL** | Query builder                     | Knex, Prisma-style chaining, Criteria APIs                                            |
-| **HTTP / SDK** | Request builder                   | `.method().url().send()`                                                              |
-| **UI tools**   | “Preset builder,” form builders   | Product UI that assembles config — not GoF in our code                                |
-| **Tests**      | Test data builder                 | Fixture helpers; folder may still be named `factories/`                               |
-| **Java**       | `StringBuilder`, `*Builder` types | Everyday + pattern influence                                                          |
-
-If a doc says “builder” and you are unsure, check: **is there a chain + final product**, or just English for “function that returns X”? Then see [Factory](#factory) if the thing is really a one-shot creation helper.
+| We say                                | What it is                       | GoF Builder?                                        |
+| ------------------------------------- | -------------------------------- | --------------------------------------------------- |
+| **Path builders / `paths.*`**         | Functions returning typed routes | No — colloquial                                     |
+| **Test data builders** (`factories/`) | Fixture helpers                  | Sometimes fluent; often `makeCard({ … })`           |
+| **Prisma / Zod chains**               | Library fluent APIs              | Vendor ≈ builder; we consume                        |
+| Homegrown `FooBuilder` classes        | —                                | **Avoid** unless domain needs stepwise construction |
 
 ## Match installed official docs
 
@@ -456,24 +258,24 @@ Full wording + examples: [`conventions.md` → One tool per job](./conventions.m
 
 ## Other terms
 
-| Word                               | Where defined                                                                             | Quick meaning                                                                                                                                                                                                                                                                                                                 |
-| ---------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Match installed official docs**  | [Match installed official docs](#match-installed-official-docs) above                     | Use version-correct official docs for every dependency. SoT: [`conventions.md`](./conventions.md#match-installed-official-docs) · [`AGENTS.md`](../AGENTS.md)                                                                                                                                                                 |
-| **One tool per job**               | [One tool per job](#one-tool-per-job) above                                               | Choose carefully; no parallel stack for the same purpose; replace only if the other tool dominates. Hard rule: [`conventions.md`](./conventions.md#one-tool-per-job) · [`AGENTS.md`](../AGENTS.md)                                                                                                                            |
-| **billing** / **pricing plan** / … | [Billing terms](#billing-terms) above                                                     | Do not confuse pricing plans with project plans. Flows: [`billing.md`](./billing.md)                                                                                                                                                                                                                                          |
-| **Function-era pattern drift**     | [Function-era pattern drift](#function-era-pattern-drift) above                           | In modern React/Next (functions dominate), GoF **names** stay while **shapes** loosen — intent without the class diagram. Frames [Factory](#factory) / [Builder](#builder).                                                                                                                                                   |
-| **Factory**                        | [Factory](#factory) above                                                                 | One-shot creation helper (colloquial). Related to GoF Factory **in intent only**. Not the [Builder](#builder) pattern. Query: [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options). [`data.md`](./data.md) · [`client-ui-state.md`](./client-ui-state.md) · [`testing.md`](./testing.md) |
-| **Builder**                        | [Builder](#builder) above                                                                 | Stepwise / fluent assembly (or everyday “path/query/fixture builder”). Related to GoF Builder **in intent only**. Distinct from [Factory](#factory). [`nextjs.md`](./nextjs.md) (`paths`) · Prisma/Zod chains                                                                                                                 |
-| **Organization**                   | Clerk concept, used throughout                                                            | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code                                                                                                                                                                                                                                              |
-| **Authentication**                 | Sign-in / session identity                                                                | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                                |
-| **Authorization**                  | Whether an identity may do a specific action or see a resource                            | Write **authorization** in prose — do not abbreviate. Different from authentication. Same doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                                                 |
-| **Cache**                          | Overloaded — Redis/CDN vs Next framework caching vs TanStack Query                        | Disambiguate in [`data.md`](./data.md#cache-means-different-things-traditional-be-vs-next-vs-client). Do not invent a separate cache doc                                                                                                                                                                                      |
-| **DAL** (Data Access Layer)        | Server module(s) that control **how/when** data is read/mutated and run **authorization** | Not a Next API — a pattern. Solid explanation + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only). Next snippets: [Data Security](https://nextjs.org/docs/app/guides/data-security#data-access-layer), [Authentication](https://nextjs.org/docs/app/guides/authentication#creating-a-data-access-layer-dal)          |
-| **DTO** (Data Transfer Object)     | Safe, minimal return shape across a boundary (not a raw DB row)                           | Produced by a DAL. Same idea as NestJS response DTOs. Teach + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only)                                                                                                                                                                                                      |
-| **Test name** (Vitest)             | String identifying a **`test`** (first argument to `test`)                                | Not “test title.” Not the suite name (`describe`’s first argument). Terms + naming: [`testing.md`](./testing.md)                                                                                                                                                                                                              |
-| **Stub** (Vitest / testing)        | Minimal fake so code under test can run; usually not asserted on                          | Distinct from **mock** (assert calls) and **spy** (`vi.spyOn`). Glossary: [`testing.md`](./testing.md)                                                                                                                                                                                                                        |
-| **Repo convention**                | [`conventions.md`](./conventions.md)                                                      | A rare rule this repo invents when no higher authority covers it                                                                                                                                                                                                                                                              |
-| **Product choice**                 | [`product.md`](./product.md)                                                              | UX/copy we invent when no higher domain authority decides                                                                                                                                                                                                                                                                     |
+| Word                               | Where defined                                                                             | Quick meaning                                                                                                                                                                                                                                                                                                                                 |
+| ---------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Match installed official docs**  | [Match installed official docs](#match-installed-official-docs) above                     | Use version-correct official docs for every dependency. SoT: [`conventions.md`](./conventions.md#match-installed-official-docs) · [`AGENTS.md`](../AGENTS.md)                                                                                                                                                                                 |
+| **One tool per job**               | [One tool per job](#one-tool-per-job) above                                               | Choose carefully; no parallel stack for the same purpose; replace only if the other tool dominates. Hard rule: [`conventions.md`](./conventions.md#one-tool-per-job) · [`AGENTS.md`](../AGENTS.md)                                                                                                                                            |
+| **billing** / **pricing plan** / … | [Billing terms](#billing-terms) above                                                     | Do not confuse pricing plans with project plans. Flows: [`billing.md`](./billing.md)                                                                                                                                                                                                                                                          |
+| **Function-era pattern drift**     | [Function-era pattern drift](#function-era-pattern-drift) above                           | In modern React/Next (functions dominate), GoF **names** stay while **shapes** loosen — intent without the class diagram. Frames [Factory](#factory) / [Builder](#builder).                                                                                                                                                                   |
+| **Factory**                        | [Factory](#factory) above                                                                 | One-shot creation helper (colloquial). Related to GoF Factory **in intent only**. Not the [Builder](#builder) pattern. Official Query helper: [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options). [`data.md`](./data.md) · [`client-ui-state.md`](./client-ui-state.md) · [`testing.md`](./testing.md) |
+| **Builder**                        | [Builder](#builder) above                                                                 | Stepwise / fluent assembly (or everyday “path/query/fixture builder”). Related to GoF Builder **in intent only**. Distinct from [Factory](#factory). [`nextjs.md`](./nextjs.md) (`paths`) · Prisma/Zod chains                                                                                                                                 |
+| **Organization**                   | Clerk concept, used throughout                                                            | A tenant / team workspace. Write **organization** in prose, keep `orgId` in code                                                                                                                                                                                                                                                              |
+| **Authentication**                 | Sign-in / session identity                                                                | Write **authentication** in prose — do not abbreviate. Keep Clerk identifiers such as `auth()`, `useAuth`. Doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                                                |
+| **Authorization**                  | Whether an identity may do a specific action or see a resource                            | Write **authorization** in prose — do not abbreviate. Different from authentication. Same doc: [`authentication-and-authorization.md`](./authentication-and-authorization.md)                                                                                                                                                                 |
+| **Cache**                          | Overloaded — Redis/CDN vs Next framework caching vs TanStack Query                        | Disambiguate in [`data.md`](./data.md#cache-means-different-things-traditional-be-vs-next-vs-client). Do not invent a separate cache doc                                                                                                                                                                                                      |
+| **DAL** (Data Access Layer)        | Server module(s) that control **how/when** data is read/mutated and run **authorization** | Not a Next API — a pattern. Solid explanation + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only). Next snippets: [Data Security](https://nextjs.org/docs/app/guides/data-security#data-access-layer), [Authentication](https://nextjs.org/docs/app/guides/authentication#creating-a-data-access-layer-dal)                          |
+| **DTO** (Data Transfer Object)     | Safe, minimal return shape across a boundary (not a raw DB row)                           | Produced by a DAL. Same idea as NestJS response DTOs. Teach + examples: [`data.md`](./data.md#dal-and-dto-not-auth-only)                                                                                                                                                                                                                      |
+| **Test name** (Vitest)             | String identifying a **`test`** (first argument to `test`)                                | Not “test title.” Not the suite name (`describe`’s first argument). Terms + naming: [`testing.md`](./testing.md)                                                                                                                                                                                                                              |
+| **Stub** (Vitest / testing)        | Minimal fake so code under test can run; usually not asserted on                          | Distinct from **mock** (assert calls) and **spy** (`vi.spyOn`). Glossary: [`testing.md`](./testing.md)                                                                                                                                                                                                                                        |
+| **Repo convention**                | [`conventions.md`](./conventions.md)                                                      | A rare rule this repo invents when no higher authority covers it                                                                                                                                                                                                                                                                              |
+| **Product choice**                 | [`product.md`](./product.md)                                                              | UX/copy we invent when no higher domain authority decides                                                                                                                                                                                                                                                                                     |
 
 ## Keeping this current
 

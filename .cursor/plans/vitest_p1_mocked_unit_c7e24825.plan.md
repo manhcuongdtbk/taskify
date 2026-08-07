@@ -1,6 +1,6 @@
 ---
 name: Vitest P1 mocked unit
-overview: "Done — P1 mocked-unit suites shipped on test/vitest-p1-mocked-unit (PR #7). Keep this plan in-repo until the Vitest backlog is finished so P2+ can look back at mocks, env resetModules, store getState, renderHook, and Clerk+Prisma factory patterns."
+overview: "Done — P1 mocked-unit suites shipped on test/vitest-p1-mocked-unit (PR #7). Keep this plan in-repo until the Vitest backlog is finished so P2+ can look back at mocks, env resetModules, store getState, renderHook, Query factories, and Clerk+Prisma factory patterns."
 todos:
   - id: branch-p1
     content: Create test/vitest-p1-mocked-unit from up-to-date main
@@ -27,66 +27,77 @@ isProject: false
 
 **Status:** done — branch `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7). Parent backlog: [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md).
 
-**Look-back for P2+:** reuse stub/mock vocabulary in [`docs/testing.md`](../../docs/testing.md); `vi.stubGlobal("fetch")` / `vi.stubEnv` + `resetModules` / store `.getState()` + `close()` reset / `renderHook` + stable options / Clerk + `@/lib/prisma` `vi.mock` factories (no `vitest-mock-extended`). Freeze + coverage ratchet: [`docs/testing.md`](../../docs/testing.md) · ledger in [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (fill after P1 merges).
+SoT: [`docs/testing.md`](../../docs/testing.md) (doubles + Prisma mocking · freeze/ratchet). Style: P0 suites (`import { … } from "vitest"`, behavior-named tests, `test.for` where tabular, `toStrictEqual` / `toHaveBeenCalledExactlyOnceWith`, [expects follow execution order](../../docs/testing.md)). **No** `vitest-mock-extended`. Deferred: `lib/prisma.ts` singleton, `subscription` / `organization-limit`.
 
-Original delivery shape: branch from `main`, add colocated suites, `pnpm test:run` green, update backlog, self-review, push, open PR.
+## What landed / patterns to reuse (P2+)
 
-SoT: [`docs/testing.md`](docs/testing.md) (doubles + Prisma mocking). Style: P0 suites (`import { … } from "vitest"`, behavior-named tests, `test.for` where tabular, `toStrictEqual` / `toHaveBeenCalledExactlyOnceWith`). **No** `vitest-mock-extended`. **Do not** re-open `create-safe-action` or unit-test `lib/prisma.ts` / `subscription` / `organization-limit`.
+| Pattern                            | Where                                                                    | Reuse as                                                                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Stub `fetch`                       | [`lib/fetcher.test.ts`](../../lib/fetcher.test.ts)                       | `vi.stubGlobal` / `vi.fn` Response; assert URL then body                                                                                 |
+| Module-load env                    | [`lib/env.test.ts`](../../lib/env.test.ts)                               | `vi.stubEnv` → `vi.resetModules()` → dynamic `import`; `unstubAllEnvs` in `afterEach`                                                    |
+| Zustand via `getState()`           | [`stores/*.test.ts`](../../stores/)                                      | Reset with `close()`; no RTL for pure store behavior                                                                                     |
+| Derived `select*`                  | [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts) | Open ⇔ `id` set — `selectCardModalIsOpen`; don’t store a duplicate `isOpen` flag ([`client-ui-state.md`](../../docs/client-ui-state.md)) |
+| Hook + callbacks                   | [`hooks/use-action.test.tsx`](../../hooks/use-action.test.tsx)           | `renderHook` + `act` / `waitFor`; stable `options` / `vi.fn` outside the hook                                                            |
+| Clerk + Prisma `vi.mock` factories | [`lib/create-audit-log.test.ts`](../../lib/create-audit-log.test.ts)     | Inline factory for the methods under test; cast mock resolved values to `Awaited<ReturnType<…>>` when needed                             |
+| Query resource factory unit suite  | [`lib/api/card.test.ts`](../../lib/api/card.test.ts)                     | Assert keys; invoke `queryFn` with the cast pattern in [`docs/testing.md`](../../docs/testing.md) (Query `queryFn` context)              |
+| Expect order                       | all P1 suites                                                            | Calls / side effects first, then result ([hard rule](../../docs/testing.md))                                                             |
+
+Freeze + coverage ratchet: [`docs/testing.md`](../../docs/testing.md) · ledger in [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (fill **after** P1 merges).
 
 ```mermaid
 flowchart LR
   fetcher["fetcher + stub fetch"]
   env["env + stubEnv resetModules"]
-  stores["3 stores getState"]
+  stores["3 stores getState + select*"]
   useAction["use-action renderHook"]
   audit["create-audit-log Clerk+prisma mocks"]
+  cardApi["cardQueries factory unit"]
   fetcher --> green["pnpm test:run"]
   env --> green
   stores --> green
   useAction --> green
   audit --> green
+  cardApi --> green
 ```
 
-## Suites to add
+## Suites shipped
 
-### 1. [`lib/fetcher.test.ts`](lib/fetcher.ts)
+### 1. [`lib/fetcher.test.ts`](../../lib/fetcher.ts)
 
-- Stub `globalThis.fetch` with `vi.fn()` (restore via `restoreMocks` / `afterEach` as needed).
+- Stub `globalThis.fetch` with `vi.fn()` (`restoreMocks` / `afterEach` as needed).
 - Happy: `ok: true` + `json()` → resolves to body; fetch called with the URL.
 - Error: `ok: false` → rejects with `Request failed: ${status} ${statusText}` (throw before `json()`).
 
-### 2. [`lib/env.test.ts`](lib/env.ts)
+### 2. [`lib/env.test.ts`](../../lib/env.ts)
 
-Constants are evaluated at **module load**, so call-time `stubEnv` alone is not enough (unlike `absoluteUrl` in [`lib/utils.test.ts`](lib/utils.test.ts)).
+Constants are evaluated at **module load**, so call-time `stubEnv` alone is not enough (unlike `absoluteUrl` in [`lib/utils.test.ts`](../../lib/utils.test.ts)).
 
 - Per case: `vi.stubEnv("NODE_ENV", …)` → `vi.resetModules()` → dynamic `import("./env")`.
 - `afterEach`: `vi.unstubAllEnvs()`.
-- Cases: `"development"` → `isDevelopment` true / `isProduction` false; `"production"` inverse; `"test"` (and optionally another non-dev/prod value) → both false.
+- Cases: `"development"` → `isDevelopment` true / `isProduction` false; `"production"` inverse; `"test"` → both false.
 
 ### 3. Store suites (Node, no RTL)
 
-Colocate next to each store; drive via `.getState()` / actions (module singletons — reset with `close()` or `setState` in `beforeEach`/`afterEach`).
+Drive via `.getState()` / actions (module singletons — reset with `close()` in `beforeEach`/`afterEach`).
 
-| File                                                                            | Assert                                                                                     |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`stores/use-pro-modal-store.test.ts`](stores/use-pro-modal-store.ts)           | initial closed; `open` / `close`                                                           |
-| [`stores/use-mobile-sidebar-store.test.ts`](stores/use-mobile-sidebar-store.ts) | same                                                                                       |
-| [`stores/use-card-modal-store.test.ts`](stores/use-card-modal-store.ts)         | initial `id` undefined; `open(id)` sets id+open; `close` clears; second `open` replaces id |
+| File                                                                                  | Assert                                                                                                                            |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| [`stores/use-pro-modal-store.test.ts`](../../stores/use-pro-modal-store.ts)           | initial closed; `open` / `close`                                                                                                  |
+| [`stores/use-mobile-sidebar-store.test.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                                                              |
+| [`stores/use-card-modal-store.test.ts`](../../stores/use-card-modal-store.ts)         | initial `id` undefined; `open(id)` sets id; `selectCardModalIsOpen` true while open; `close` clears id; second `open` replaces id |
 
-Do **not** add a separate `create-store` suite (out of P1 list).
+No separate `create-store` suite (out of P1 list; incidental import coverage ≠ ownership).
 
-### 4. [`hooks/use-action.test.tsx`](hooks/use-action.ts)
+### 4. [`hooks/use-action.test.tsx`](../../hooks/use-action.ts)
 
-First hook suite: `@testing-library/react` `renderHook` + `act` / `waitFor`. Stable `options` object (or `vi.fn` callbacks defined outside the hook call) so deps don’t churn.
+`renderHook` + `act` / `waitFor`. Stable `options` / `vi.fn` callbacks so deps don’t churn.
 
 - Success: `data` set, `onSuccess` then `onComplete`; `isLoading` true→false.
 - `serverError`: sets error, `onError`, not `onSuccess`; `onComplete` runs.
 - Field/form errors from result reflected; no success callback.
 - Falsy/`undefined` action result: early return, no crash, loading cleared, `onComplete` still runs.
 
-### 5. [`lib/create-audit-log.test.ts`](lib/create-audit-log.ts) — first Prisma Client mock
-
-Match the factory shape already documented in [`docs/testing.md`](docs/testing.md) (prefer inline factory over new `lib/__mocks__/prisma.ts` for this single-method surface):
+### 5. [`lib/create-audit-log.test.ts`](../../lib/create-audit-log.ts) — first Prisma Client mock
 
 ```ts
 vi.mock("@/lib/prisma", () => ({
@@ -98,14 +109,20 @@ vi.mock("@clerk/nextjs/server", () => ({
 }));
 ```
 
-- Happy: Clerk returns `orgId` + user → `auditLog.create` called with `data` containing org/entity/action/user fields (`userName` = `firstName + " " + lastName`); success returns `undefined`.
+- Happy: Clerk returns `orgId` + user → `auditLog.create` with org/entity/action/user fields (`userName` = `firstName + " " + lastName`); success returns `undefined`.
 - Missing `orgId` or `user` → `{ error: "Failed to create audit log" }`; `create` **not** called.
-- `create` rejects → same error object (optional: spy `console.log` for `[AUDIT_LOG_ERROR]`).
+- `create` rejects → same error object.
 
-## Delivery checklist
+### 6. Also in this PR (hygiene while writing suites)
 
-1. Branch from `main`: `test/vitest-p1-mocked-unit`.
-2. Add the seven colocated test files above; no production refactors unless a test forces a tiny fix (prefer documenting current behavior, e.g. audit-log swallow).
-3. `pnpm test:run` green.
-4. Mark `p1-mocked-unit` completed in the backlog plan + refresh overview (P1 done; P2+ still TODO).
-5. Self-review, push, `gh pr create` (same cadence as [PR #5](https://github.com/manhcuongdtbk/taskify/pull/5)).
+Allowed under freeze for colocated-test / store·Query hygiene — [`docs/testing.md`](../../docs/testing.md):
+
+| Change                                                                                            | Why                                                                                                                            |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [`lib/api/card.ts`](../../lib/api/card.ts) + [`lib/api/card.test.ts`](../../lib/api/card.test.ts) | Move card Query factories to `lib/api` with `queryOptions`; unit-cover keys + `queryFn` URLs ([`data.md`](../../docs/data.md)) |
+| `selectCardModalIsOpen` + ESLint `select*` exports                                                | Derive open from `id`; card-modal consumers updated ([`client-ui-state.md`](../../docs/client-ui-state.md))                    |
+| Expect-order polish on [`lib/create-safe-action.test.ts`](../../lib/create-safe-action.test.ts)   | Align with hard rule (suite already from P0)                                                                                   |
+
+## Historical delivery notes
+
+Original shape (completed): branch from `main`, add colocated suites, `pnpm test:run` green, update backlog, self-review, push, open PR (same cadence as [PR #5](https://github.com/manhcuongdtbk/taskify/pull/5)). Production changes beyond suite peers were **store/Query hygiene** forced by or paired with those suites — not open-ended product work.
