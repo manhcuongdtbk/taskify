@@ -282,14 +282,14 @@ actions/create-board/
 
 **This repo’s lean**
 
-| Kind                   | Convention                                                                         | Status                                                      |
-| ---------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Server actions         | Folder + bare `index.ts` / `schema.ts` / `types.ts`                                | Adopted                                                     |
-| Unit / component tests | Mid-suffix `*.test.tsx` (or `*.test.ts`) next to the module — **never** `*.spec.*` | When needed                                                 |
-| Storybook              | Mid-suffix `*.stories.tsx` next to the component                                   | When needed                                                 |
-| CSS Modules            | Mid-suffix `*.module.css` (if we use CSS Modules)                                  | When needed                                                 |
-| UI props types file    | Mid-suffix `*.types.ts` only if a second file must `import type`                   | When needed — [below](#when-sibling-types-files-are-needed) |
-| E2E                    | `e2e/*.spec.ts(x)` only — **never** `*.test.*`                                     | When needed                                                 |
+| Kind                   | Convention                                                                                                                                           | Status                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Server actions         | Folder + bare `index.ts` / `schema.ts` / `types.ts`                                                                                                  | Adopted                                                     |
+| Unit / component tests | Mid-suffix `*.test.ts` / `*.test.tsx` next to the module — **same extension as the source**; `.tsx` only if the suite has JSX — **never** `*.spec.*` | When needed                                                 |
+| Storybook              | Mid-suffix `*.stories.tsx` next to the component                                                                                                     | When needed                                                 |
+| CSS Modules            | Mid-suffix `*.module.css` (if we use CSS Modules)                                                                                                    | When needed                                                 |
+| UI props types file    | Mid-suffix `*.types.ts` only if a second file must `import type`                                                                                     | When needed — [below](#when-sibling-types-files-are-needed) |
+| E2E                    | `e2e/*.spec.ts(x)` only — **never** `*.test.*`                                                                                                       | When needed                                                 |
 
 Don’t invent new mid-suffixes unless a tool (Vitest, Storybook, bundler) will match them. **Hard split:** `*.test.*` = Vitest only (colocated); `*.spec.*` = Playwright only under `e2e/`. Enforced by Vitest `include` + ESLint — [`testing.md`](./testing.md).
 
