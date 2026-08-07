@@ -18,7 +18,12 @@ export const cardQueries = {
   detail: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "detail"] as const,
-      queryFn: () => fetcher<CardWithList>(`/api/cards/${id}`),
+      // TODO: root fix belongs in the Route Handler — `app/api/cards/[cardId]`
+      // serves findUnique's result, so a deleted or cross-org card arrives as a
+      // 200 `null` body instead of a 404. Widening the type here only stops the
+      // compiler from lying; drop the `| null` once the route returns 404.
+      // See docs/data.md (TODO — clarify / harden data paths).
+      queryFn: () => fetcher<CardWithList | null>(`/api/cards/${id}`),
       enabled: !!id,
     }),
   logs: (id: string | undefined) =>

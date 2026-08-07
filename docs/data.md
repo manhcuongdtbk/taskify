@@ -48,6 +48,7 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 - [ ] **Unsplash** — whether client + public key stays acceptable vs server-only fetch (production Unsplash app TODO in `lib/unsplash.ts`)
 - [ ] **Board image URL allowlist** — constrain `CreateBoard.image` URLs to known Unsplash hosts (and related link hosts) after https-only + `cssUrl` ([`create-board/schema.ts`](../actions/create-board/schema.ts), [`cssUrl`](../lib/utils.ts))
 - [ ] **Server-verify Unsplash photo by id** — on create, fetch/confirm the photo server-side and persist those URLs so the client cannot spoof `thumbUrl` / `fullUrl` / attribution ([`create-board`](../actions/create-board/index.ts))
+- [ ] **404 instead of a 200 `null` body** — [`app/api/cards/[cardId]`](../app/api/cards/%5BcardId%5D/route.ts) returns `findUnique`’s result, so a deleted or cross-org card reads as an empty success. Fix the handler, then drop the `| null` workaround in [`lib/api/card.ts`](../lib/api/card.ts)
 - [ ] **Stronger DAL / DTO** — only if authorization-near-data keeps getting duplicated; don’t invent `dal.ts` for fashion (see [DAL and DTO](#dal-and-dto-not-auth-only))
 
 ## Out of scope for now

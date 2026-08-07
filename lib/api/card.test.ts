@@ -44,6 +44,23 @@ describe("cardQueries", () => {
     expect(body).toStrictEqual(card);
   });
 
+  // The route serves findUnique's result, so a deleted or cross-org card comes
+  // back as a 200 null body — fetcher does not throw, and null reaches the UI.
+  test("detail queryFn surfaces a null body for a missing card", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue(null),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { queryFn } = cardQueries.detail("card_1");
+    // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
+    const body = await (queryFn as () => Promise<unknown>)();
+
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
+    expect(body).toBeNull();
+  });
+
   test("logs builds key and enables when id is set", () => {
     const options = cardQueries.logs("card_1");
 
