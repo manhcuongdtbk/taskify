@@ -274,6 +274,8 @@ Do **not** put `on*` / `handle*` on the store type. ESLint bans those keys in `s
 
 ### 5. Repo factory: `createStore`
 
+**Factory** here means our wrapper that **builds** a Zustand store hook (DevTools + typed `create`) — general term: [`vocabulary.md`](./vocabulary.md). Not a Zustand API named `factory`.
+
 [`lib/create-store.ts`](../lib/create-store.ts) is the **only** module allowed to import `zustand` / `zustand/*`. It combines:
 
 - Curried `create<T>()(…)` for TypeScript inference (see below)

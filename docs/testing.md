@@ -263,6 +263,36 @@ expect(warn).toHaveBeenCalledOnce();
 
 `restoreMocks: true` ([config](#vitest-lint--config-choices)) resets spies/mocks between tests; `vi.stubEnv` / `vi.stubGlobal` need `unstubEnvs` / `unstubGlobals` or manual cleanup.
 
+#### Calling `queryFn` from `queryOptions` in unit tests
+
+Resource **factories** ([`lib/api/card.ts`](../lib/api/card.ts); term: [`vocabulary.md`](./vocabulary.md)) build options with [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options). TanStack types `queryFn` as a function that takes a **`QueryFunctionContext`** (and the property may be optional). Our factories usually **ignore** that context — they close over `id` and call `fetcher` — so a unit test that invokes `queryFn` directly to assert the URL / payload hits a TypeScript mismatch: “expected 1 argument” / “possibly undefined.”
+
+**Pattern** (example: [`lib/api/card.test.ts`](../lib/api/card.test.ts)):
+
+1. Stub `fetch` (or mock `fetcher`) so the call is hermetic.
+2. Assert `queryFn` is present if needed, then **cast only the call shape** so you can invoke with no args.
+3. Assert the resolved value with `expect(…).resolves.toStrictEqual(…)` — that owns the runtime contract, not the cast.
+
+```ts
+const { queryFn } = cardQueries.detail("card_1");
+// Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
+await expect((queryFn as () => Promise<unknown>)()).resolves.toStrictEqual(
+  card,
+);
+```
+
+**Return type on the cast — `unknown` vs accurate vs `any`:**
+
+| Choice                                | When                                                                                      |
+| ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `Promise<unknown>` (default)          | Cast is only about **call shape**; the matcher already checks the value. Neutral / safe.  |
+| Accurate (`Promise<CardWithList>`, …) | Fine if you want the cast to document the factory’s result type — optional, not required. |
+| `any`                                 | Avoid. Turns off checking on the expression; later use of the value won’t catch mistakes. |
+
+`unknown` means “a value, type not claimed yet” — you must narrow before using it. `any` means “skip the type checker for this.” Prefer `unknown` (or the accurate type) over `any` for throwaway casts. Handbook: [TypeScript — `unknown`](https://www.typescriptlang.org/docs/handbook/2/functions.html#unknown) · [`any`](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#any).
+
+Full Query / cache / UI behavior stays in component + MSW tests ([what to test where](#what-to-test-where)) — this pattern is only for thin factory unit suites.
+
 #### How we name tests
 
 Follow Vitest ([Descriptive Names](https://vitest.dev/guide/learn/testing-in-practice.html#descriptive-names) · [Naming Tests](https://vitest.dev/guide/learn/testing-in-practice.html#naming-tests) · [Testing Edge Cases](https://vitest.dev/guide/learn/testing-in-practice.html#testing-edge-cases)):

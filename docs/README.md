@@ -4,7 +4,7 @@ Entrypoint for project documentation. **Add new docs here** when you create them
 
 **For agents:** start here, then open the matching concern doc. Do not invent a parallel stack or a second catalog. Point at **files**, not section titles. Cursor always-on rule: `.cursor/rules/docs.mdc`.
 
-Prefer official docs for the **installed** versions in `package.json` — hard rule: [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) · [`AGENTS.md`](../AGENTS.md). This repo is a **learning reference** today and a **foundation for a real product** — docs map what we ship, how we choose patterns, and learning TODOs. Engineering decisions: [`conventions.md`](./conventions.md) (incl. **[one tool per job](./conventions.md#one-tool-per-job)**). Domain / cert decisions: [`product.md`](./product.md). Shared words (**common practice**, **best practice**, **one tool per job**, **match installed official docs**, …): [`vocabulary.md`](./vocabulary.md).
+Prefer official docs for the **installed** versions in `package.json` — hard rule: [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs) · [`AGENTS.md`](../AGENTS.md). This repo is a **learning reference** today and a **foundation for a real product** — docs map what we ship, how we choose patterns, and learning TODOs. Engineering decisions: [`conventions.md`](./conventions.md) (incl. **[one tool per job](./conventions.md#one-tool-per-job)**). Domain / cert decisions: [`product.md`](./product.md). Shared words (**common practice**, **best practice**, **one tool per job**, **match installed official docs**, **function-era pattern drift**, …): [`vocabulary.md`](./vocabulary.md).
 
 **Concern over vendor:** name durable docs for the **concern** (`data`, `billing`, `authentication-and-authorization`). Current libraries/providers (TanStack Query, Stripe, Clerk, …) live _inside_ those pages and may be swapped later.
 
@@ -12,13 +12,13 @@ Prefer official docs for the **installed** versions in `package.json` — hard r
 
 Orientation for the product and how we choose patterns. When changing how something works, open the matching concern under [Stack learning guides](#stack-learning-guides).
 
-| Doc                                              | What it’s for                                                                     |
-| ------------------------------------------------ | --------------------------------------------------------------------------------- |
-| [`vocabulary.md`](./vocabulary.md)               | Definitions: common practice vs best practice, recommendation, priority list, …   |
-| [`product.md`](./product.md)                     | Who it’s for, vision, domain/cert priority list and terms                         |
-| [`features.md`](./features.md)                   | What the app does today (features + where to look)                                |
-| [`conventions.md`](./conventions.md)             | How we choose engineering patterns (priority list + **common practices catalog**) |
-| [`project-structure.md`](./project-structure.md) | Folder layout / App Router organization (+ **common practice folder catalog**)    |
+| Doc                                              | What it’s for                                                                                      |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| [`vocabulary.md`](./vocabulary.md)               | Definitions: **function-era pattern drift**, factory, builder, common practice vs best practice, … |
+| [`product.md`](./product.md)                     | Who it’s for, vision, domain/cert priority list and terms                                          |
+| [`features.md`](./features.md)                   | What the app does today (features + where to look)                                                 |
+| [`conventions.md`](./conventions.md)             | How we choose engineering patterns (priority list + **common practices catalog**)                  |
+| [`project-structure.md`](./project-structure.md) | Folder layout / App Router organization (+ **common practice folder catalog**)                     |
 
 ## Stack learning guides
 
