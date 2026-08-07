@@ -75,13 +75,13 @@ SoT detail: [`docs/testing.md`](../../docs/testing.md) (**Vitest backlog freeze 
 
 Record from `pnpm test:coverage` summary **after each P is merged** (same `vitest.config.mts` include) — not while the PR is still in review. Until then, current numbers live only in a fresh local/CI run under gitignored `coverage/` ([`docs/testing.md`](../../docs/testing.md)).
 
-| Closed P | Date | Stmts % | Branch % | Funcs % | Lines % | Notes                                                 |
-| -------- | ---- | ------- | -------- | ------- | ------- | ----------------------------------------------------- |
-| P0       |      |         |          |         |         | Fill after merge if known; else leave blank           |
-| P1       |      |         |          |         |         | Fill when PR merges — baseline for P2                 |
-| P2       |      |         |          |         |         | Must beat P1 stmts (and not regress others)           |
-| P3       |      |         |          |         |         | Must beat P2                                          |
-| P4       |      |         |          |         |         | Must beat P3; then formal thresholds / include polish |
+| Closed P | Date       | Stmts % | Branch % | Funcs % | Lines % | Notes                                                                                                 |
+| -------- | ---------- | ------- | -------- | ------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| P0       |            |         |          |         |         | Not captured at merge; P1 is the ratchet baseline for P2                                              |
+| P1       | 2026-08-07 | 27.27   | 23.07    | 37.00   | 27.06   | After [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7) merge — `pnpm test:coverage` All files |
+| P2       |            |         |          |         |         | Must beat P1 stmts (and not regress others)                                                           |
+| P3       |            |         |          |         |         | Must beat P2                                                                                          |
+| P4       |            |         |          |         |         | Must beat P3; then formal thresholds / include polish                                                 |
 
 ---
 
