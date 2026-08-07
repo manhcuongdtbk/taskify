@@ -140,6 +140,7 @@ test("submits on click", async () => {
 - Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `setupFiles: ["./vitest.setup.ts"]` (jest-dom only), `restoreMocks: true`, `expect.requireAssertions: true`, `coverage.provider: "v8"`, `vite-tsconfig-paths` for `@/*`
 - Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:coverage` (`vitest run --coverage`), `pnpm test:inspect` (Chrome DevTools / Node inspector)
 - Coverage: `@vitest/coverage-v8` — [Coverage](https://vitest.dev/guide/coverage.html); reports under `coverage/` (gitignored)
+- **Vitest backlog freeze & coverage ratchet** (until [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md) is finished) — [below](#vitest-backlog-freeze--coverage-ratchet)
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
 - Colocated `*.test.ts` / `*.test.tsx` (**Vitest only**; never `*.spec.*`) — [`conventions.md`](./conventions.md) · [`project-structure.md`](./project-structure.md)
 - Explicit Vitest imports (no `globals`); `vi.*` only (Jest is never used here)
@@ -370,10 +371,33 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 - [ ] Playwright for critical flows (auth, board, billing) — `e2e/*.spec.ts` only (never `*.test.*`; only E2E tool; no Cypress)
 - [ ] Storybook when [catalog triggers](#storybook-when-needed) pass — catalog/workshop only; colocated `*.stories.tsx` (not CI component-test owner unless [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) rewritten)
 - [ ] Revisit Vitest Browser Mode only if [triggers](#trigger-checklist-for-switching-the-component-default) fire — pilot jsdom vs Browser Mode before blanket switch; update decision record + config together
-- [ ] CI: run `pnpm test:run` (and optionally `pnpm test:coverage`) on PRs when suites exist
+- [ ] CI: run `pnpm test:run` on PRs; keep coverage ratchet / thresholds per [backlog freeze](#vitest-backlog-freeze--coverage-ratchet) (full threshold tighten still P4)
 - [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
-- [ ] Tighten `coverage.include` / thresholds once suites exist and the report is noisy — plan P4
+- [ ] Tighten `coverage.include` / Vitest `thresholds` once the backlog is done — plan P4 (ratchet while the backlog runs is manual + plan ledger, not config yet)
 - [ ] **Follow-up PR (after Vitest P0):** evaluate / add [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) to harden Zod usage ([ecosystem](https://zod.dev/ecosystem)) — not in the current P0 PR; pick rules that fit Zod 4 + our `import { z } from "zod"` style ([one tool per job](./vocabulary.md#one-tool-per-job): lint aid, not a second schema stack)
+
+## Vitest backlog freeze & coverage ratchet
+
+**Hard rules while** [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md) **is unfinished** (P2–P4 still open):
+
+1. **No new product features** — no new user-facing capability, schema/API surface, or parallel “while we’re here” product work. Allowed: tests, test doubles, docs/plans, tiny production fixes **forced by a failing test** (TDD / regression), and backlog-listed cleanups (e.g. FormData casts after their suites).
+2. **New `*.test.*` → 100% on its colocated peer(s)** — for every new (or expanded) suite, the source file(s) that suite owns must reach **100%** statements, branches, functions, and lines under V8. Check with `pnpm test:coverage:paths <peer>` (or scoped `--coverage.include`). Do **not** count incidental imports (e.g. store tests importing `create-store`) as “owned” unless you add a dedicated colocated suite for that module.
+3. **End of each P → overall coverage must rise** — **after the P merges** (not mid-review), run `pnpm test:coverage` and record the **All files** summary (stmts / branch / funcs / lines) in the backlog plan’s [coverage ledger](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md). Each closed P must be **strictly higher** on overall **statements** (and should not regress the other three) vs the previous closed P’s ledger row. Do **not** game the ratchet by shrinking `coverage.include` mid-backlog. **Live numbers** are not stored in git — regenerate with `pnpm test:coverage` and open gitignored [`coverage/`](../coverage/) (see [Coverage reports](#coverage-reports-vitest-output)).
+
+When the backlog is marked done, drop the feature freeze; keep colocated 100% as the default for new suites unless a concern doc says otherwise; move formal Vitest `thresholds` / include tightening to P4 (or a follow-up).
+
+### Coverage reports (Vitest output)
+
+Vitest does **not** keep a checked-in “current coverage” file. After `pnpm test:coverage` (or `test:coverage:paths`), it writes under **`coverage/`** (gitignored — [`.gitignore`](../.gitignore)):
+
+| Artifact                                        | Use                                                   |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| [`coverage/index.html`](../coverage/index.html) | Browse overall + per-file (human)                     |
+| `coverage/coverage-final.json`                  | Machine-readable detail (default `json` reporter)     |
+| `coverage/clover.xml`                           | Default `clover` reporter (CI/tools)                  |
+| Terminal **text** summary                       | Printed by the run — no file unless you add reporters |
+
+Defaults: [Vitest coverage](https://vitest.dev/guide/coverage.html) · `reportsDirectory` default `./coverage`. Re-run to refresh; do not commit `coverage/`. The backlog **ledger** is the durable human snapshot **after merge**, not a substitute for regenerating the report.
 
 ## Out of scope for now
 
@@ -562,7 +586,7 @@ pnpm test:run lib/paths.test.ts
 pnpm test:coverage lib/paths.test.ts --coverage.include=lib/paths.ts
 ```
 
-HTML report: `coverage/index.html` (gitignored).
+HTML report: `coverage/index.html` (gitignored). Details: [Coverage reports](#coverage-reports-vitest-output).
 
 ## Debug
 
