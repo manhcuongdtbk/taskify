@@ -230,13 +230,13 @@ type CardModalStore = {
 
 **Do not store flags that only restate an invariant.** Card modal: open ⇔ `id` is set → keep `id` only; export `selectCardModalIsOpen` for semantic reads.
 
-| Approach                           | When                                                                                                      |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Named **`select*`** (Redux-style)  | Derivation reused (component + test, or several call sites). ESLint allows `select*` next to `use*Store`. |
-| Inline `(s) => s.id !== undefined` | One-off read; no need to export.                                                                          |
-| Stored `isOpen` beside `id`        | **Avoid** — two fields that can drift.                                                                    |
-| Stored `isOpen` with **no** id     | **OK** — Pro / mobile sidebar: open/closed is the only fact.                                              |
-| Stored derived “mode” / variant    | **Last resort** — only if it is **not** a pure function of other fields (callers set it independently).   |
+| Approach                          | When                                                                                                      |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Named **`select*`** (Redux-style) | Derivation reused (component + test, or several call sites). ESLint allows `select*` next to `use*Store`. |
+| Inline `(s) => !!s.id`            | One-off read; no need to export.                                                                          |
+| Stored `isOpen` beside `id`       | **Avoid** — two fields that can drift.                                                                    |
+| Stored `isOpen` with **no** id    | **OK** — Pro / mobile sidebar: open/closed is the only fact.                                              |
+| Stored derived “mode” / variant   | **Last resort** — only if it is **not** a pure function of other fields (callers set it independently).   |
 
 Prefer **event / domain verbs** on the store ([TkDodo: actions as events](https://tkdodo.eu/blog/working-with-zustand)), not `setIsOpen` as the primary API, and not React’s `onOpen` / `handleOpen` as store keys.
 
@@ -336,8 +336,7 @@ export const useCardModalStore = createStore<CardModalStore>((set) => ({
 }));
 
 /** Derived — open iff `id` is set. */
-export const selectCardModalIsOpen = (state: CardModalStore) =>
-  state.id !== undefined;
+export const selectCardModalIsOpen = (state: CardModalStore) => !!state.id;
 ```
 
 | `set` argument | Meaning                                |

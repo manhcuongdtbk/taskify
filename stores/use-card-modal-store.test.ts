@@ -37,4 +37,13 @@ describe("useCardModalStore", () => {
     expect(useCardModalStore.getState().id).toBe("card_2");
     expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(true);
   });
+
+  // Matches `enabled: !!id` in lib/api/card.ts — an empty id must not read as open,
+  // or the dialog renders skeletons forever with both queries disabled.
+  test("an empty id does not count as open", () => {
+    useCardModalStore.getState().open("");
+
+    expect(useCardModalStore.getState().id).toBe("");
+    expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(false);
+  });
 });

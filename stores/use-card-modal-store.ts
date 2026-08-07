@@ -14,5 +14,4 @@ export const useCardModalStore = createStore<CardModalStore>((set) => ({
 }));
 
 /** Derived open flag (invariant: open ⇔ id is set). Prefer select* over storing isOpen. */
-export const selectCardModalIsOpen = (state: CardModalStore) =>
-  state.id !== undefined;
+export const selectCardModalIsOpen = (state: CardModalStore) => !!state.id;
