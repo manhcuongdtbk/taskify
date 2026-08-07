@@ -96,13 +96,14 @@ describe("createSafeAction", () => {
     {
       case: "labels a refine that carries no copy of its own",
       // Intentionally no refine error — createSafeAction's map must supply "Invalid Image".
-      // eslint-disable-next-line zod/require-error-message -- fixture for map fallback
+      /* eslint-disable zod/require-error-message -- fixture for map fallback */
       schema: z.object({
         image: z
           .string()
           .trim()
           .refine(() => false),
       }),
+      /* eslint-enable zod/require-error-message */
       expected: { image: ["Invalid Image"] },
     },
     {
