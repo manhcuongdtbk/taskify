@@ -399,18 +399,18 @@ components/form/
 
 ##### Cheat sheet
 
-| Situation                                         | Do                                                                        |
-| ------------------------------------------------- | ------------------------------------------------------------------------- |
-| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                              |
-| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`               |
-| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`           |
-| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                         |
-| Types imported by actions / callers               | `actions/…/types.ts`                                                      |
-| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file) |
-| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                       |
-| Second UI under the same component                | `.Skeleton` (etc.) on the export                                          |
-| Unit / component test                             | Colocate `*.test.tsx`; props inline; don’t export props “for tests”       |
-| E2E                                               | `e2e/`, not next to every UI file                                         |
+| Situation                                         | Do                                                                                                    |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                                                          |
+| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`                                           |
+| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`                                       |
+| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                                                     |
+| Types imported by actions / callers               | `actions/…/types.ts`                                                                                  |
+| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file)                             |
+| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                                                   |
+| Second UI under the same component                | `.Skeleton` (etc.) on the export                                                                      |
+| Unit / component test                             | Colocate `*.test.ts` / `*.test.tsx` matching the source; props inline; don’t export props “for tests” |
+| E2E                                               | `e2e/`, not next to every UI file                                                                     |
 
 ##### Enforcement status (colocation & companions)
 
