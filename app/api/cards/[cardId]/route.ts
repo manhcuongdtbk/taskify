@@ -20,6 +20,9 @@ export async function GET(
       include: { list: { select: { title: true } } },
     });
 
+    // TODO: return 404 when `card` is null (deleted or another org) instead of
+    // a 200 null body — clients cannot tell "missing" from "empty", and
+    // lib/api/card.ts has to widen the type to `CardWithList | null` to match.
     return NextResponse.json(card);
   } catch {
     return new NextResponse("Internal Error", { status: 500 });

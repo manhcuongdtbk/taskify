@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
+import { cardQueries } from "@/lib/api/card";
 
 interface CardModalDescriptionProps {
   data: CardWithList;
@@ -50,12 +51,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
 
   const { execute, fieldErrors } = useAction(updateCard, {
     onSuccess: (data) => {
-      // TODO: fix this eslint error
-      // eslint-disable-next-line @tanstack/query/prefer-query-options
-      queryClient.invalidateQueries({ queryKey: ["card", data.id] });
-      // TODO: fix the eslint error
-      // eslint-disable-next-line @tanstack/query/prefer-query-options
-      queryClient.invalidateQueries({ queryKey: ["card-logs", data.id] });
+      queryClient.invalidateQueries({ queryKey: cardQueries.byId(data.id) });
       toast.add({
         type: "success",
         title: `Card "${data.title}" updated`,

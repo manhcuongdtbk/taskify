@@ -24,10 +24,10 @@ describe("createSafeAction", () => {
     }));
     const action = createSafeAction(Schema, handler);
 
-    await expect(action({ title: "Roadmap" })).resolves.toStrictEqual({
-      data: "Roadmap",
-    });
+    const result = await action({ title: "Roadmap" });
+
     expect(handler).toHaveBeenCalledExactlyOnceWith({ title: "Roadmap" });
+    expect(result).toStrictEqual({ data: "Roadmap" });
   });
 
   test.for([
@@ -52,12 +52,12 @@ describe("createSafeAction", () => {
       const handler = vi.fn();
       const action = createSafeAction(Schema, handler);
 
-      await expect(
-        action(input as z.input<typeof Schema>),
-      ).resolves.toStrictEqual({
+      const result = await action(input as z.input<typeof Schema>);
+
+      expect(handler).not.toHaveBeenCalled();
+      expect(result).toStrictEqual({
         fieldErrors: { title: [expected] },
       });
-      expect(handler).not.toHaveBeenCalled();
     },
   );
 
@@ -153,22 +153,26 @@ describe("createSafeAction", () => {
     const handler = vi.fn();
     const action = createSafeAction(SchemaWithRefine, handler);
 
-    await expect(action({ start: "b", end: "a" })).resolves.toStrictEqual({
+    const result = await action({ start: "b", end: "a" });
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(result).toStrictEqual({
       fieldErrors: {},
       formErrors: ["Start must be before end"],
     });
-    expect(handler).not.toHaveBeenCalled();
   });
 
   test("invalid: surfaces root-schema issues on formErrors", async () => {
     const handler = vi.fn();
     const action = createSafeAction(z.string().min(3), handler);
 
-    await expect(action("ab")).resolves.toStrictEqual({
+    const result = await action("ab");
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(result).toStrictEqual({
       fieldErrors: {},
       formErrors: ["Field must be at least 3 characters"],
     });
-    expect(handler).not.toHaveBeenCalled();
   });
 
   test("invalid: leaves serverError unset for schema issues", async () => {

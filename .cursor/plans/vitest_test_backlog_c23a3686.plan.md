@@ -1,6 +1,6 @@
 ---
 name: Vitest test backlog
-overview: "P0 done on test/vitest-p0-pure-unit (PR #5): pure unit suites, Zod test helpers, createSafeAction unit coverage, ActionState/FieldErrors, nested CreateBoard.image + cssUrl. Remaining: P1–P4 (mocked I/O beyond createSafeAction, components incl. FormPicker a11y + FormPopover controlled-title TDD + FormData.get as-string cleanup, MSW, polish)."
+overview: "P0 (PR #5) + P1 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P2–P4."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
@@ -12,10 +12,10 @@ todos:
     content: Self-review the P0 diff, then push and open PR to main
     status: completed
   - id: p1-mocked-unit
-    content: "TODO later — P1: fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock via Vitest vi.mock factory or lib/__mocks__/prisma (no vitest-mock-extended by default) for create-audit-log. create-safe-action unit suite already shipped in P0 PR."
-    status: pending
+    content: "P1: fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock (vi.mock factory) for create-audit-log + Clerk mocks; pnpm test:run green"
+    status: completed
   - id: p2-components
-    content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces"
+    content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces; 100% colocated peers; raise overall coverage vs P1 ledger"
     status: pending
   - id: p2-form-picker-a11y
     content: "TODO later — FormPicker a11y: failing colocated test first (keyboard reach/activate → onSelect), then fix div+onClick; use defaultImages (no MSW). See docs/testing.md Fixing bugs with tests"
@@ -45,10 +45,10 @@ todos:
     content: "TODO later — card-modal-description: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow"
     status: pending
   - id: p3-msw-reorder
-    content: "TODO later — P3: Add MSW; card-modal Query; form-picker Unsplash fetch mock; list-container DropResult/reorder"
+    content: "TODO later — P3: Add MSW; card-modal components using cardQueries; form-picker Unsplash fetch mock; list-container DropResult/reorder; 100% colocated peers; raise overall coverage vs P2 ledger"
     status: pending
   - id: p4-polish
-    content: "TODO later — P4: Broader role/a11y asserts (beyond FormPicker); thin leftovers; coverage/CI tighten; confirm no remaining formData.get as string in app UI"
+    content: "TODO later — P4: Broader role/a11y asserts; thin leftovers; raise overall coverage vs P3; then coverage.include/CI thresholds; confirm no remaining formData.get as string in app UI"
     status: pending
 isProject: false
 ---
@@ -59,11 +59,35 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 
 **Conventions:** colocated `*.test.ts(x)` next to source; `import { describe, expect, test, vi } from "vitest"`; `vi.*` only; `test.for` for table-driven cases; no real network/DB.
 
+**Per-P plans (until this backlog is finished):** each priority keeps its own execution plan under `.cursor/plans/` so the next P can look back at approach and doubles. P0 was compressed into this backlog only (no separate plan file). P1+: keep the phase plan committed — P1 is [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md).
+
+## Freeze & coverage ratchet (until this backlog is done)
+
+SoT detail: [`docs/testing.md`](../../docs/testing.md) (**Vitest backlog freeze & coverage ratchet**).
+
+| Rule                     | Meaning                                                                                                                                                                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No new features**      | No new product capability until P2–P4 are finished. Tests, docs/plans, TDD-forced fixes, backlog-listed cleanups, and **store/Query hygiene** paired with colocated suites ([`docs/testing.md`](../../docs/testing.md)) only. |
+| **New test → 100% peer** | Each new/expanded `*.test.*` must drive its colocated source peer(s) to **100%** stmts / branch / funcs / lines (`pnpm test:coverage:paths …`).                                                                               |
+| **End of P → overall ↑** | Closing a P requires `pnpm test:coverage` **All files** statements **strictly above** the previous closed P in the ledger (other metrics must not regress). Do not shrink `coverage.include` to fake the rise.                |
+
+### Coverage ledger
+
+Record from `pnpm test:coverage` summary **after each P is merged** (same `vitest.config.mts` include) — not while the PR is still in review. Until then, current numbers live only in a fresh local/CI run under gitignored `coverage/` ([`docs/testing.md`](../../docs/testing.md)).
+
+| Closed P | Date | Stmts % | Branch % | Funcs % | Lines % | Notes                                                 |
+| -------- | ---- | ------- | -------- | ------- | ------- | ----------------------------------------------------- |
+| P0       |      |         |          |         |         | Fill after merge if known; else leave blank           |
+| P1       |      |         |          |         |         | Fill when PR merges — baseline for P2                 |
+| P2       |      |         |          |         |         | Must beat P1 stmts (and not regress others)           |
+| P3       |      |         |          |         |         | Must beat P2                                          |
+| P4       |      |         |          |         |         | Must beat P3; then formal thresholds / include polish |
+
 ---
 
 ## P0 — Done: pure unit (`*.test.ts`) + related hardening (PR #5)
 
-Shipped on `test/vitest-p0-pure-unit` → [`PR #5`](https://github.com/manhcuongdtbk/taskify/pull/5). Colocated suites and supporting changes cover:
+Shipped on `test/vitest-p0-pure-unit` → [PR #5](https://github.com/manhcuongdtbk/taskify/pull/5). Colocated suites and supporting changes cover:
 
 | Target                                                             | Assert / change                                                                                          |
 | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
@@ -80,15 +104,28 @@ Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldError
 
 ---
 
+## P1 — Done: unit with mocks + client state
+
+Shipped on `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7). Execution plan (look-back): [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md). Colocated suites:
+
+| Target                                                                           | Assert / change                                                                                             |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [`lib/fetcher.ts`](../../lib/fetcher.ts)                                         | Stub `fetch`: ok → JSON body; `!ok` throws with status + statusText                                         |
+| [`lib/env.ts`](../../lib/env.ts)                                                 | `stubEnv` + `resetModules`: development / production / test NODE_ENV flags                                  |
+| [`stores/use-pro-modal-store.ts`](../../stores/use-pro-modal-store.ts)           | `getState()` open / close                                                                                   |
+| [`stores/use-mobile-sidebar-store.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                                        |
+| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)         | open sets id; `selectCardModalIsOpen` = `!!id` (empty string closed); close clears; second open replaces id |
+| [`hooks/use-action.ts`](../../hooks/use-action.ts)                               | `renderHook` suite as `.test.ts` (same extension as source for `coverage:paths`); success / errors / falsy  |
+| [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts)                       | Clerk + prisma `vi.mock` factories; suite-wide `console.log` spy; write / missing auth / create reject      |
+| [`lib/api/card.ts`](../../lib/api/card.ts)                                       | `byId` + leaf keys; `queryFn` URLs; detail `CardWithList \| null`; `findAll` scope tests                    |
+
+Also in this PR (store/Query hygiene under freeze — [`docs/testing.md`](../../docs/testing.md)): move card Query factories to `lib/api` with `queryOptions`; `byId` invalidation (one call scopes detail + logs); derive open from **truthy** `id` via `selectCardModalIsOpen` (+ ESLint `select*`); card-modal consumers rewired; expect-order polish on `create-safe-action` tests. Root fix for 200-null card detail tracked in [`docs/data.md`](../../docs/data.md) (return 404, then drop `| null`).
+
+Still deferred: heavy Clerk+Prisma paths (`subscription`, `organization-limit`); `unsplash` / `prisma` singleton; no `vitest-mock-extended`.
+
+---
+
 ## TODO later
-
-### P1 — Unit with mocks + client state
-
-- [`lib/fetcher.ts`](../../lib/fetcher.ts), [`lib/env.ts`](../../lib/env.ts)
-- Three Zustand stores; [`hooks/use-action.ts`](../../hooks/use-action.ts)
-- **Prisma Client mock (first):** [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts) via Vitest `vi.mock` **factory** or colocated `lib/__mocks__/prisma.ts` stubbing only methods under test — see [`docs/testing.md`](../../docs/testing.md) (Prisma-related). Do **not** add `vitest-mock-extended` unless a narrow stub becomes painful. Types-only helpers (e.g. `generate-log-message`) stay without Client mocks. Blog series index: [Testing with Prisma](https://www.prisma.io/blog/series/testing-with-prisma) (parts 1–2 when implementing; 3–5 later).
-- Still skip or defer heavy Clerk+Prisma paths (`subscription`, `organization-limit`) until that pattern is proven; `unsplash` / `prisma` singleton itself are not unit targets
-- **Done early in P0 PR:** [`lib/create-safe-action.ts`](../../lib/create-safe-action.ts) unit suite — do not re-open unless expanding handler/integration coverage
 
 ### P2 — Component static + interactive
 
@@ -125,11 +162,12 @@ Already done (narrowed, no cast): [`form-popover.tsx`](../../components/form/for
 
 ### P3 — Component + HTTP (MSW) + reorder
 
-- Add MSW; card-modal Query; form-picker **network** Unsplash mock (happy/error paths beyond `defaultImages`); list-container `DropResult` logic (no pointer DnD)
+- Add MSW; **card-modal components** that consume existing [`cardQueries`](../../lib/api/card.ts) (factories already unit-tested in P1 — do not reinvent Query wiring); form-picker **network** Unsplash mock (happy/error paths beyond `defaultImages`); list-container `DropResult` logic (no pointer DnD)
 
 ### P4 — Polish
 
-- Broader role/a11y asserts in other component suites (FormPicker keyboard covered under P2); thin leftovers; coverage/CI tighten
+- Broader role/a11y asserts in other component suites (FormPicker keyboard covered under P2); thin leftovers
+- Raise overall coverage vs P3 ledger; then tighten `coverage.include` / CI Vitest `thresholds` ([freeze rules](../../docs/testing.md) drop after backlog done)
 - Confirm no remaining `formData.get(…) as string` under app UI / form components (ripgrep gate)
 
 ### Follow-up (separate PR after P0)

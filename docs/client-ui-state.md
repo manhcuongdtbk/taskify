@@ -9,7 +9,7 @@ Ephemeral **browser UI state** shared across components — modals open/closed, 
 
 **Implementation today:** [Zustand](https://zustand.docs.pmnd.rs). Catalog picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
 
-**Do not** put server/domain data here (boards, cards, billing). That stays Prisma / Server Actions / TanStack Query — [`data.md`](./data.md).
+**Do not** put remote/API payload data here (boards, cards, billing rows). That is TanStack Query / RSC / Actions — [`data.md`](./data.md) ([Query vs this page](./data.md#tanstack-query-client-only)). This file is only **ephemeral UI intent** (which modal, which id, sidebar open).
 
 Official Zustand docs cover the API well but say little about _how we compose it with React naming, Next.js, and this repo’s factory_. This page is that missing layer.
 
@@ -18,6 +18,7 @@ Official Zustand docs cover the API well but say little about _how we compose it
 - **Multiple small stores** — one file per concern under `stores/use-*-store.ts` (not one global store)
 - Domain/event action names (`open`, `close`) — not React `on*` / `handle*` on the store
 - Slice selectors at every call site (no bare `useXStore()`)
+- **Derived flags via `select*`** — don’t store booleans that are pure invariants of other fields — [Derived flags](#derived-flags-select--prefer-over-redundant-state)
 - One factory [`lib/create-store.ts`](../lib/create-store.ts) (sole `zustand` import; wires `devtools`)
 - React UI boundary keeps `on*` props and `handle*` locals — see [React vs store naming](#react-vs-store-naming)
 
@@ -54,7 +55,7 @@ flowchart LR
   Factory["lib/create-store"]
   Z["Zustand + DevTools"]
 
-  UI -->|"selector (s) => s.isOpen"| Store
+  UI -->|"selector (s) => s.id / select*"| Store
   UI -->|"action open / close"| Store
   Store --> Factory
   Factory --> Z
@@ -215,15 +216,27 @@ In this app we **do not** call `create` in store files — we call [`createStore
 
 ```ts
 type CardModalStore = {
-  id?: string; // state
-  isOpen: boolean; // state
+  id?: string; // state — open iff set
   open: (id: string) => void; // action
   close: () => void; // action
 };
 ```
 
-- **State** — what is true right now
+- **State** — what is true right now (minimal — one source of truth per fact)
 - **Actions** — what events can happen (`open`, `close`)
+- **Derived** — values computed in selectors (e.g. `selectCardModalIsOpen`), not stored — [Zustand: derived state](https://zustand.docs.pmnd.rs/learn/guides/beginner-typescript)
+
+#### Derived flags (`select*`) — prefer over redundant state
+
+**Do not store flags that only restate an invariant.** Card modal: open ⇔ **truthy** `id` (`!!id`, same as Query `enabled`) → keep `id` only; export `selectCardModalIsOpen` for semantic reads. An empty string must not count as open.
+
+| Approach                          | When                                                                                                      |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Named **`select*`** (Redux-style) | Derivation reused (component + test, or several call sites). ESLint allows `select*` next to `use*Store`. |
+| Inline `(s) => !!s.id`            | One-off read; no need to export.                                                                          |
+| Stored `isOpen` beside `id`       | **Avoid** — two fields that can drift.                                                                    |
+| Stored `isOpen` with **no** id    | **OK** — Pro / mobile sidebar: open/closed is the only fact.                                              |
+| Stored derived “mode” / variant   | **Last resort** — only if it is **not** a pure function of other fields (callers set it independently).   |
 
 Prefer **event / domain verbs** on the store ([TkDodo: actions as events](https://tkdodo.eu/blog/working-with-zustand)), not `setIsOpen` as the primary API, and not React’s `onOpen` / `handleOpen` as store keys.
 
@@ -233,12 +246,13 @@ Prefer **event / domain verbs** on the store ([TkDodo: actions as events](https:
 // Re-renders when anything in the store changes
 const store = useCardModalStore();
 
-// Re-renders only when isOpen changes
-const isOpen = useCardModalStore((s) => s.isOpen);
+// Re-renders only when the selected value changes
+const id = useCardModalStore((s) => s.id);
+const isOpen = useCardModalStore(selectCardModalIsOpen); // derived from id
 const close = useCardModalStore((s) => s.close);
 ```
 
-The function `(s) => s.isOpen` is a **slice selector**. This repo always passes one (ESLint bans bare `useXStore()` and identity `(s) => s`). Prefer a real field/action — don’t subscribe to the whole store.
+The function `(s) => s.id` is a **slice selector**. This repo always passes one (ESLint bans bare `useXStore()` and identity `(s) => s`). Prefer a real field/action — don’t subscribe to the whole store. Named **`select*`** selectors (Redux-style) are the preferred home for reused derived reads; ESLint allows them next to `use*Store` in store modules.
 
 ### 4. React vs store naming
 
@@ -259,6 +273,8 @@ onClick={() => handleOpen(cardId)}
 Do **not** put `on*` / `handle*` on the store type. ESLint bans those keys in `stores/**/*-store.ts`.
 
 ### 5. Repo factory: `createStore`
+
+**Factory** here means our wrapper that **builds** a Zustand store hook (DevTools + typed `create`) — general term: [`vocabulary.md`](./vocabulary.md). Not a Zustand API named `factory`.
 
 [`lib/create-store.ts`](../lib/create-store.ts) is the **only** module allowed to import `zustand` / `zustand/*`. It combines:
 
@@ -309,17 +325,18 @@ import { createStore } from "@/lib/create-store";
 
 type CardModalStore = {
   id?: string;
-  isOpen: boolean;
   open: (id: string) => void;
   close: () => void;
 };
 
 export const useCardModalStore = createStore<CardModalStore>((set) => ({
   id: undefined,
-  isOpen: false,
-  open: (id) => set({ id, isOpen: true }, false, "open"),
-  close: () => set({ id: undefined, isOpen: false }, false, "close"),
+  open: (id) => set({ id }, false, "open"),
+  close: () => set({ id: undefined }, false, "close"),
 }));
+
+/** Derived — open iff `id` is set. */
+export const selectCardModalIsOpen = (state: CardModalStore) => !!state.id;
 ```
 
 | `set` argument | Meaning                                |
@@ -332,13 +349,13 @@ export const useCardModalStore = createStore<CardModalStore>((set) => ({
 
 ### 6. File and export conventions
 
-| Piece         | Pattern                 | Example                   |
-| ------------- | ----------------------- | ------------------------- |
-| File          | `stores/use-*-store.ts` | `use-card-modal-store.ts` |
-| Export        | `use*Store`             | `useCardModalStore`       |
-| DevTools name | Derived from file       | `CardModalStore`          |
+| Piece         | Pattern                            | Example                                      |
+| ------------- | ---------------------------------- | -------------------------------------------- |
+| File          | `stores/use-*-store.ts`            | `use-card-modal-store.ts`                    |
+| Export        | `use*Store` (+ optional `select*`) | `useCardModalStore`, `selectCardModalIsOpen` |
+| DevTools name | Derived from file                  | `CardModalStore`                             |
 
-File kebab-case and export camelCase must describe the **same** name (`use-card-modal-store` ↔ `useCardModalStore`). ESLint enforces that via `filename-match-export` (and: direct `zustand` import only in `lib/create-store.ts`; store modules must `import { createStore } from "@/lib/create-store"` and assign `use*Store = createStore(…)`; no bare `use*Store()`; no identity `(s) => s`; no `on*`/`handle*` store keys).
+File kebab-case and the **hook** export camelCase must describe the **same** name (`use-card-modal-store` ↔ `useCardModalStore`). ESLint enforces that via `filename-match-export` (and: direct `zustand` import only in `lib/create-store.ts`; store modules must `import { createStore } from "@/lib/create-store"` and assign `use*Store = createStore(…)`; optional `select*` derived selectors; no bare `use*Store()`; no identity `(s) => s`; no `on*`/`handle*` store keys).
 
 ### 7. DevTools
 
@@ -353,18 +370,18 @@ File kebab-case and export camelCase must describe the **same** name (`use-card-
 User clicks a card
   → CardItem: handleOpen(id)          // React handler
   → useCardModalStore.open(id)        // Zustand action
-  → { id, isOpen: true }
+  → { id }
 
 CardModal reads selectors
-  → isOpen, id
+  → id, selectCardModalIsOpen (derived)
   → Dialog open with that card
 
 After delete succeeds
   → close()
-  → isOpen: false
+  → { id: undefined }
 ```
 
-Server work (fetch card, delete card) stays in Route Handlers / Server Actions / Query. The store only tracks **UI**: open or not, and which id.
+Server work (fetch card, delete card) stays in Route Handlers / Server Actions / Query. The store only tracks **which card id is open** (closed = no id).
 
 ## Adding a new store
 
@@ -375,11 +392,11 @@ Server work (fetch card, delete card) stays in Route Handlers / Server Actions /
 
 ## Stores in this repo today
 
-| Store                   | File                                                                          | Role                        |
-| ----------------------- | ----------------------------------------------------------------------------- | --------------------------- |
-| `useCardModalStore`     | [`stores/use-card-modal-store.ts`](../stores/use-card-modal-store.ts)         | Card detail modal id + open |
-| `useProModalStore`      | [`stores/use-pro-modal-store.ts`](../stores/use-pro-modal-store.ts)           | Pro upgrade dialog open     |
-| `useMobileSidebarStore` | [`stores/use-mobile-sidebar-store.ts`](../stores/use-mobile-sidebar-store.ts) | Mobile nav sheet open       |
+| Store                   | File                                                                          | Role                                                   |
+| ----------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `useCardModalStore`     | [`stores/use-card-modal-store.ts`](../stores/use-card-modal-store.ts)         | Card detail modal id (`selectCardModalIsOpen` derived) |
+| `useProModalStore`      | [`stores/use-pro-modal-store.ts`](../stores/use-pro-modal-store.ts)           | Pro upgrade dialog open                                |
+| `useMobileSidebarStore` | [`stores/use-mobile-sidebar-store.ts`](../stores/use-mobile-sidebar-store.ts) | Mobile nav sheet open                                  |
 
 ## Official / community reading
 

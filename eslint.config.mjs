@@ -468,19 +468,19 @@ const zustandSelectorRequiredRestrictions = [
   },
 ];
 
-/** Exported bindings in store modules must be named use*Store. */
+/** Exported bindings in store modules: use*Store hooks and select* derived selectors. */
 const zustandStoreExportNameMessage =
-  "Zustand store hooks must be named use*Store (e.g. useProModalStore). See docs/client-ui-state.md.";
+  "Zustand store modules may export use*Store hooks and select* derived selectors only (e.g. useProModalStore, selectCardModalIsOpen). See docs/client-ui-state.md.";
 
 const zustandStoreExportNameRestrictions = [
   {
     selector:
-      "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name=/^(?!use[A-Z]\\w*Store$)\\w+/]",
+      "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name=/^(?!use[A-Z]\\w*Store$|select[A-Z]\\w+)\\w+/]",
     message: zustandStoreExportNameMessage,
   },
   {
     selector:
-      "ExportNamedDeclaration > FunctionDeclaration[id.name=/^(?!use[A-Z]\\w*Store$)\\w+/]",
+      "ExportNamedDeclaration > FunctionDeclaration[id.name=/^(?!use[A-Z]\\w*Store$|select[A-Z]\\w+)\\w+/]",
     message: zustandStoreExportNameMessage,
   },
 ];

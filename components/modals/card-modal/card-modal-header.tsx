@@ -10,6 +10,7 @@ import { useParams } from "next/navigation";
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
+import { cardQueries } from "@/lib/api/card";
 
 interface CardModalHeaderProps {
   data: CardWithList;
@@ -20,12 +21,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
   const params = useParams();
   const { execute } = useAction(updateCard, {
     onSuccess: (data) => {
-      // TODO: fix the eslint error
-      // eslint-disable-next-line @tanstack/query/prefer-query-options
-      queryClient.invalidateQueries({ queryKey: ["card", data.id] });
-      // TODO: fix the eslint error
-      // eslint-disable-next-line @tanstack/query/prefer-query-options
-      queryClient.invalidateQueries({ queryKey: ["card-logs", data.id] });
+      queryClient.invalidateQueries({ queryKey: cardQueries.byId(data.id) });
       toast.add({
         type: "success",
         title: `Renamed to ${data.title}`,
