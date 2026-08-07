@@ -179,9 +179,10 @@ A **factory** is a function (or small module of functions) that **creates and re
 // lib/api/card.ts — colloquial resource factory
 export const cardQueries = {
   all: () => ["card"] as const,
+  byId: (id: string | undefined) => [...cardQueries.all(), id] as const,
   detail: (id: string | undefined) =>
     queryOptions({
-      queryKey: [...cardQueries.all(), id] as const,
+      queryKey: [...cardQueries.byId(id), "detail"] as const,
       queryFn: () => fetcher<CardWithList>(`/api/cards/${id}`),
       enabled: !!id,
     }),

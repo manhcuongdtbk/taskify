@@ -9,15 +9,21 @@ import { type CardWithList } from "@/types";
  */
 export const cardQueries = {
   all: () => ["card"] as const,
+  /**
+   * Scope for one card — prefix of every leaf key below it. Invalidate this
+   * once after a write; each leaf carries its own terminal segment so no key
+   * doubles as both a query and a scope (which would refetch leaves twice).
+   */
+  byId: (id: string | undefined) => [...cardQueries.all(), id] as const,
   detail: (id: string | undefined) =>
     queryOptions({
-      queryKey: [...cardQueries.all(), id] as const,
+      queryKey: [...cardQueries.byId(id), "detail"] as const,
       queryFn: () => fetcher<CardWithList>(`/api/cards/${id}`),
       enabled: !!id,
     }),
   logs: (id: string | undefined) =>
     queryOptions({
-      queryKey: [...cardQueries.all(), id, "logs"] as const,
+      queryKey: [...cardQueries.byId(id), "logs"] as const,
       queryFn: () => fetcher<AuditLog[]>(`/api/cards/${id}/logs`),
       enabled: !!id,
     }),

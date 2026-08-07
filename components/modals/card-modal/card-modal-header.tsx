@@ -21,12 +21,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
   const params = useParams();
   const { execute } = useAction(updateCard, {
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: cardQueries.detail(data.id).queryKey,
-      });
-      queryClient.invalidateQueries({
-        queryKey: cardQueries.logs(data.id).queryKey,
-      });
+      queryClient.invalidateQueries({ queryKey: cardQueries.byId(data.id) });
       toast.add({
         type: "success",
         title: `Renamed to ${data.title}`,

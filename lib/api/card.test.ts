@@ -1,5 +1,7 @@
+import { QueryClient } from "@tanstack/react-query";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
+import { type CardWithList } from "@/types";
 import { cardQueries } from "./card";
 
 describe("cardQueries", () => {
@@ -11,10 +13,14 @@ describe("cardQueries", () => {
     expect(cardQueries.all()).toStrictEqual(["card"]);
   });
 
+  test("byId returns the per-card scope key", () => {
+    expect(cardQueries.byId("card_1")).toStrictEqual(["card", "card_1"]);
+  });
+
   test("detail builds key and enables when id is set", () => {
     const options = cardQueries.detail("card_1");
 
-    expect(options.queryKey).toStrictEqual(["card", "card_1"]);
+    expect(options.queryKey).toStrictEqual(["card", "card_1", "detail"]);
     expect(options.enabled).toBe(true);
   });
 
@@ -63,5 +69,50 @@ describe("cardQueries", () => {
 
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1/logs");
     expect(body).toStrictEqual(logs);
+  });
+
+  // findAll is the matcher invalidateQueries runs — keys are prefixes, not exact.
+  describe("key scoping", () => {
+    const seedCache = () => {
+      const queryClient = new QueryClient();
+
+      // Shape is irrelevant here; only the keys are under test.
+      queryClient.setQueryData(cardQueries.detail("card_1").queryKey, {
+        id: "card_1",
+      } as CardWithList);
+      queryClient.setQueryData(cardQueries.logs("card_1").queryKey, []);
+      queryClient.setQueryData(cardQueries.detail("card_2").queryKey, {
+        id: "card_2",
+      } as CardWithList);
+
+      return queryClient;
+    };
+
+    test("byId scopes every leaf of one card and no other card", () => {
+      const queryClient = seedCache();
+
+      const matched = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: cardQueries.byId("card_1") })
+        .map((query) => query.queryKey);
+
+      expect(matched).toStrictEqual([
+        ["card", "card_1", "detail"],
+        ["card", "card_1", "logs"],
+      ]);
+    });
+
+    test("a leaf key never scopes a sibling leaf", () => {
+      const queryClient = seedCache();
+
+      const matched = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: cardQueries.detail("card_1").queryKey })
+        .map((query) => query.queryKey);
+
+      // Regression: detail used to be ["card", id], which also matched
+      // ["card", id, "logs"] — so invalidating both refetched logs twice.
+      expect(matched).toStrictEqual([["card", "card_1", "detail"]]);
+    });
   });
 });

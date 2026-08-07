@@ -51,12 +51,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
 
   const { execute, fieldErrors } = useAction(updateCard, {
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: cardQueries.detail(data.id).queryKey,
-      });
-      queryClient.invalidateQueries({
-        queryKey: cardQueries.logs(data.id).queryKey,
-      });
+      queryClient.invalidateQueries({ queryKey: cardQueries.byId(data.id) });
       toast.add({
         type: "success",
         title: `Card "${data.title}" updated`,
