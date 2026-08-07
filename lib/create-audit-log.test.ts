@@ -23,7 +23,7 @@ const auditInput = {
   entityType: ENTITY_TYPE.BOARD,
   entityTitle: "Roadmap",
   action: ACTION.CREATE,
-} as const;
+};
 
 describe("createAuditLog", () => {
   afterEach(() => {
@@ -62,7 +62,7 @@ describe("createAuditLog", () => {
   test.for([
     {
       case: "missing orgId",
-      orgId: null as string | null,
+      orgId: null,
       user: {
         id: "user_1",
         imageUrl: "https://img.example/u.png",
@@ -72,7 +72,7 @@ describe("createAuditLog", () => {
     },
     {
       case: "missing user",
-      orgId: "org_1" as string | null,
+      orgId: "org_1",
       user: null,
     },
   ])("returns a failure when $case", async ({ orgId, user }) => {

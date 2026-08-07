@@ -22,7 +22,7 @@ describe("env", () => {
       isDevelopment: false,
       isProduction: false,
     },
-  ] as const)(
+  ])(
     "NODE_ENV=$nodeEnv → isDevelopment=$isDevelopment, isProduction=$isProduction",
     async ({ nodeEnv, isDevelopment, isProduction }) => {
       vi.stubEnv("NODE_ENV", nodeEnv);
