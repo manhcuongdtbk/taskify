@@ -6,11 +6,11 @@ import {
   tooSmallString,
 } from "@/lib/testing/zod/default-issue-messages";
 
-import { CreateCard } from "./schema";
+import { CreateCardSchema } from "./schema";
 
-describe("CreateCard", () => {
+describe("CreateCardSchema", () => {
   test("valid: accepts a card", () => {
-    const result = CreateCard.safeParse({
+    const result = CreateCardSchema.safeParse({
       title: "Write tests",
       boardId: "board_1",
       listId: "list_1",
@@ -27,7 +27,7 @@ describe("CreateCard", () => {
   });
 
   test("invalid: requires title, boardId, and listId", () => {
-    const result = CreateCard.safeParse({});
+    const result = CreateCardSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -38,7 +38,7 @@ describe("CreateCard", () => {
   });
 
   test("invalid: rejects titles shorter than 3 characters", () => {
-    const result = CreateCard.safeParse({
+    const result = CreateCardSchema.safeParse({
       title: "ab",
       boardId: "board_1",
       listId: "list_1",

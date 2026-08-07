@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod";
 
 import {
   invalidFormatUrl,
@@ -16,7 +16,7 @@ import {
 
 describe("zod default issue messages", () => {
   test("issueMessageOf throws when safeParse succeeded", () => {
-    expect(() => issueMessageOf(z.string().safeParse("ok"))).toThrow(
+    expect(() => issueMessageOf(z.string().trim().safeParse("ok"))).toThrow(
       "Expected safeParse to fail",
     );
   });
@@ -29,7 +29,7 @@ describe("zod default issue messages", () => {
 
   test("issueMessageOf falls back to first fieldError when formErrors is empty", () => {
     // Example 1: a plain `z.string()` failure is reported as a "form" (top-level) issue message.
-    expect(issueMessageOf(z.string().safeParse(undefined))).toBe(
+    expect(issueMessageOf(z.string().trim().safeParse(undefined))).toBe(
       invalidTypeString,
     );
 
@@ -37,7 +37,7 @@ describe("zod default issue messages", () => {
     // - Schema: { title: string }
     // - Input: {}
     // `title` is undefined → Zod `invalid_type` under `fieldErrors.title`.
-    const fieldOnly = z.object({ title: z.string() }).safeParse({});
+    const fieldOnly = z.object({ title: z.string().trim() }).safeParse({});
     if (fieldOnly.success) throw new Error("unreachable");
 
     const { formErrors, fieldErrors } = z.flattenError(fieldOnly.error);
@@ -80,7 +80,7 @@ describe("zod default issue messages", () => {
   });
 
   test("stays aligned when taken from a real object field failure", () => {
-    const result = z.object({ title: z.string() }).safeParse({});
+    const result = z.object({ title: z.string().trim() }).safeParse({});
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error("unreachable");

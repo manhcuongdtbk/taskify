@@ -8,7 +8,7 @@ import {
   invalidTypeString,
 } from "@/lib/testing/zod/default-issue-messages";
 
-import { UpdateCardOrder } from "./schema";
+import { UpdateCardOrderSchema } from "./schema";
 
 const cardItem = {
   id: "card_1",
@@ -19,9 +19,9 @@ const cardItem = {
   updatedAt: new Date("2024-01-02T00:00:00.000Z"),
 };
 
-describe("UpdateCardOrder", () => {
+describe("UpdateCardOrderSchema", () => {
   test("valid: accepts a reorder payload", () => {
-    const result = UpdateCardOrder.safeParse({
+    const result = UpdateCardOrderSchema.safeParse({
       items: [cardItem],
       boardId: "board_1",
     });
@@ -36,7 +36,7 @@ describe("UpdateCardOrder", () => {
   });
 
   test("invalid: requires items and boardId", () => {
-    const result = UpdateCardOrder.safeParse({});
+    const result = UpdateCardOrderSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -46,7 +46,7 @@ describe("UpdateCardOrder", () => {
   });
 
   test("invalid: rejects items with omitted fields", () => {
-    const result = UpdateCardOrder.safeParse({
+    const result = UpdateCardOrderSchema.safeParse({
       items: [{ id: "card_1" }],
       boardId: "board_1",
     });

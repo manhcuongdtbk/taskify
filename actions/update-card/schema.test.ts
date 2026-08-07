@@ -6,11 +6,11 @@ import {
   tooSmallString,
 } from "@/lib/testing/zod/default-issue-messages";
 
-import { UpdateCard } from "./schema";
+import { UpdateCardSchema } from "./schema";
 
-describe("UpdateCard", () => {
+describe("UpdateCardSchema", () => {
   test("valid: accepts id and boardId with no optional fields", () => {
-    const result = UpdateCard.safeParse({
+    const result = UpdateCardSchema.safeParse({
       id: "card_1",
       boardId: "board_1",
     });
@@ -22,7 +22,7 @@ describe("UpdateCard", () => {
   });
 
   test("valid: accepts optional title and description when long enough", () => {
-    const result = UpdateCard.safeParse({
+    const result = UpdateCardSchema.safeParse({
       id: "card_1",
       boardId: "board_1",
       title: "New title",
@@ -41,7 +41,7 @@ describe("UpdateCard", () => {
   });
 
   test("invalid: requires id and boardId", () => {
-    const result = UpdateCard.safeParse({});
+    const result = UpdateCardSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -51,7 +51,7 @@ describe("UpdateCard", () => {
   });
 
   test("invalid: rejects short optional title and description", () => {
-    const result = UpdateCard.safeParse({
+    const result = UpdateCardSchema.safeParse({
       id: "card_1",
       boardId: "board_1",
       title: "ab",

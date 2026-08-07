@@ -1,14 +1,14 @@
-import { z } from "zod";
+import * as z from "zod";
 
-export const UpdateListOrder = z.object({
+export const UpdateListOrderSchema = z.object({
   items: z.array(
     z.object({
-      id: z.string(),
-      title: z.string(),
+      id: z.string().trim(),
+      title: z.string().trim(),
       order: z.number(),
       createdAt: z.date(),
       updatedAt: z.date(),
     }),
   ),
-  boardId: z.string(),
+  boardId: z.string().trim(),
 });

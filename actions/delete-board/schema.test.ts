@@ -3,11 +3,11 @@ import { describe, expect, test } from "vitest";
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
 import { invalidTypeString } from "@/lib/testing/zod/default-issue-messages";
 
-import { DeleteBoard } from "./schema";
+import { DeleteBoardSchema } from "./schema";
 
-describe("DeleteBoard", () => {
+describe("DeleteBoardSchema", () => {
   test("valid: accepts an id", () => {
-    const result = DeleteBoard.safeParse({ id: "board_1" });
+    const result = DeleteBoardSchema.safeParse({ id: "board_1" });
 
     expect(result).toStrictEqual({
       success: true,
@@ -16,7 +16,7 @@ describe("DeleteBoard", () => {
   });
 
   test("invalid: requires id", () => {
-    const result = DeleteBoard.safeParse({});
+    const result = DeleteBoardSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({

@@ -6,11 +6,11 @@ import {
   tooSmallString,
 } from "@/lib/testing/zod/default-issue-messages";
 
-import { UpdateList } from "./schema";
+import { UpdateListSchema } from "./schema";
 
-describe("UpdateList", () => {
+describe("UpdateListSchema", () => {
   test("valid: accepts an update", () => {
-    const result = UpdateList.safeParse({
+    const result = UpdateListSchema.safeParse({
       title: "Doing",
       id: "list_1",
       boardId: "board_1",
@@ -27,7 +27,7 @@ describe("UpdateList", () => {
   });
 
   test("invalid: requires title, id, and boardId", () => {
-    const result = UpdateList.safeParse({});
+    const result = UpdateListSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -38,7 +38,7 @@ describe("UpdateList", () => {
   });
 
   test("invalid: rejects titles shorter than 3 characters", () => {
-    const result = UpdateList.safeParse({
+    const result = UpdateListSchema.safeParse({
       title: "ab",
       id: "list_1",
       boardId: "board_1",

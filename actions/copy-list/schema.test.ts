@@ -3,11 +3,11 @@ import { describe, expect, test } from "vitest";
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
 import { invalidTypeString } from "@/lib/testing/zod/default-issue-messages";
 
-import { CopyList } from "./schema";
+import { CopyListSchema } from "./schema";
 
-describe("CopyList", () => {
+describe("CopyListSchema", () => {
   test("valid: accepts a copy payload", () => {
-    const result = CopyList.safeParse({
+    const result = CopyListSchema.safeParse({
       id: "list_1",
       boardId: "board_1",
     });
@@ -19,7 +19,7 @@ describe("CopyList", () => {
   });
 
   test("invalid: requires id and boardId", () => {
-    const result = CopyList.safeParse({});
+    const result = CopyListSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({

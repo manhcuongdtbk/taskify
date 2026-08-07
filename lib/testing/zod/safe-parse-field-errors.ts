@@ -3,7 +3,7 @@
  * See docs/testing.md.
  */
 
-import { flattenError, type ZodSafeParseResult } from "zod";
+import * as z from "zod";
 
 /**
  * `fieldErrors` from a failed Zod `safeParse`.
@@ -11,10 +11,10 @@ import { flattenError, type ZodSafeParseResult } from "zod";
  * `expect(result.success).toBe(false)` does not narrow, and a cast would fail
  * later inside `flattenError` with an unreadable message.
  */
-export const safeParseFieldErrors = <T>(result: ZodSafeParseResult<T>) => {
+export const safeParseFieldErrors = <T>(result: z.ZodSafeParseResult<T>) => {
   if (result.success) {
     throw new Error("Expected safeParse to fail");
   }
 
-  return flattenError(result.error).fieldErrors;
+  return z.flattenError(result.error).fieldErrors;
 };

@@ -1,7 +1,7 @@
-import { z } from "zod";
+import * as z from "zod";
 import { type List } from "@/app/generated/prisma/client";
 import { type ActionState } from "@/lib/create-safe-action.types";
-import { CreateList } from "./schema";
+import { CreateListSchema } from "./schema";
 
-export type InputType = z.infer<typeof CreateList>;
+export type InputType = z.infer<typeof CreateListSchema>;
 export type ReturnType = ActionState<InputType, List>;

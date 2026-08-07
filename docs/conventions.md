@@ -59,7 +59,7 @@ Do **not** hardcode patch versions in this table — always re-read `package.jso
 | **Stripe**                            | `stripe` (+ Dashboard API version) | [docs.stripe.com](https://docs.stripe.com) · SDK + **API version** both matter · concern [`billing.md`](./billing.md) · repo Stripe skills                                                                                                      |
 | **TanStack Query**                    | `@tanstack/react-query`            | [tanstack.com/query](https://tanstack.com/query/latest/docs/framework/react/overview) for v5 · concern [`data.md`](./data.md)                                                                                                                   |
 | **Zustand**                           | `zustand`                          | [zustand.docs.pmnd.rs](https://zustand.docs.pmnd.rs) · concern [`client-ui-state.md`](./client-ui-state.md)                                                                                                                                     |
-| **Zod**                               | `zod`                              | [zod.dev](https://zod.dev) for the installed major (v4 today)                                                                                                                                                                                   |
+| **Zod**                               | `zod`                              | [zod.dev](https://zod.dev) for the installed major (v4 today) · ESLint: [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) (`recommended` — namespace import + `*Schema` names)                                            |
 | **es-toolkit**                        | `es-toolkit`                       | [es-toolkit.dev](https://es-toolkit.dev) · repo `recommend` / `guide` skills                                                                                                                                                                    |
 | **cssesc**                            | `cssesc`                           | [github.com/mathiasbynens/cssesc](https://github.com/mathiasbynens/cssesc) (CSS string / identifier escapes; used by [`cssUrl`](../lib/utils.ts))                                                                                               |
 | **Tailwind CSS**                      | `tailwindcss`                      | [tailwindcss.com/docs](https://tailwindcss.com/docs) for v4                                                                                                                                                                                     |
@@ -310,7 +310,7 @@ components/modals/card-modal/
 ```text
 actions/create-board/
   index.ts     → createBoard
-  schema.ts    → CreateBoard
+  schema.ts    → CreateBoardSchema
   types.ts     → InputType, ReturnType
 ```
 
@@ -467,7 +467,9 @@ components/form/
 
 #### Action validation messages (Zod)
 
-Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaults there (`z.string().min(3)`). [`createSafeAction`](../lib/create-safe-action.ts) supplies one **per-parse error map** so schemas stay reusable. See [Zod error customization](https://zod.dev/error-customization) · [Zod error formatting](https://zod.dev/error-formatting).
+**Import / naming (enforced):** `import * as z from "zod"` (Zod 4 docs + better Next/Webpack tree-shaking than `import { z }`); schema variables end with `Schema` (e.g. `CreateBoardSchema`). ESLint: stock [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) `recommended` in [`eslint.config.mjs`](../eslint.config.mjs) ([one tool per job](./vocabulary.md#one-tool-per-job): lint aid, not a second schema stack).
+
+Keep `actions/<name>/schema.ts` focused on shape and constraints; use Zod defaults there (`z.string().trim().min(3)`). [`createSafeAction`](../lib/create-safe-action.ts) supplies one **per-parse error map** so schemas stay reusable. See [Zod error customization](https://zod.dev/error-customization) · [Zod error formatting](https://zod.dev/error-formatting).
 
 ##### `ActionState` keys — one origin per key
 
@@ -506,7 +508,7 @@ No current `actions/*/schema.ts` emits pathless issues. When adding a cross-fiel
 
 - Don’t add presentation copy to individual action schemas. The shared map turns missing values into `"Missing <Field>"`, wrong types and failed `.refine()` checks into `"Invalid <Field>"`, and short strings into `"<Field> must be at least N characters"`.
 - A field-level `.refine()` needs its own `error` **only when the label alone can’t tell the user what to fix**. No schema needs one today; the map keeps `"Invalid <Field>"` as the floor so a future check never falls back to Zod’s bare `"Invalid input"`.
-- **Group related inputs under a nested object** when one control produces several values: `z.flattenError` keys nested issues by the **outer** field, so [`CreateBoard.image`](../actions/create-board/schema.ts) fills one `fieldErrors.image` slot under [`FormPicker`](../components/form/form-picker.tsx) instead of stacking a message per sub-field, and an unselected picker reads `"Missing Image"`.
+- **Group related inputs under a nested object** when one control produces several values: `z.flattenError` keys nested issues by the **outer** field, so [`CreateBoardSchema.image`](../actions/create-board/schema.ts) fills one `fieldErrors.image` slot under [`FormPicker`](../components/form/form-picker.tsx) instead of stacking a message per sub-field, and an unselected picker reads `"Missing Image"`.
 - **Phrase copy without a copula.** Labels come from field names, and a template like `"<Field> is required"` reads wrong for plural fields (`"Tags is required"`). Plurality can’t be inferred from a name (`address`, `status`), so use forms that work for both — `"Missing Tags"`, `"Tags must be at least 3 characters"`.
 - Per-parse customization has lower precedence than schema-level `error`; schema-level copy would bypass the shared policy.
 - Unknown issue kinds fall back to Zod’s default instead of inventing incomplete translations.

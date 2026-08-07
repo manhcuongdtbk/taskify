@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { z } from "zod";
+import * as z from "zod";
 
 import { createSafeAction } from "./create-safe-action";
 import {
@@ -8,7 +8,7 @@ import {
 } from "@/lib/testing/zod/default-issue-messages";
 
 const Schema = z.object({
-  title: z.string().min(3),
+  title: z.string().trim().min(3),
 });
 
 const fieldErrorsFor = async (schema: z.ZodType, input: unknown) => {
@@ -64,25 +64,25 @@ describe("createSafeAction", () => {
   test.for([
     {
       case: "camelCase names ending in id",
-      schema: z.object({ boardId: z.string() }),
+      schema: z.object({ boardId: z.string().trim() }),
       input: { boardId: 42 },
       expected: { boardId: ["Invalid Board ID"] },
     },
     {
       case: "plural field names, which no copula would fit",
-      schema: z.object({ tags: z.array(z.string()) }),
+      schema: z.object({ tags: z.array(z.string().trim()) }),
       input: {},
       expected: { tags: ["Missing Tags"] },
     },
     {
       case: "array items, which are keyed by their field",
-      schema: z.object({ tags: z.array(z.string()) }),
+      schema: z.object({ tags: z.array(z.string().trim()) }),
       input: { tags: [1] },
       expected: { tags: ["Invalid Tags"] },
     },
     {
       case: "paths that carry no field name",
-      schema: z.array(z.string()),
+      schema: z.array(z.string().trim()),
       input: [1],
       expected: { 0: ["Invalid Field"] },
     },
@@ -95,13 +95,23 @@ describe("createSafeAction", () => {
   test.for([
     {
       case: "labels a refine that carries no copy of its own",
-      schema: z.object({ image: z.string().refine(() => false) }),
+      // Intentionally no refine error — createSafeAction's map must supply "Invalid Image".
+      // eslint-disable-next-line zod/require-error-message -- fixture for map fallback
+      schema: z.object({
+        image: z
+          .string()
+          .trim()
+          .refine(() => false),
+      }),
       expected: { image: ["Invalid Image"] },
     },
     {
       case: "keeps a refine's own copy, which outranks this map",
       schema: z.object({
-        image: z.string().refine(() => false, { error: "Pick an image" }),
+        image: z
+          .string()
+          .trim()
+          .refine(() => false, { error: "Pick an image" }),
       }),
       expected: { image: ["Pick an image"] },
     },
@@ -113,7 +123,9 @@ describe("createSafeAction", () => {
 
   test("invalid: keeps the character count singular when the minimum is 1", async () => {
     await expect(
-      fieldErrorsFor(z.object({ title: z.string().min(1) }), { title: "" }),
+      fieldErrorsFor(z.object({ title: z.string().trim().min(1) }), {
+        title: "",
+      }),
     ).resolves.toStrictEqual({
       title: ["Title must be at least 1 character"],
     });
@@ -122,7 +134,7 @@ describe("createSafeAction", () => {
   test.for([
     {
       case: "a string that is too long",
-      schema: z.object({ title: z.string().max(3) }),
+      schema: z.object({ title: z.string().trim().max(3) }),
       input: { title: "Roadmap" },
       expected: { title: [tooBigString(3)] },
     },
@@ -142,16 +154,16 @@ describe("createSafeAction", () => {
   );
 
   test("invalid: surfaces pathless refine issues on formErrors", async () => {
-    const SchemaWithRefine = z
+    const SchemaWithRefineSchema = z
       .object({
-        start: z.string().optional(),
-        end: z.string().optional(),
+        start: z.string().trim().optional(),
+        end: z.string().trim().optional(),
       })
       .refine((data) => !data.start || !data.end || data.start <= data.end, {
         error: "Start must be before end",
       });
     const handler = vi.fn();
-    const action = createSafeAction(SchemaWithRefine, handler);
+    const action = createSafeAction(SchemaWithRefineSchema, handler);
 
     const result = await action({ start: "b", end: "a" });
 
@@ -164,7 +176,7 @@ describe("createSafeAction", () => {
 
   test("invalid: surfaces root-schema issues on formErrors", async () => {
     const handler = vi.fn();
-    const action = createSafeAction(z.string().min(3), handler);
+    const action = createSafeAction(z.string().trim().min(3), handler);
 
     const result = await action("ab");
 

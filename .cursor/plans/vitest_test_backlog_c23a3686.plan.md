@@ -100,7 +100,7 @@ Shipped on `test/vitest-p0-pure-unit` → [PR #5](https://github.com/manhcuongdt
 | [`lib/create-safe-action.ts`](../../lib/create-safe-action.ts)     | Unit suite: validation mapping, friendly copy, handler pass-through (shipped early; was listed under P1) |
 | [`lib/testing/zod/`](../../lib/testing/zod/)                       | `safeParseFieldErrors`, `default-issue-messages` (`invalidType*` = `received undefined` only)            |
 
-Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldErrors` typing, nested `CreateBoard.image`, https-only image URLs, board backgrounds painted via `cssUrl`, Vitest docs/conventions updates.
+Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldErrors` typing, nested `CreateBoardSchema.image`, https-only image URLs, board backgrounds painted via `cssUrl`, Vitest docs/conventions updates.
 
 ---
 
@@ -172,7 +172,7 @@ Already done (narrowed, no cast): [`form-popover.tsx`](../../components/form/for
 
 ### Follow-up (separate PR after P0)
 
-- [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) — harden Zod authoring (Zod 4–compatible rules only); tracked in [`docs/testing.md`](../../docs/testing.md) TODO. Not part of the Vitest P0 PR.
+- [x] [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) — stock `recommended` in `eslint.config.mjs` (namespace import, `*Schema` names, trim). See [`docs/testing.md`](../../docs/testing.md) · [`docs/conventions.md`](../../docs/conventions.md).
 
 ### Forever not Vitest (other tools)
 

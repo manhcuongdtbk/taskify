@@ -1,3 +1,3 @@
-import { z } from "zod";
+import * as z from "zod";
 
-export const StripeRedirect = z.object({});
+export const StripeRedirectSchema = z.object({});

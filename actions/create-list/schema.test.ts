@@ -6,11 +6,11 @@ import {
   tooSmallString,
 } from "@/lib/testing/zod/default-issue-messages";
 
-import { CreateList } from "./schema";
+import { CreateListSchema } from "./schema";
 
-describe("CreateList", () => {
+describe("CreateListSchema", () => {
   test("valid: accepts a list", () => {
-    const result = CreateList.safeParse({
+    const result = CreateListSchema.safeParse({
       title: "Todo",
       boardId: "board_1",
     });
@@ -22,7 +22,7 @@ describe("CreateList", () => {
   });
 
   test("invalid: requires title and boardId", () => {
-    const result = CreateList.safeParse({});
+    const result = CreateListSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -32,7 +32,10 @@ describe("CreateList", () => {
   });
 
   test("invalid: rejects titles shorter than 3 characters", () => {
-    const result = CreateList.safeParse({ title: "ab", boardId: "board_1" });
+    const result = CreateListSchema.safeParse({
+      title: "ab",
+      boardId: "board_1",
+    });
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({

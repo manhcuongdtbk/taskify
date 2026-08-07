@@ -7,19 +7,19 @@
  * imported by app code (ESLint). See docs/testing.md.
  */
 
-import { flattenError, type ZodSafeParseResult, z } from "zod";
+import * as z from "zod";
 
 /**
  * First flattened issue message from a failed `safeParse`
  * (`issues[i].message` via `flattenError`).
  * Prefers pathless `formErrors`, then the first `fieldErrors` entry.
  */
-export const issueMessageOf = (result: ZodSafeParseResult<unknown>) => {
+export const issueMessageOf = (result: z.ZodSafeParseResult<unknown>) => {
   if (result.success) {
     throw new Error("Expected safeParse to fail");
   }
 
-  const { formErrors, fieldErrors } = flattenError(result.error);
+  const { formErrors, fieldErrors } = z.flattenError(result.error);
   const issueMessage = formErrors[0] ?? Object.values(fieldErrors).flat()[0];
 
   if (issueMessage === undefined) {
@@ -31,7 +31,7 @@ export const issueMessageOf = (result: ZodSafeParseResult<unknown>) => {
 
 /** `invalid_type` — expected string, received `undefined`. */
 export const invalidTypeString = issueMessageOf(
-  z.string().safeParse(undefined),
+  z.string().trim().safeParse(undefined),
 );
 
 /** `invalid_type` — expected object, received `undefined`. */
@@ -41,7 +41,7 @@ export const invalidTypeObject = issueMessageOf(
 
 /** `invalid_type` — expected array, received `undefined`. */
 export const invalidTypeArray = issueMessageOf(
-  z.array(z.string()).safeParse(undefined),
+  z.array(z.string().trim()).safeParse(undefined),
 );
 
 /** `invalid_type` — expected number, received `undefined`. */
@@ -57,13 +57,14 @@ export const invalidFormatUrl = issueMessageOf(z.url().safeParse("not-a-url"));
 
 /** `too_small` — `z.string().min(minimum)`. */
 export const tooSmallString = (minimum: number) =>
-  issueMessageOf(z.string().min(minimum).safeParse(""));
+  issueMessageOf(z.string().trim().min(minimum).safeParse(""));
 
 /** `too_big` — `z.string().max(maximum)`. */
 export const tooBigString = (maximum: number) =>
   issueMessageOf(
     z
       .string()
+      .trim()
       .max(maximum)
       .safeParse("x".repeat(maximum + 1)),
   );

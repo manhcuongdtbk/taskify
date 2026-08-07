@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 
-import { StripeRedirect } from "./schema";
+import { StripeRedirectSchema } from "./schema";
 
-describe("StripeRedirect", () => {
+describe("StripeRedirectSchema", () => {
   test("valid: accepts an empty object", () => {
-    const result = StripeRedirect.safeParse({});
+    const result = StripeRedirectSchema.safeParse({});
 
     expect(result).toStrictEqual({
       success: true,
@@ -13,7 +13,7 @@ describe("StripeRedirect", () => {
   });
 
   test("valid: strips unknown keys", () => {
-    const result = StripeRedirect.safeParse({ unused: true });
+    const result = StripeRedirectSchema.safeParse({ unused: true });
 
     expect(result).toStrictEqual({
       success: true,

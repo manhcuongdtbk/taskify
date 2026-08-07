@@ -5,7 +5,7 @@ import { type InputType, type ReturnType } from "./types";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
-import { CreateBoard } from "./schema";
+import { CreateBoardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import {
@@ -71,4 +71,4 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   return { data: board };
 };
 
-export const createBoard = createSafeAction(CreateBoard, handler);
+export const createBoard = createSafeAction(CreateBoardSchema, handler);

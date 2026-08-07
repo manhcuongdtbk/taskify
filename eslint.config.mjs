@@ -13,6 +13,8 @@ import vitest from "@vitest/eslint-plugin";
 import jestDom from "eslint-plugin-jest-dom";
 // Companion lint for Testing Library queries / async / cleanup — docs/testing.md
 import testingLibrary from "eslint-plugin-testing-library";
+// Zod 4 authoring lint (namespace import + *Schema naming) — docs/conventions.md
+import eslintPluginZod from "eslint-plugin-zod";
 
 /** Matches eslint-config-next’s JS/TS family — one place for custom `files` globs. */
 const JS_TS_FILES = ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"];
@@ -953,6 +955,10 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+
+  // Zod schemas — recommended (namespace import, *Schema names, trim, Zod 4 deprecations).
+  // https://github.com/marcalexiei/eslint-plugin-zod · docs/conventions.md · docs/testing.md
+  eslintPluginZod.configs.recommended,
 
   // Last: turn off stylistic rules that conflict with Prettier (must follow every
   // shareable / local config that might enable them).

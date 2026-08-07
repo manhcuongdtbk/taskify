@@ -1,4 +1,4 @@
-import { type z } from "zod";
+import * as z from "zod";
 
 /**
  * Per-field schema issues from `z.flattenError(…).fieldErrors`.

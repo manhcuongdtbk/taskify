@@ -5,7 +5,7 @@ import { type InputType, type ReturnType } from "./types";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
-import { UpdateListOrder } from "./schema";
+import { UpdateListOrderSchema } from "./schema";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -38,4 +38,4 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   return { data: lists };
 };
 
-export const updateListOrder = createSafeAction(UpdateListOrder, handler);
+export const updateListOrder = createSafeAction(UpdateListOrderSchema, handler);

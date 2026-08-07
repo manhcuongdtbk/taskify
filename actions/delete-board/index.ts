@@ -5,7 +5,7 @@ import { type InputType, type ReturnType } from "./types";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
-import { DeleteBoard } from "./schema";
+import { DeleteBoardSchema } from "./schema";
 import { redirect } from "next/navigation";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
@@ -51,4 +51,4 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   redirect(paths.organization(orgId));
 };
 
-export const deleteBoard = createSafeAction(DeleteBoard, handler);
+export const deleteBoard = createSafeAction(DeleteBoardSchema, handler);

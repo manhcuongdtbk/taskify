@@ -8,7 +8,7 @@ import {
   tooSmallString,
 } from "@/lib/testing/zod/default-issue-messages";
 
-import { CreateBoard } from "./schema";
+import { CreateBoardSchema } from "./schema";
 
 const image = {
   id: "cXHsWI3gBws",
@@ -19,9 +19,9 @@ const image = {
   userName: "Svitlana",
 };
 
-describe("CreateBoard", () => {
+describe("CreateBoardSchema", () => {
   test("valid: accepts a board", () => {
-    const result = CreateBoard.safeParse({ title: "Roadmap", image });
+    const result = CreateBoardSchema.safeParse({ title: "Roadmap", image });
 
     expect(result).toStrictEqual({
       success: true,
@@ -30,7 +30,7 @@ describe("CreateBoard", () => {
   });
 
   test("invalid: requires title and image", () => {
-    const result = CreateBoard.safeParse({});
+    const result = CreateBoardSchema.safeParse({});
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -40,7 +40,7 @@ describe("CreateBoard", () => {
   });
 
   test("invalid: rejects titles shorter than 3 characters", () => {
-    const result = CreateBoard.safeParse({ title: "ab", image });
+    const result = CreateBoardSchema.safeParse({ title: "ab", image });
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -52,7 +52,10 @@ describe("CreateBoard", () => {
     { case: "id", value: { ...image, id: "" } },
     { case: "author", value: { ...image, userName: "" } },
   ])("invalid: rejects an image with an empty $case", ({ value }) => {
-    const result = CreateBoard.safeParse({ title: "Roadmap", image: value });
+    const result = CreateBoardSchema.safeParse({
+      title: "Roadmap",
+      image: value,
+    });
 
     expect(result.success).toBe(false);
     expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -71,7 +74,10 @@ describe("CreateBoard", () => {
   ])(
     "invalid: rejects an image whose $case is not a https URL",
     ({ value }) => {
-      const result = CreateBoard.safeParse({ title: "Roadmap", image: value });
+      const result = CreateBoardSchema.safeParse({
+        title: "Roadmap",
+        image: value,
+      });
 
       expect(result.success).toBe(false);
       expect(safeParseFieldErrors(result)).toStrictEqual({
@@ -81,7 +87,7 @@ describe("CreateBoard", () => {
   );
 
   test("invalid: reports the whole image group under one key", () => {
-    const result = CreateBoard.safeParse({ title: "Roadmap", image: {} });
+    const result = CreateBoardSchema.safeParse({ title: "Roadmap", image: {} });
 
     expect(result.success).toBe(false);
     expect(Object.keys(safeParseFieldErrors(result))).toStrictEqual(["image"]);

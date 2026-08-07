@@ -1,6 +1,6 @@
-import { z } from "zod";
+import * as z from "zod";
 
-export const CopyList = z.object({
-  id: z.string(),
-  boardId: z.string(),
+export const CopyListSchema = z.object({
+  id: z.string().trim(),
+  boardId: z.string().trim(),
 });

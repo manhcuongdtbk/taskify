@@ -5,7 +5,7 @@ import { type InputType, type ReturnType } from "./types";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
-import { StripeRedirect } from "./schema";
+import { StripeRedirectSchema } from "./schema";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe, toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
 import { PRO_PLAN } from "@/constants/pricing-plans";
@@ -108,4 +108,4 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   return { data: url };
 };
 
-export const stripeRedirect = createSafeAction(StripeRedirect, handler);
+export const stripeRedirect = createSafeAction(StripeRedirectSchema, handler);

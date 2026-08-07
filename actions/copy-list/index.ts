@@ -5,7 +5,7 @@ import { type InputType, type ReturnType } from "./types";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
-import { CopyList } from "./schema";
+import { CopyListSchema } from "./schema";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { createAuditLog } from "@/lib/create-audit-log";
 
@@ -73,4 +73,4 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   return { data: list };
 };
 
-export const copyList = createSafeAction(CopyList, handler);
+export const copyList = createSafeAction(CopyListSchema, handler);

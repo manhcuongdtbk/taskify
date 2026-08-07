@@ -416,7 +416,7 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 - [ ] CI: run `pnpm test:run` on PRs; keep coverage ratchet / thresholds per [backlog freeze](#vitest-backlog-freeze--coverage-ratchet) (full threshold tighten still P4)
 - [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
 - [ ] Tighten `coverage.include` / Vitest `thresholds` once the backlog is done — plan P4 (ratchet while the backlog runs is manual + plan ledger, not config yet)
-- [ ] **Follow-up PR (after Vitest P0):** evaluate / add [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) to harden Zod usage ([ecosystem](https://zod.dev/ecosystem)) — not in the current P0 PR; pick rules that fit Zod 4 + our `import { z } from "zod"` style ([one tool per job](./vocabulary.md#one-tool-per-job): lint aid, not a second schema stack)
+- [x] **Follow-up (after Vitest P0):** [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) stock `recommended` in [`eslint.config.mjs`](../eslint.config.mjs) — namespace `import * as z from "zod"`, `*Schema` names, string `.trim()` ([one tool per job](./vocabulary.md#one-tool-per-job): lint aid, not a second schema stack). Authoring notes: [`conventions.md`](./conventions.md)
 
 ## Vitest backlog freeze & coverage ratchet
 

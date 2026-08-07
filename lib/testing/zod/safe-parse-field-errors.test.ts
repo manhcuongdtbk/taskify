@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod";
 
 import { safeParseFieldErrors } from "./safe-parse-field-errors";
 import { invalidTypeString } from "./default-issue-messages";
 
 const Schema = z.object({
-  id: z.string(),
+  id: z.string().trim(),
 });
 
 describe("safeParseFieldErrors", () => {

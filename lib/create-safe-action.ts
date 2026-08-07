@@ -1,5 +1,5 @@
 import { startCase } from "es-toolkit/string";
-import { z } from "zod";
+import * as z from "zod";
 
 import { type ActionState } from "./create-safe-action.types";
 
