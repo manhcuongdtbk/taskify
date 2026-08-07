@@ -183,7 +183,7 @@ export const cardQueries = {
   detail: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "detail"] as const,
-      queryFn: () => fetcher<CardWithList>(`/api/cards/${id}`),
+      queryFn: () => fetcher<CardWithList | null>(`/api/cards/${id}`), // | null until route returns 404 — docs/data.md
       enabled: !!id,
     }),
 };

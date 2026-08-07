@@ -228,7 +228,7 @@ type CardModalStore = {
 
 #### Derived flags (`select*`) — prefer over redundant state
 
-**Do not store flags that only restate an invariant.** Card modal: open ⇔ `id` is set → keep `id` only; export `selectCardModalIsOpen` for semantic reads.
+**Do not store flags that only restate an invariant.** Card modal: open ⇔ **truthy** `id` (`!!id`, same as Query `enabled`) → keep `id` only; export `selectCardModalIsOpen` for semantic reads. An empty string must not count as open.
 
 | Approach                          | When                                                                                                      |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------- |

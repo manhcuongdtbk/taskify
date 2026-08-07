@@ -31,16 +31,16 @@ SoT: [`docs/testing.md`](../../docs/testing.md) (doubles + Prisma mocking · fre
 
 ## What landed / patterns to reuse (P2+)
 
-| Pattern                            | Where                                                                    | Reuse as                                                                                                                                 |
-| ---------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Stub `fetch`                       | [`lib/fetcher.test.ts`](../../lib/fetcher.test.ts)                       | `vi.stubGlobal` / `vi.fn` Response; assert URL then body                                                                                 |
-| Module-load env                    | [`lib/env.test.ts`](../../lib/env.test.ts)                               | `vi.stubEnv` → `vi.resetModules()` → dynamic `import`; `unstubAllEnvs` in `afterEach`                                                    |
-| Zustand via `getState()`           | [`stores/*.test.ts`](../../stores/)                                      | Reset with `close()`; no RTL for pure store behavior                                                                                     |
-| Derived `select*`                  | [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts) | Open ⇔ `id` set — `selectCardModalIsOpen`; don’t store a duplicate `isOpen` flag ([`client-ui-state.md`](../../docs/client-ui-state.md)) |
-| Hook + callbacks                   | [`hooks/use-action.test.ts`](../../hooks/use-action.test.ts)             | `renderHook` + `act` / `waitFor`; stable `options` / `vi.fn` outside the hook                                                            |
-| Clerk + Prisma `vi.mock` factories | [`lib/create-audit-log.test.ts`](../../lib/create-audit-log.test.ts)     | Inline factory for the methods under test; cast mock resolved values to `Awaited<ReturnType<…>>` when needed                             |
-| Query resource factory unit suite  | [`lib/api/card.test.ts`](../../lib/api/card.test.ts)                     | Assert keys; invoke `queryFn` with the cast pattern in [`docs/testing.md`](../../docs/testing.md) (Query `queryFn` context)              |
-| Expect order                       | all P1 suites                                                            | Calls / side effects first, then result ([hard rule](../../docs/testing.md))                                                             |
+| Pattern                            | Where                                                                    | Reuse as                                                                                                                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stub `fetch`                       | [`lib/fetcher.test.ts`](../../lib/fetcher.test.ts)                       | `vi.stubGlobal` / `vi.fn` Response; assert URL then body                                                                                                              |
+| Module-load env                    | [`lib/env.test.ts`](../../lib/env.test.ts)                               | `vi.stubEnv` → `vi.resetModules()` → dynamic `import`; `unstubAllEnvs` in `afterEach`                                                                                 |
+| Zustand via `getState()`           | [`stores/*.test.ts`](../../stores/)                                      | Reset with `close()`; no RTL for pure store behavior                                                                                                                  |
+| Derived `select*`                  | [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts) | Open ⇔ **truthy** `id` (`!!id`) — matches `enabled: !!id` on `cardQueries`; don’t store a duplicate `isOpen` ([`client-ui-state.md`](../../docs/client-ui-state.md))  |
+| Hook + callbacks                   | [`hooks/use-action.test.ts`](../../hooks/use-action.test.ts)             | `renderHook` + `act` / `waitFor`; stable `options` / `vi.fn` outside the hook; suite is `.test.ts` (same extension as source) so `test:coverage:paths` pairs it       |
+| Clerk + Prisma `vi.mock` factories | [`lib/create-audit-log.test.ts`](../../lib/create-audit-log.test.ts)     | Inline factory for the methods under test; suite-wide `console.log` spy (failure paths swallow into the same catch); cast mock resolved values when needed            |
+| Query resource factory unit suite  | [`lib/api/card.test.ts`](../../lib/api/card.test.ts)                     | Keys + `byId` scope (`QueryCache.findAll`); `queryFn` cast pattern in [`docs/testing.md`](../../docs/testing.md); detail typed `CardWithList \| null` until route 404 |
+| Expect order                       | all P1 suites                                                            | Calls / side effects first, then result ([hard rule](../../docs/testing.md))                                                                                          |
 
 Freeze + coverage ratchet: [`docs/testing.md`](../../docs/testing.md) · ledger in [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (fill **after** P1 merges).
 
@@ -80,11 +80,11 @@ Constants are evaluated at **module load**, so call-time `stubEnv` alone is not 
 
 Drive via `.getState()` / actions (module singletons — reset with `close()` in `beforeEach`/`afterEach`).
 
-| File                                                                                  | Assert                                                                                                                            |
-| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| [`stores/use-pro-modal-store.test.ts`](../../stores/use-pro-modal-store.ts)           | initial closed; `open` / `close`                                                                                                  |
-| [`stores/use-mobile-sidebar-store.test.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                                                              |
-| [`stores/use-card-modal-store.test.ts`](../../stores/use-card-modal-store.ts)         | initial `id` undefined; `open(id)` sets id; `selectCardModalIsOpen` true while open; `close` clears id; second `open` replaces id |
+| File                                                                                  | Assert                                                                                                                                          |
+| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`stores/use-pro-modal-store.test.ts`](../../stores/use-pro-modal-store.ts)           | initial closed; `open` / `close`                                                                                                                |
+| [`stores/use-mobile-sidebar-store.test.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                                                                            |
+| [`stores/use-card-modal-store.test.ts`](../../stores/use-card-modal-store.ts)         | initial `id` undefined; `open(id)` sets id; `selectCardModalIsOpen` via `!!id` (empty string closed); `close` clears; second `open` replaces id |
 
 No separate `create-store` suite (out of P1 list; incidental import coverage ≠ ownership).
 
@@ -110,18 +110,20 @@ vi.mock("@clerk/nextjs/server", () => ({
 ```
 
 - Happy: Clerk returns `orgId` + user → `auditLog.create` with org/entity/action/user fields (`userName` = `firstName + " " + lastName`); success returns `undefined`.
-- Missing `orgId` or `user` → `{ error: "Failed to create audit log" }`; `create` **not** called.
-- `create` rejects → same error object.
+- Missing `orgId` or `user` → `{ error: "Failed to create audit log" }` (same catch + `console.log`); `create` **not** called.
+- `create` rejects → same error object; assert `[AUDIT_LOG_ERROR]` on the suite-wide spy.
 
 ### 6. Also in this PR (hygiene while writing suites)
 
 Allowed under freeze for colocated-test / store·Query hygiene — [`docs/testing.md`](../../docs/testing.md):
 
-| Change                                                                                            | Why                                                                                                                            |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [`lib/api/card.ts`](../../lib/api/card.ts) + [`lib/api/card.test.ts`](../../lib/api/card.test.ts) | Move card Query factories to `lib/api` with `queryOptions`; unit-cover keys + `queryFn` URLs ([`data.md`](../../docs/data.md)) |
-| `selectCardModalIsOpen` + ESLint `select*` exports                                                | Derive open from `id`; card-modal consumers updated ([`client-ui-state.md`](../../docs/client-ui-state.md))                    |
-| Expect-order polish on [`lib/create-safe-action.test.ts`](../../lib/create-safe-action.test.ts)   | Align with hard rule (suite already from P0)                                                                                   |
+| Change                                                                                            | Why                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`lib/api/card.ts`](../../lib/api/card.ts) + [`lib/api/card.test.ts`](../../lib/api/card.test.ts) | `lib/api` + `queryOptions`; `byId` scope + leaf `"detail"` / `"logs"` (one invalidate, no double logs refetch); `CardWithList \| null` until route 404 |
+| `selectCardModalIsOpen` = `!!id` + ESLint `select*`                                               | Align open with `enabled: !!id`; empty id must not open a forever-skeleton dialog ([`client-ui-state.md`](../../docs/client-ui-state.md))              |
+| Card-modal consumers                                                                              | Invalidate via `cardQueries.byId` once; import factories from `@/lib/api/card`                                                                         |
+| `hooks/use-action.test.ts` (not `.tsx`)                                                           | No JSX in the suite; same extension as `use-action.ts` so [`test:coverage:paths`](../../docs/testing.md) pairs the peer                                |
+| Expect-order polish on [`lib/create-safe-action.test.ts`](../../lib/create-safe-action.test.ts)   | Align with hard rule (suite already from P0)                                                                                                           |
 
 ## Historical delivery notes
 

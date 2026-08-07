@@ -108,18 +108,18 @@ Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldError
 
 Shipped on `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7). Execution plan (look-back): [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md). Colocated suites:
 
-| Target                                                                           | Assert / change                                                                                  |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [`lib/fetcher.ts`](../../lib/fetcher.ts)                                         | Stub `fetch`: ok → JSON body; `!ok` throws with status + statusText                              |
-| [`lib/env.ts`](../../lib/env.ts)                                                 | `stubEnv` + `resetModules`: development / production / test NODE_ENV flags                       |
-| [`stores/use-pro-modal-store.ts`](../../stores/use-pro-modal-store.ts)           | `getState()` open / close                                                                        |
-| [`stores/use-mobile-sidebar-store.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                             |
-| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)         | open sets id; `selectCardModalIsOpen`; close clears; second open replaces id                     |
-| [`hooks/use-action.ts`](../../hooks/use-action.ts)                               | `renderHook`: success / serverError / field+form errors / falsy result; loading + callbacks      |
-| [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts)                       | Clerk + `@/lib/prisma` `vi.mock` factories: write row; missing auth; create reject → `{ error }` |
-| [`lib/api/card.ts`](../../lib/api/card.ts)                                       | Resource factory unit suite: query keys + `queryFn` URLs via fetcher stub                        |
+| Target                                                                           | Assert / change                                                                                             |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [`lib/fetcher.ts`](../../lib/fetcher.ts)                                         | Stub `fetch`: ok → JSON body; `!ok` throws with status + statusText                                         |
+| [`lib/env.ts`](../../lib/env.ts)                                                 | `stubEnv` + `resetModules`: development / production / test NODE_ENV flags                                  |
+| [`stores/use-pro-modal-store.ts`](../../stores/use-pro-modal-store.ts)           | `getState()` open / close                                                                                   |
+| [`stores/use-mobile-sidebar-store.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                                        |
+| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)         | open sets id; `selectCardModalIsOpen` = `!!id` (empty string closed); close clears; second open replaces id |
+| [`hooks/use-action.ts`](../../hooks/use-action.ts)                               | `renderHook` suite as `.test.ts` (same extension as source for `coverage:paths`); success / errors / falsy  |
+| [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts)                       | Clerk + prisma `vi.mock` factories; suite-wide `console.log` spy; write / missing auth / create reject      |
+| [`lib/api/card.ts`](../../lib/api/card.ts)                                       | `byId` + leaf keys; `queryFn` URLs; detail `CardWithList \| null`; `findAll` scope tests                    |
 
-Also in this PR (store/Query hygiene under freeze — [`docs/testing.md`](../../docs/testing.md)): move card Query factories to `lib/api` with `queryOptions`; derive card-modal open from `id` via `selectCardModalIsOpen` (+ ESLint `select*` exports); card-modal consumers rewired; expect-order polish on `create-safe-action` tests.
+Also in this PR (store/Query hygiene under freeze — [`docs/testing.md`](../../docs/testing.md)): move card Query factories to `lib/api` with `queryOptions`; `byId` invalidation (one call scopes detail + logs); derive open from **truthy** `id` via `selectCardModalIsOpen` (+ ESLint `select*`); card-modal consumers rewired; expect-order polish on `create-safe-action` tests. Root fix for 200-null card detail tracked in [`docs/data.md`](../../docs/data.md) (return 404, then drop `| null`).
 
 Still deferred: heavy Clerk+Prisma paths (`subscription`, `organization-limit`); `unsplash` / `prisma` singleton; no `vitest-mock-extended`.
 
