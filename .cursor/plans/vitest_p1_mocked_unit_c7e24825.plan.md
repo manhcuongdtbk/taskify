@@ -12,7 +12,7 @@ todos:
     content: Add three stores/*.test.ts via getState() with reset between tests
     status: completed
   - id: suite-use-action
-    content: Add hooks/use-action.test.tsx with renderHook
+    content: Add hooks/use-action.test.ts with renderHook
     status: completed
   - id: suite-audit-log
     content: Add lib/create-audit-log.test.ts with Clerk + prisma vi.mock factories
@@ -37,7 +37,7 @@ SoT: [`docs/testing.md`](../../docs/testing.md) (doubles + Prisma mocking · fre
 | Module-load env                    | [`lib/env.test.ts`](../../lib/env.test.ts)                               | `vi.stubEnv` → `vi.resetModules()` → dynamic `import`; `unstubAllEnvs` in `afterEach`                                                    |
 | Zustand via `getState()`           | [`stores/*.test.ts`](../../stores/)                                      | Reset with `close()`; no RTL for pure store behavior                                                                                     |
 | Derived `select*`                  | [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts) | Open ⇔ `id` set — `selectCardModalIsOpen`; don’t store a duplicate `isOpen` flag ([`client-ui-state.md`](../../docs/client-ui-state.md)) |
-| Hook + callbacks                   | [`hooks/use-action.test.tsx`](../../hooks/use-action.test.tsx)           | `renderHook` + `act` / `waitFor`; stable `options` / `vi.fn` outside the hook                                                            |
+| Hook + callbacks                   | [`hooks/use-action.test.ts`](../../hooks/use-action.test.ts)             | `renderHook` + `act` / `waitFor`; stable `options` / `vi.fn` outside the hook                                                            |
 | Clerk + Prisma `vi.mock` factories | [`lib/create-audit-log.test.ts`](../../lib/create-audit-log.test.ts)     | Inline factory for the methods under test; cast mock resolved values to `Awaited<ReturnType<…>>` when needed                             |
 | Query resource factory unit suite  | [`lib/api/card.test.ts`](../../lib/api/card.test.ts)                     | Assert keys; invoke `queryFn` with the cast pattern in [`docs/testing.md`](../../docs/testing.md) (Query `queryFn` context)              |
 | Expect order                       | all P1 suites                                                            | Calls / side effects first, then result ([hard rule](../../docs/testing.md))                                                             |
@@ -88,7 +88,7 @@ Drive via `.getState()` / actions (module singletons — reset with `close()` in
 
 No separate `create-store` suite (out of P1 list; incidental import coverage ≠ ownership).
 
-### 4. [`hooks/use-action.test.tsx`](../../hooks/use-action.ts)
+### 4. [`hooks/use-action.test.ts`](../../hooks/use-action.ts)
 
 `renderHook` + `act` / `waitFor`. Stable `options` / `vi.fn` callbacks so deps don’t churn.
 

@@ -323,7 +323,7 @@ Follow Vitest ([Descriptive Names](https://vitest.dev/guide/learn/testing-in-pra
 | `handler` called (or not) → returned `ActionState`          | Result first, then “was handler called?” |
 
 ```ts
-// hooks/use-action.test.tsx — success path
+// hooks/use-action.test.ts — success path
 await act(async () => {
   await result.current.execute({ title: "Roadmap" });
 });
@@ -349,7 +349,7 @@ expect(body).toStrictEqual({ id: "card_1" });
 
 **When there is only one assert** (pure return, schema `safeParse` shape, store field), order is moot. **When several asserts span calls + state**, chronological order is required. Prefer `const result = await …` + ordered expects over `await expect(…).resolves…` then a mock assert that happened earlier — unless a single `rejects`/`resolves` is the whole test.
 
-Examples already following this: [`hooks/use-action.test.tsx`](../hooks/use-action.test.tsx) · [`lib/fetcher.test.ts`](../lib/fetcher.test.ts) · [`lib/create-safe-action.test.ts`](../lib/create-safe-action.test.ts) · [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) · [`lib/api/card.test.ts`](../lib/api/card.test.ts).
+Examples already following this: [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) · [`lib/fetcher.test.ts`](../lib/fetcher.test.ts) · [`lib/create-safe-action.test.ts`](../lib/create-safe-action.test.ts) · [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) · [`lib/api/card.test.ts`](../lib/api/card.test.ts).
 
 ### Vitest lint & config choices
 
