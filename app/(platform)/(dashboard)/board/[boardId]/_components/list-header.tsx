@@ -3,6 +3,7 @@
 import { updateList } from "@/actions/update-list";
 import { FormInput } from "@/components/form/form-input";
 import { useAction } from "@/hooks/use-action";
+import { formDataString } from "@/lib/form-data";
 import { type ListWithCards } from "@/types";
 import { type ComponentRef, useRef, useState } from "react";
 import { toast } from "@/components/ui/toast";
@@ -52,9 +53,9 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
   });
 
   const handleSubmit = (formData: FormData) => {
-    const title = formData.get("title") as string;
-    const id = formData.get("id") as string;
-    const boardId = formData.get("boardId") as string;
+    const title = formDataString(formData, "title");
+    const id = formDataString(formData, "id");
+    const boardId = formDataString(formData, "boardId");
 
     if (title === data.title) {
       return handleDisableEditing();

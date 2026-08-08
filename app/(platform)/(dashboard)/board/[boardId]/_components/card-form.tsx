@@ -16,6 +16,7 @@ import { useAction } from "@/hooks/use-action";
 import { createCard } from "@/actions/create-card";
 import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { toast } from "@/components/ui/toast";
+import { formDataString } from "@/lib/form-data";
 
 interface CardFormProps {
   listId: string;
@@ -73,10 +74,10 @@ export const CardForm = ({
   };
 
   const handleSubmit = (formData: FormData) => {
-    const title = formData.get("title") as string;
+    const title = formDataString(formData, "title");
+    const listIdFromForm = formDataString(formData, "listId");
     const boardId = params.boardId as string;
-    const listIdValue = formData.get("listId") as string;
-    execute({ title, boardId, listId: listIdValue });
+    execute({ title, boardId, listId: listIdFromForm });
   };
 
   if (isEditing) {

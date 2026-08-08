@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentRef, type Ref } from "react";
+import { type ChangeEventHandler, type ComponentRef, type Ref } from "react";
 import { useFormStatus } from "react-dom";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,8 @@ interface FormInputProps {
   errors?: FieldErrors;
   className?: string;
   defaultValue?: string;
+  value?: string;
+  onChange?: ChangeEventHandler<ComponentRef<"input">>;
   onBlur?: () => void;
   ref?: Ref<ComponentRef<"input">>;
 }
@@ -32,10 +34,13 @@ export const FormInput = ({
   errors,
   className,
   defaultValue,
+  value,
+  onChange,
   onBlur,
   ref,
 }: FormInputProps) => {
   const { pending } = useFormStatus();
+  const isControlled = value !== undefined;
 
   return (
     <div className="space-y-2">
@@ -50,7 +55,8 @@ export const FormInput = ({
         ) : null}
         <Input
           onBlur={onBlur}
-          defaultValue={defaultValue}
+          onChange={onChange}
+          {...(isControlled ? { value } : { defaultValue })}
           ref={ref}
           required={required}
           name={id}

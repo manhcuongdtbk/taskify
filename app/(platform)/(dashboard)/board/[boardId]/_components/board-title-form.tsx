@@ -5,6 +5,7 @@ import { type Board } from "@/app/generated/prisma/client";
 import { FormInput } from "@/components/form/form-input";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
+import { formDataString } from "@/lib/form-data";
 import { type ComponentRef, useRef, useState } from "react";
 import { toast } from "@/components/ui/toast";
 
@@ -48,7 +49,7 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
   };
 
   const handleSubmit = (formData: FormData) => {
-    const title = formData.get("title") as string;
+    const title = formDataString(formData, "title");
 
     execute({ id: data.id, title });
   };
