@@ -1,7 +1,6 @@
-import { QueryClient } from "@tanstack/react-query";
+import { partialMatchKey } from "@tanstack/react-query";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
-import { type CardWithList } from "@/types";
 import { cardQueries } from "./card";
 
 describe("cardQueries", () => {
@@ -88,48 +87,25 @@ describe("cardQueries", () => {
     expect(body).toStrictEqual(logs);
   });
 
-  // findAll is the matcher invalidateQueries runs — keys are prefixes, not exact.
+  // partialMatchKey is what invalidateQueries uses — assert our key shapes
+  // against it without standing up a QueryClient.
   describe("key scoping", () => {
-    const seedCache = () => {
-      const queryClient = new QueryClient();
+    const scope = cardQueries.byId("card_1");
+    const detail = cardQueries.detail("card_1").queryKey;
+    const logs = cardQueries.logs("card_1").queryKey;
+    const otherDetail = cardQueries.detail("card_2").queryKey;
 
-      // Shape is irrelevant here; only the keys are under test.
-      queryClient.setQueryData(cardQueries.detail("card_1").queryKey, {
-        id: "card_1",
-      } as CardWithList);
-      queryClient.setQueryData(cardQueries.logs("card_1").queryKey, []);
-      queryClient.setQueryData(cardQueries.detail("card_2").queryKey, {
-        id: "card_2",
-      } as CardWithList);
-
-      return queryClient;
-    };
-
-    test("byId scopes every leaf of one card and no other card", () => {
-      const queryClient = seedCache();
-
-      const matched = queryClient
-        .getQueryCache()
-        .findAll({ queryKey: cardQueries.byId("card_1") })
-        .map((query) => query.queryKey);
-
-      expect(matched).toStrictEqual([
-        ["card", "card_1", "detail"],
-        ["card", "card_1", "logs"],
-      ]);
+    test("byId is a prefix of every leaf for that card and no other card", () => {
+      expect(partialMatchKey(detail, scope)).toBe(true);
+      expect(partialMatchKey(logs, scope)).toBe(true);
+      expect(partialMatchKey(otherDetail, scope)).toBe(false);
     });
 
-    test("a leaf key never scopes a sibling leaf", () => {
-      const queryClient = seedCache();
-
-      const matched = queryClient
-        .getQueryCache()
-        .findAll({ queryKey: cardQueries.detail("card_1").queryKey })
-        .map((query) => query.queryKey);
-
+    test("a leaf key is never a prefix of a sibling leaf", () => {
       // Regression: detail used to be ["card", id], which also matched
       // ["card", id, "logs"] — so invalidating both refetched logs twice.
-      expect(matched).toStrictEqual([["card", "card_1", "detail"]]);
+      expect(partialMatchKey(logs, detail)).toBe(false);
+      expect(partialMatchKey(detail, logs)).toBe(false);
     });
   });
 });
