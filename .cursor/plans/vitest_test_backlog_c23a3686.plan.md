@@ -1,6 +1,6 @@
 ---
 name: Vitest test backlog
-overview: "P0 (PR #5) + P1 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P2–P4."
+overview: "P0 (PR #5) + P1 (PR #7) + P2 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P3–P4."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
@@ -15,35 +15,35 @@ todos:
     content: "P1: fetcher, env, 3 Zustand stores, use-action; first Prisma Client mock (vi.mock factory) for create-audit-log + Clerk mocks; pnpm test:run green"
     status: completed
   - id: p2-components
-    content: "TODO later — P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces; 100% colocated peers; raise overall coverage vs P1 ledger"
-    status: pending
+    content: "P2: Form primitives + pro/mobile modals + board forms/options + form-popover + form-picker (incl. a11y TDD) + subscription-button + card-modal pieces; 100% colocated peers; raise overall coverage vs P1 ledger"
+    status: completed
   - id: p2-form-picker-a11y
-    content: "TODO later — FormPicker a11y: failing colocated test first (keyboard reach/activate → onSelect), then fix div+onClick; use defaultImages (no MSW). See docs/testing.md Fixing bugs with tests"
-    status: pending
+    content: "FormPicker a11y: failing colocated test first (keyboard reach/activate → onSelect), then fix div+onClick; use defaultImages (no MSW). See docs/testing.md Fixing bugs with tests"
+    status: completed
   - id: p2-form-popover-controlled-title
-    content: "TODO later — FormPopover title: failing test first (value survives invalid submit), then make title controlled like selectedImage; drop FormData for title. See inline TODO in form-popover.tsx"
-    status: pending
+    content: "FormPopover title: failing test first (value survives invalid submit), then make title controlled like selectedImage; drop FormData for title. See inline TODO in form-popover.tsx"
+    status: completed
   - id: p2-formdata-board-title-form
-    content: "TODO later — board-title-form: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow (docs/data.md)"
-    status: pending
+    content: "board-title-form: colocated test covering submit → execute args, then replace formData.get as string with formDataString (docs/data.md)"
+    status: completed
   - id: p2-formdata-list-form
-    content: "TODO later — list-form: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow"
-    status: pending
+    content: "list-form: colocated test covering submit → execute args, then replace formData.get as string with formDataString"
+    status: completed
   - id: p2-formdata-list-header
-    content: "TODO later — list-header: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow"
-    status: pending
+    content: "list-header: colocated test covering submit → execute args, then replace formData.get as string with formDataString"
+    status: completed
   - id: p2-formdata-list-options
-    content: "TODO later — list-options: colocated test covering both copy/delete submit handlers → execute args, then replace formData.get as string with typeof narrow"
-    status: pending
+    content: "list-options: colocated test covering both copy/delete submit handlers → execute args, then replace formData.get as string with formDataString"
+    status: completed
   - id: p2-formdata-card-form
-    content: "TODO later — card-form: colocated test covering submit → execute args (title, listId), then replace formData.get as string with typeof narrow"
-    status: pending
+    content: "card-form: colocated test covering submit → execute args (title, listId), then replace formData.get as string with formDataString"
+    status: completed
   - id: p2-formdata-card-modal-header
-    content: "TODO later — card-modal-header: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow"
-    status: pending
+    content: "card-modal-header: colocated test covering submit → execute args, then replace formData.get as string with formDataString"
+    status: completed
   - id: p2-formdata-card-modal-description
-    content: "TODO later — card-modal-description: colocated test covering submit → execute args, then replace formData.get as string with typeof narrow"
-    status: pending
+    content: "card-modal-description: colocated test covering submit → execute args, then replace formData.get as string with formDataString"
+    status: completed
   - id: p3-msw-reorder
     content: "TODO later — P3: Add MSW; card-modal components using cardQueries; form-picker Unsplash fetch mock; list-container DropResult/reorder; 100% colocated peers; raise overall coverage vs P2 ledger"
     status: pending
@@ -59,7 +59,7 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 
 **Conventions:** colocated `*.test.ts(x)` next to source; `import { describe, expect, test, vi } from "vitest"`; `vi.*` only; `test.for` for table-driven cases; no real network/DB.
 
-**Per-P plans (until this backlog is finished):** each priority keeps its own execution plan under `.cursor/plans/` so the next P can look back at approach and doubles. P0 was compressed into this backlog only (no separate plan file). P1+: keep the phase plan committed — P1 is [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md).
+**Per-P plans (until this backlog is finished):** each priority keeps its own execution plan under `.cursor/plans/` so the next P can look back at approach and doubles. P0 was compressed into this backlog only (no separate plan file). P1+: keep the phase plan committed — P1 is [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md); P2 is [`vitest_p2_components_85befd87.plan.md`](vitest_p2_components_85befd87.plan.md).
 
 ## Freeze & coverage ratchet (until this backlog is done)
 
@@ -79,7 +79,7 @@ Record from `pnpm test:coverage` summary **after each P is merged** (same `vites
 | -------- | ---------- | ------- | -------- | ------- | ------- | ----------------------------------------------------------------------------------------------------- |
 | P0       |            |         |          |         |         | Not captured at merge; P1 is the ratchet baseline for P2                                              |
 | P1       | 2026-08-07 | 27.27   | 23.07    | 37.00   | 27.06   | After [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7) merge — `pnpm test:coverage` All files |
-| P2       |            |         |          |         |         | Must beat P1 stmts (and not regress others)                                                           |
+| P2       |            |         |          |         |         | Fill after merge — local pre-PR: stmts 63.3 / branch 48.09 / funcs 84.15 / lines 62.99                |
 | P3       |            |         |          |         |         | Must beat P2                                                                                          |
 | P4       |            |         |          |         |         | Must beat P3; then formal thresholds / include polish                                                 |
 
@@ -127,38 +127,14 @@ Still deferred: heavy Clerk+Prisma paths (`subscription`, `organization-limit`);
 
 ## TODO later
 
-### P2 — Component static + interactive
+### P2 — Done: component static + interactive
 
-- Form primitives; pro-modal / mobile-sidebar; board forms/options; form-popover; subscription-button; card-modal pieces (mocked actions)
-- **[`components/form/form-picker.tsx`](../../components/form/form-picker.tsx) a11y (do with TDD):** tiles are `div` + `onClick` only — not keyboard-reachable / activatable. Process per [`docs/testing.md`](../../docs/testing.md) _Fixing bugs with tests_:
-  1. Add failing colocated `form-picker.test.tsx` (e.g. focus a tile, `Enter`/`Space` → `onSelect` called with the structured image).
-  2. Confirm it fails on current markup.
-  3. Fix implementation (accessible control without nesting the Unsplash attribution `<a>` inside a `<button>`).
-  4. Keep the test as a regression guard.
-  - Use `defaultImages` + mock/stub Unsplash fetch so this is **not** blocked on P3 MSW. `userEvent.setup()` before `render`.
-- **[`components/form/form-popover.tsx`](../../components/form/form-popover.tsx) controlled title (do with TDD):** today `title` still comes from `FormData` (narrowed with `typeof`, not `as string`). Uncontrolled `FormInput` clears after an invalid submit (inline TODO). Process:
-  1. Add failing colocated `form-popover.test.tsx` that submits an invalid payload and asserts the typed title is still in the input.
-  2. Confirm it fails on current uncontrolled `defaultValue`.
-  3. Hold `title` in `useState` like `selectedImage`; pass controlled value into `FormInput`; assemble `execute({ title, image })` without reading title from `FormData`.
-  4. Keep the test as a regression guard. Mock `createBoard` / `useAction` as needed.
+Shipped on `test/vitest-p2-components`. Execution plan: [`vitest_p2_components_85befd87.plan.md`](vitest_p2_components_85befd87.plan.md). First `*.test.tsx` house style + RTL `cleanup` in [`vitest.setup.ts`](../../vitest.setup.ts). Highlights:
 
-#### `FormData.get(…) as string` cleanup (after tests)
-
-Policy: [`docs/data.md`](../../docs/data.md) — narrow (`typeof x === "string" ? x : ""`), do **not** cast. Repo copies of `as string` are legacy until each site below is covered. **Do not** mass-replace without colocated tests; “common in the repo” is not endorsement.
-
-Per file (test submit → `execute` / action args, **then** replace casts):
-
-| Todo id                              | File                                                                                                          | Fields still cast                        |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `p2-formdata-board-title-form`       | [`board-title-form.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/board-title-form.tsx>) | `title`                                  |
-| `p2-formdata-list-form`              | [`list-form.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-form.tsx>)               | `title`, `boardId`                       |
-| `p2-formdata-list-header`            | [`list-header.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-header.tsx>)           | `title`, `id`, `boardId`                 |
-| `p2-formdata-list-options`           | [`list-options.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-options.tsx>)         | `id`, `boardId` (copy + delete handlers) |
-| `p2-formdata-card-form`              | [`card-form.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/card-form.tsx>)               | `title`, `listId`                        |
-| `p2-formdata-card-modal-header`      | [`card-modal-header.tsx`](../../components/modals/card-modal/card-modal-header.tsx)                           | `title`                                  |
-| `p2-formdata-card-modal-description` | [`card-modal-description.tsx`](../../components/modals/card-modal/card-modal-description.tsx)                 | `description`                            |
-
-Already done (narrowed, no cast): [`form-popover.tsx`](../../components/form/form-popover.tsx) `title`. Out of scope here: non-`FormData` casts (Stripe webhook, route `params`, etc.).
+- Form primitives; FormPicker a11y (button tiles, attribution `<a>` sibling); FormPopover controlled title
+- ProModal / SubscriptionButton / BoardOptions / card-modal actions+activity / MobileSidebar
+- FormData cleanup via shared [`lib/form-data.ts`](../../lib/form-data.ts) `formDataString` (no remaining `formData.get(…) as string` in app UI)
+- `test:coverage:paths` escapes `[]`/`()` in path globs (Next `[boardId]` routes)
 
 ### P3 — Component + HTTP (MSW) + reorder
 

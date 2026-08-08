@@ -14,6 +14,7 @@ import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
 import { cardQueries } from "@/lib/api/card";
+import { formDataString } from "@/lib/form-data";
 
 interface CardModalDescriptionProps {
   data: CardWithList;
@@ -67,7 +68,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
   });
 
   const handleSubmit = (formData: FormData) => {
-    const description = formData.get("description") as string;
+    const description = formDataString(formData, "description");
     const boardId = params.boardId as string;
 
     execute({

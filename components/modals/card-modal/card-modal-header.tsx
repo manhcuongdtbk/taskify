@@ -11,6 +11,7 @@ import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
 import { cardQueries } from "@/lib/api/card";
+import { formDataString } from "@/lib/form-data";
 
 interface CardModalHeaderProps {
   data: CardWithList;
@@ -43,7 +44,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    const title = formData.get("title") as string;
+    const title = formDataString(formData, "title");
     const boardId = params.boardId as string;
 
     if (title === data.title) return;
