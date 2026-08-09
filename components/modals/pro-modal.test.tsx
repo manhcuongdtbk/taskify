@@ -6,9 +6,7 @@ import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { PRO_PLAN, formatBoardLimit } from "@/constants/pricing-plans";
 import { siteConfig } from "@/config/site";
 
-const stripeRedirect = vi.hoisted(() =>
-  vi.fn(async () => ({ data: "https://checkout.stripe.test/session" })),
-);
+const stripeRedirect = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/stripe-redirect", () => ({

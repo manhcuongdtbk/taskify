@@ -5,9 +5,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { PRO_PLAN } from "@/constants/pricing-plans";
 
-const stripeRedirect = vi.hoisted(() =>
-  vi.fn(async () => ({ data: "https://billing.stripe.test/portal" })),
-);
+const stripeRedirect = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/stripe-redirect", () => ({

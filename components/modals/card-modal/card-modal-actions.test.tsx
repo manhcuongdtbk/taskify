@@ -5,12 +5,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { CardWithList } from "@/types";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
 
-const copyCard = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "card_1" } })),
-);
-const deleteCard = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "card_1" } })),
-);
+const copyCard = vi.hoisted(() => vi.fn());
+const deleteCard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/copy-card", () => ({

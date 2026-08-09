@@ -5,9 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 import { defaultImages } from "@/constants/images";
 import type { BoardImageInput } from "@/actions/create-board/types";
 
-const unsplashGet = vi.hoisted(() =>
-  vi.fn(async () => ({ data: null, error: "network" })),
-);
+const unsplashGet = vi.hoisted(() => vi.fn());
 const useFormStatusMock = vi.hoisted(() => vi.fn(() => ({ pending: false })));
 
 vi.mock("@/lib/unsplash", () => ({

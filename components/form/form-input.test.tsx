@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ComponentProps } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 const useFormStatusMock = vi.hoisted(() => vi.fn(() => ({ pending: false })));
@@ -140,10 +141,11 @@ describe("FormInput", () => {
     render(
       <form>
         <FormInput
-          id="title"
-          label="Board title"
-          // @ts-expect-error controlled `value` requires `onChange`
-          value="Road"
+          {...({
+            id: "title",
+            label: "Board title",
+            value: "Road",
+          } as ComponentProps<typeof FormInput>)}
         />
       </form>,
     );

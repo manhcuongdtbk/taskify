@@ -2,9 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const createCard = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "card_1", title: "Ship P2" } })),
-);
+const createCard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/create-card", () => ({

@@ -7,16 +7,10 @@ import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
 import { defaultImages } from "@/constants/images";
 
-const createBoard = vi.hoisted(() =>
-  vi.fn(async () => ({
-    fieldErrors: { image: ["Missing Image"] },
-  })),
-);
+const createBoard = vi.hoisted(() => vi.fn());
 const push = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
-const unsplashGet = vi.hoisted(() =>
-  vi.fn(async () => ({ data: null, error: "network" })),
-);
+const unsplashGet = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/create-board", () => ({
   createBoard,
