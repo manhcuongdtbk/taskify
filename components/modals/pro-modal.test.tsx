@@ -6,9 +6,8 @@ import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { PRO_PLAN, formatBoardLimit } from "@/constants/pricing-plans";
 import { siteConfig } from "@/config/site";
 
-const stripeRedirect = vi.hoisted(() =>
-  vi.fn(async () => ({ data: "https://checkout.stripe.test/session" })),
-);
+// Untyped: ActionState variants (data | serverError) must all mock-resolve.
+const stripeRedirect = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/stripe-redirect", () => ({
@@ -19,20 +18,7 @@ vi.mock("@/components/ui/toast", () => ({
   toast: { add: toastAdd },
 }));
 
-vi.mock("next/image", () => ({
-  default: ({
-    alt,
-    src,
-  }: {
-    alt: string;
-    src: string;
-    fill?: boolean;
-    className?: string;
-  }) => (
-    // eslint-disable-next-line @next/next/no-img-element -- test double for next/image
-    <img alt={alt} src={typeof src === "string" ? src : ""} />
-  ),
-}));
+vi.mock("next/image", () => import("@/lib/testing/next/image"));
 
 import { ProModal } from "./pro-modal";
 

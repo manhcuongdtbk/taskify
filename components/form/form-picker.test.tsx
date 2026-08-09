@@ -29,20 +29,7 @@ vi.mock("react-dom", async (importOriginal) => {
   };
 });
 
-vi.mock("next/image", () => ({
-  default: ({
-    alt,
-    src,
-  }: {
-    alt: string;
-    src: string;
-    fill?: boolean;
-    className?: string;
-  }) => (
-    // eslint-disable-next-line @next/next/no-img-element -- test double for next/image
-    <img alt={alt} src={src} />
-  ),
-}));
+vi.mock("next/image", () => import("@/lib/testing/next/image"));
 
 import { FormPicker } from "./form-picker";
 
