@@ -38,6 +38,9 @@ describe("CardModalActivity", () => {
   test("renders the activity skeleton", () => {
     render(<CardModalActivity.Skeleton />);
 
+    expect(
+      screen.getByRole("status", { name: /loading activity/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Activity")).not.toBeInTheDocument();
   });
 });

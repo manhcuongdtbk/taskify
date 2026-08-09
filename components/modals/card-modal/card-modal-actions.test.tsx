@@ -126,6 +126,9 @@ describe("CardModalActions", () => {
     render(<CardModalActions.Skeleton />);
 
     expect(
+      screen.getByRole("status", { name: /loading actions/i }),
+    ).toBeInTheDocument();
+    expect(
       screen.queryByRole("button", { name: /Copy/i }),
     ).not.toBeInTheDocument();
     expect(

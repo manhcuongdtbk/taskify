@@ -169,6 +169,9 @@ describe("CardModalDescription", () => {
   test("renders the description skeleton", () => {
     render(<CardModalDescription.Skeleton />);
 
+    expect(
+      screen.getByRole("status", { name: /loading description/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Description")).not.toBeInTheDocument();
   });
 });

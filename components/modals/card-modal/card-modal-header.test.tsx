@@ -121,6 +121,9 @@ describe("CardModalHeader", () => {
   test("renders the header skeleton", () => {
     render(<CardModalHeader.Skeleton />);
 
+    expect(
+      screen.getByRole("status", { name: /loading card header/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/in list/i)).not.toBeInTheDocument();
   });
 
