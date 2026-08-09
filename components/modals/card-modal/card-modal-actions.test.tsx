@@ -2,7 +2,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { CardWithList } from "@/types";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
 
 const copyCard = vi.hoisted(() => vi.fn());
@@ -43,7 +42,7 @@ const card = {
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
   },
-} as CardWithList;
+};
 
 describe("CardModalActions", () => {
   beforeEach(() => {

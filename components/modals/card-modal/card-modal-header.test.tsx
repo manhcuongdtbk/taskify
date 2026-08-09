@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { ReactNode } from "react";
 
-import type { CardWithList } from "@/types";
 import { cardQueries } from "@/lib/api/card";
 
 const updateCard = vi.hoisted(() => vi.fn());
@@ -40,7 +39,7 @@ const card = {
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
   },
-} as CardWithList;
+};
 
 function renderWithQuery(ui: ReactNode) {
   const queryClient = new QueryClient({
