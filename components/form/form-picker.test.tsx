@@ -4,9 +4,13 @@ import { describe, expect, test, vi } from "vitest";
 
 import { defaultImages } from "@/constants/images";
 import type { BoardImageInput } from "@/actions/create-board/types";
+import {
+  type UnsplashGetMockResult,
+  unsplashGetNetworkError,
+} from "@/lib/testing/unsplash/get-mock-result";
 
 const unsplashGet = vi.hoisted(() =>
-  vi.fn(async () => ({ data: null, error: "network" })),
+  vi.fn(async (): Promise<UnsplashGetMockResult> => unsplashGetNetworkError),
 );
 const useFormStatusMock = vi.hoisted(() => vi.fn(() => ({ pending: false })));
 
@@ -56,7 +60,7 @@ function expectedSelection(image = firstImage): BoardImageInput {
 
 describe("FormPicker", () => {
   test("activates a tile with Enter and calls onSelect with the image", async () => {
-    unsplashGet.mockResolvedValue({ data: null, error: "network" });
+    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     useFormStatusMock.mockReturnValue({ pending: false });
     const consoleError = vi
       .spyOn(console, "error")
@@ -81,7 +85,7 @@ describe("FormPicker", () => {
   });
 
   test("activates a tile with Space and calls onSelect with the image", async () => {
-    unsplashGet.mockResolvedValue({ data: null, error: "network" });
+    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     useFormStatusMock.mockReturnValue({ pending: false });
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -103,7 +107,7 @@ describe("FormPicker", () => {
   });
 
   test("selects a tile on click", async () => {
-    unsplashGet.mockResolvedValue({ data: null, error: "network" });
+    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     useFormStatusMock.mockReturnValue({ pending: false });
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -124,7 +128,7 @@ describe("FormPicker", () => {
   });
 
   test("disables tiles while the form is pending", async () => {
-    unsplashGet.mockResolvedValue({ data: null, error: "network" });
+    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     useFormStatusMock.mockReturnValue({ pending: true });
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -144,7 +148,7 @@ describe("FormPicker", () => {
   });
 
   test("shows a checkmark for the selected image", async () => {
-    unsplashGet.mockResolvedValue({ data: null, error: "network" });
+    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     useFormStatusMock.mockReturnValue({ pending: false });
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -163,7 +167,7 @@ describe("FormPicker", () => {
   });
 
   test("renders field errors for image", async () => {
-    unsplashGet.mockResolvedValue({ data: null, error: "network" });
+    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     useFormStatusMock.mockReturnValue({ pending: false });
     vi.spyOn(console, "error").mockImplementation(() => {});
 

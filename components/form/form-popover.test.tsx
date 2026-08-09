@@ -6,16 +6,17 @@ import { Button } from "@/components/ui/button";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
 import { defaultImages } from "@/constants/images";
+import {
+  type UnsplashGetMockResult,
+  unsplashGetNetworkError,
+} from "@/lib/testing/unsplash/get-mock-result";
 
-const createBoard = vi.hoisted(() =>
-  vi.fn(async () => ({
-    fieldErrors: { image: ["Missing Image"] },
-  })),
-);
+// Untyped: ActionState variants (fieldErrors | data | serverError) must all mock-resolve.
+const createBoard = vi.hoisted(() => vi.fn());
 const push = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 const unsplashGet = vi.hoisted(() =>
-  vi.fn(async () => ({ data: null, error: "network" })),
+  vi.fn(async (): Promise<UnsplashGetMockResult> => unsplashGetNetworkError),
 );
 
 vi.mock("@/actions/create-board", () => ({
@@ -65,7 +66,7 @@ describe("FormPopover", () => {
     createBoard.mockReset();
     push.mockReset();
     toastAdd.mockReset();
-    unsplashGet.mockResolvedValue({ data: null, error: "network" });
+    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
