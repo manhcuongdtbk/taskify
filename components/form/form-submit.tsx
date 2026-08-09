@@ -5,9 +5,10 @@ import { useFormStatus } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-type FormSubmitProps = {
-  children: React.ReactNode;
-} & Pick<ComponentProps<typeof Button>, "disabled" | "className" | "variant">;
+type FormSubmitProps = Pick<
+  ComponentProps<typeof Button>,
+  "children" | "disabled" | "className" | "variant"
+>;
 
 export const FormSubmit = ({
   children,
