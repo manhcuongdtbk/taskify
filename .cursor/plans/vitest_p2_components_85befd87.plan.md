@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: green-ratchet-pr
     content: pnpm test:run green; coverage:paths 100% peers; All-files stmts > P1; update backlog; open PR
-    status: in_progress
+    status: completed
 isProject: false
 ---
 
