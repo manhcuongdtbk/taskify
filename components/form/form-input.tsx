@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { type FieldErrors } from "@/lib/create-safe-action.types";
 import { FormErrors } from "./form-errors";
 
-interface FormInputProps {
+type FormInputSharedProps = {
   id: string;
   label?: string;
   type?: string;
@@ -17,12 +17,25 @@ interface FormInputProps {
   disabled?: boolean;
   errors?: FieldErrors;
   className?: string;
-  defaultValue?: string;
-  value?: string;
-  onChange?: ChangeEventHandler<ComponentRef<"input">>;
   onBlur?: () => void;
   ref?: Ref<ComponentRef<"input">>;
-}
+};
+
+/** Controlled: `value` and `onChange` are a required pair (no `defaultValue`). */
+type FormInputControlledProps = FormInputSharedProps & {
+  value: string;
+  onChange: ChangeEventHandler<ComponentRef<"input">>;
+  defaultValue?: never;
+};
+
+/** Uncontrolled: optional `defaultValue`; `onChange` may still listen without owning the value. */
+type FormInputUncontrolledProps = FormInputSharedProps & {
+  value?: never;
+  onChange?: ChangeEventHandler<ComponentRef<"input">>;
+  defaultValue?: string;
+};
+
+type FormInputProps = FormInputControlledProps | FormInputUncontrolledProps;
 
 export const FormInput = ({
   id,
@@ -57,6 +70,8 @@ export const FormInput = ({
           onBlur={onBlur}
           onChange={onChange}
           {...(isControlled ? { value } : { defaultValue })}
+          // Runtime guard if types are bypassed: controlled without onChange would otherwise stick.
+          readOnly={isControlled && !onChange}
           ref={ref}
           required={required}
           name={id}

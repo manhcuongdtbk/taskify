@@ -108,7 +108,7 @@ describe("FormInput", () => {
     expect(screen.getByLabelText("Board title")).toBeDisabled();
   });
 
-  test("supports controlled value and onChange", async () => {
+  test("supports controlled value and onChange as a required pair", async () => {
     useFormStatusMock.mockReturnValue({ pending: false });
     const user = userEvent.setup();
     const onChange = vi.fn();
@@ -127,8 +127,42 @@ describe("FormInput", () => {
     const input = screen.getByLabelText("Board title");
 
     expect(input).toHaveValue("Road");
+    expect(input).not.toHaveAttribute("readOnly");
 
     await user.type(input, "m");
+
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  test("marks value without onChange as read-only when types are bypassed", () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+
+    render(
+      <form>
+        <FormInput
+          id="title"
+          label="Board title"
+          // @ts-expect-error controlled `value` requires `onChange`
+          value="Road"
+        />
+      </form>,
+    );
+
+    expect(screen.getByLabelText("Board title")).toHaveAttribute("readOnly");
+  });
+
+  test("allows onChange without value for uncontrolled listening", async () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    render(
+      <form>
+        <FormInput id="title" label="Board title" onChange={onChange} />
+      </form>,
+    );
+
+    await user.type(screen.getByLabelText("Board title"), "a");
 
     expect(onChange).toHaveBeenCalled();
   });
