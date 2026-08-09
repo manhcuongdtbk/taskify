@@ -11,7 +11,6 @@ import {
   unsplashGetNetworkError,
 } from "@/lib/testing/unsplash/get-mock-result";
 
-// Untyped: ActionState variants (fieldErrors | data | serverError) must all mock-resolve.
 const createBoard = vi.hoisted(() => vi.fn());
 const push = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());

@@ -4,12 +4,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { List } from "@/app/generated/prisma/client";
 
-const copyList = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "list_2", title: "Todo" } })),
-);
-const deleteList = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "list_1", title: "Todo" } })),
-);
+const copyList = vi.hoisted(() => vi.fn());
+const deleteList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/copy-list", () => ({
@@ -43,7 +39,9 @@ describe("ListOptions", () => {
   });
 
   test("copies the list with id and boardId", async () => {
-    copyList.mockResolvedValue({ data: { id: "list_2", title: "Todo" } });
+    copyList.mockResolvedValue({
+      data: { id: "list_2", title: "Todo" },
+    });
     const user = userEvent.setup();
 
     render(<ListOptions data={list} onAddCard={vi.fn()} />);
@@ -66,7 +64,9 @@ describe("ListOptions", () => {
   });
 
   test("deletes the list with id and boardId", async () => {
-    deleteList.mockResolvedValue({ data: { id: "list_1", title: "Todo" } });
+    deleteList.mockResolvedValue({
+      data: { id: "list_1", title: "Todo" },
+    });
     const user = userEvent.setup();
 
     render(<ListOptions data={list} onAddCard={vi.fn()} />);

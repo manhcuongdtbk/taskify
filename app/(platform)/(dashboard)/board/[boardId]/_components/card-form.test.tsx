@@ -2,9 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const createCard = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "card_1", title: "Ship P2" } })),
-);
+const createCard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/create-card", () => ({
@@ -28,7 +26,9 @@ describe("CardForm", () => {
   });
 
   test("submits title, boardId, and listId to createCard", async () => {
-    createCard.mockResolvedValue({ data: { id: "card_1", title: "Ship P2" } });
+    createCard.mockResolvedValue({
+      data: { id: "card_1", title: "Ship P2" },
+    });
     const user = userEvent.setup();
 
     render(
@@ -123,7 +123,9 @@ describe("CardForm", () => {
   });
 
   test("submits on Enter without Shift in the textarea", async () => {
-    createCard.mockResolvedValue({ data: { id: "card_1", title: "Ship P2" } });
+    createCard.mockResolvedValue({
+      data: { id: "card_1", title: "Ship P2" },
+    });
     const user = userEvent.setup();
 
     render(

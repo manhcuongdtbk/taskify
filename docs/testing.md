@@ -217,6 +217,8 @@ The three differ by **what the test does with the double**, not by which `vi.*` 
 | **Mock** | Record calls on a fake **you supplied**                      | **Yes** — `toHaveBeenCalledWith(…)`    | `vi.fn`, `vi.mock` factory returning `vi.fn()`      |
 | **Spy**  | Watch a function that **already exists** on a real object    | **Yes**                                | `vi.spyOn` (keeps real impl unless you override it) |
 
+**Server Action mocks (`createSafeAction`):** Use a bare `vi.hoisted(() => vi.fn())` and `mockResolvedValue({ data })` / `{ serverError }` / `{ fieldErrors }` per test. Do **not** give the factory a success-only return type (narrows inference). Skip shared helpers / `ActionState`+`Pick` ceremony for this — call-site typing on action mocks is not worth it here.
+
 **Stub — in this repo today.** `lib/stripe.ts` constructs a Stripe client at module load, which would demand `STRIPE_SECRET_KEY`. The fake class exists only so the import succeeds; no test mentions it:
 
 ```5:11:lib/stripe.test.ts

@@ -2,9 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const createList = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "list_1", title: "Todo" } })),
-);
+const createList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 const refresh = vi.hoisted(() => vi.fn());
 
@@ -31,7 +29,9 @@ describe("ListForm", () => {
   });
 
   test("submits title and boardId to createList", async () => {
-    createList.mockResolvedValue({ data: { id: "list_1", title: "Todo" } });
+    createList.mockResolvedValue({
+      data: { id: "list_1", title: "Todo" },
+    });
     const user = userEvent.setup();
 
     render(

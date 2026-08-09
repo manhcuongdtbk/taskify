@@ -4,9 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { ListWithCards } from "@/types";
 
-const updateList = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "list_1", title: "Done" } })),
-);
+const updateList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/update-list", () => ({
@@ -40,7 +38,9 @@ describe("ListHeader", () => {
   });
 
   test("submits a changed title to updateList", async () => {
-    updateList.mockResolvedValue({ data: { id: "list_1", title: "Done" } });
+    updateList.mockResolvedValue({
+      data: { id: "list_1", title: "Done" },
+    });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
@@ -99,7 +99,9 @@ describe("ListHeader", () => {
   });
 
   test("submits on Escape while editing", async () => {
-    updateList.mockResolvedValue({ data: { id: "list_1", title: "Done" } });
+    updateList.mockResolvedValue({
+      data: { id: "list_1", title: "Done" },
+    });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);

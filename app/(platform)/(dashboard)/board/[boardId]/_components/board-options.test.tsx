@@ -2,9 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const deleteBoard = vi.hoisted(() =>
-  vi.fn(async () => ({ data: { id: "board_1" } })),
-);
+const deleteBoard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/delete-board", () => ({
