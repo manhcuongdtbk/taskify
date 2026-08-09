@@ -592,7 +592,11 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 
 **Do not add `vitest-mock-extended` by default.** The Prisma blog uses `mockDeep` for convenience. Vitest does not require it. Add that package only if a narrow manual stub becomes painful (many models, interactive `$transaction`, etc.) — [one tool per job](./vocabulary.md#one-tool-per-job).
 
-**Types-only + full model type (named cast):** Use when production takes a **full Prisma model type** but the test only cares about a few fields. Prefer keeping the production param as the model type (e.g. `AuditLog`) when call sites pass real rows. In the test, use a **named cast** helper that accepts `Pick<…>` of fields under test and returns `as AuditLog` — do **not** invent unused columns (`id`, timestamps, …) only to satisfy TypeScript. See `auditLogForMessage` in [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts). Zod schema suites and other plain-input unit tests do not need this pattern.
+**Model / entity fixtures (typing):**
+
+- **Complete fixture** — object has every field the production type needs: do **not** use `as Model` or `satisfies Model`. Pass the plain object; the typed call site already checks assignability.
+- **Intentional partial** — production takes a **full** model type but the test only cares about a few fields: keep the production param as the model type; in the test use a **named cast** helper that accepts `Pick<…>` and returns `as Model`. Do **not** invent unused columns only to please TypeScript. See `auditLogForMessage` in [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
+- Zod schema suites and other plain-input unit tests do not need this pattern. Do not blanket-ban `as` — Clerk/auth mocks and similar partial stubs still need casts.
 
 **Do not add `"type": "module"` to root [`package.json`](../package.json)** to “match” Prisma blog samples. Those samples are bare Node/Vitest packages. This app relies on Next.js, Vitest/Vite, and `node --import tsx` for scripts; forcing package-wide ESM can break CJS assumptions. Revisit only if a concrete Node entrypoint fails without it.
 

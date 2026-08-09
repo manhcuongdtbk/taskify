@@ -2,8 +2,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { Board } from "@/app/generated/prisma/client";
-
 const updateBoard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
@@ -28,7 +26,7 @@ const board = {
   imageLinkHTML: "https://example.com",
   createdAt: new Date("2026-01-01"),
   updatedAt: new Date("2026-01-01"),
-} as Board;
+};
 
 describe("BoardTitleForm", () => {
   beforeEach(() => {

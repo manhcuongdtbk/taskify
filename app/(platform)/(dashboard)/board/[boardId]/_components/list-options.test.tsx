@@ -2,8 +2,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { List } from "@/app/generated/prisma/client";
-
 const copyList = vi.hoisted(() => vi.fn());
 const deleteList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -29,7 +27,7 @@ const list = {
   boardId: "board_1",
   createdAt: new Date("2026-01-01"),
   updatedAt: new Date("2026-01-01"),
-} as List;
+};
 
 describe("ListOptions", () => {
   beforeEach(() => {

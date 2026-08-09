@@ -2,8 +2,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { ListWithCards } from "@/types";
-
 const updateList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
@@ -29,7 +27,7 @@ const list = {
   createdAt: new Date("2026-01-01"),
   updatedAt: new Date("2026-01-01"),
   cards: [],
-} as ListWithCards;
+};
 
 describe("ListHeader", () => {
   beforeEach(() => {

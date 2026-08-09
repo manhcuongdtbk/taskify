@@ -1,18 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 
-import type { AuditLog } from "@/app/generated/prisma/client";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
-
-vi.mock("@/components/ui/avatar", () => ({
-  Avatar: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  AvatarImage: ({ src }: { src: string }) => (
-    // eslint-disable-next-line @next/next/no-img-element -- test double for avatar
-    <img alt="" src={src} />
-  ),
-}));
 
 import { CardModalActivity } from "./card-modal-activity";
 
@@ -28,7 +17,7 @@ const log = {
   userName: "Ada Lovelace",
   createdAt: new Date("2026-01-15T10:30:00.000Z"),
   updatedAt: new Date("2026-01-15T10:30:00.000Z"),
-} as AuditLog;
+};
 
 describe("CardModalActivity", () => {
   test("renders activity items from audit logs", () => {
