@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 
@@ -164,6 +164,10 @@ describe("FormPicker", () => {
     });
 
     expect(tile).toHaveAttribute("aria-pressed", "true");
+    // Visual selected affordance; AT users get aria-pressed above.
+    expect(
+      within(tile).getByTestId("selected-image-check"),
+    ).toBeInTheDocument();
   });
 
   test("renders field errors for image", async () => {
@@ -213,7 +217,7 @@ describe("FormPicker", () => {
     const remote = {
       ...firstImage,
       id: "remote-single",
-      description: null as unknown as string,
+      description: null,
     };
     unsplashGet.mockResolvedValue({ data: remote, error: null });
     useFormStatusMock.mockReturnValue({ pending: false });

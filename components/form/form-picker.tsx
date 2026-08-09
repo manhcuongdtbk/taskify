@@ -75,6 +75,7 @@ export const FormPicker = ({
       <div className="mb-2 grid grid-cols-3 gap-2">
         {images.map((image) => {
           const label = image.description || "Unsplash Image";
+          const isSelected = selectedImage?.id === image.id;
 
           return (
             <div
@@ -88,7 +89,7 @@ export const FormPicker = ({
                 type="button"
                 disabled={pending}
                 aria-label={label}
-                aria-pressed={selectedImage?.id === image.id}
+                aria-pressed={isSelected}
                 className={cn(
                   "absolute inset-0 cursor-pointer rounded-sm",
                   pending && "cursor-auto",
@@ -101,11 +102,14 @@ export const FormPicker = ({
                   fill
                   className="rounded-sm object-cover"
                 />
-                {selectedImage?.id === image.id && (
-                  <div className="absolute inset-y-0 flex h-full w-full items-center justify-center bg-black/30">
-                    <Check className="h-4 w-4 text-white" />
+                {isSelected ? (
+                  <div
+                    data-testid="selected-image-check"
+                    className="absolute inset-y-0 flex h-full w-full items-center justify-center bg-black/30"
+                  >
+                    <Check aria-hidden className="h-4 w-4 text-white" />
                   </div>
-                )}
+                ) : null}
               </button>
               <a
                 href={image.links.html}
