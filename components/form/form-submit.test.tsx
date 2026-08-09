@@ -29,6 +29,23 @@ describe("FormSubmit", () => {
     );
   });
 
+  test("forwards className and variant to the button", () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+
+    render(
+      <form>
+        <FormSubmit className="w-full" variant="ghost">
+          Create
+        </FormSubmit>
+      </form>,
+    );
+
+    const button = screen.getByRole("button", { name: "Create" });
+
+    expect(button).toHaveClass("w-full");
+    expect(button).toHaveClass("hover:bg-muted");
+  });
+
   test("disables when the disabled prop is true", () => {
     useFormStatusMock.mockReturnValue({ pending: false });
 

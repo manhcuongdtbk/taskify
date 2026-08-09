@@ -111,6 +111,9 @@ describe("FormPopover", () => {
     await openPopover(user);
 
     const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("data-side", "right");
+    expect(dialog).toHaveAttribute("data-align", "start");
+
     await user.type(within(dialog).getByLabelText("Board title"), "Roadmap");
     await user.click(
       await within(dialog).findByRole("button", { name: firstTileName }),

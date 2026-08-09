@@ -63,6 +63,28 @@ describe("FormTextarea", () => {
     expect(screen.getByText("Description is required")).toBeInTheDocument();
   });
 
+  test("forwards placeholder, required, and className", () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+
+    render(
+      <form>
+        <FormTextarea
+          id="description"
+          label="Description"
+          placeholder="Add details"
+          required
+          className="custom-textarea"
+        />
+      </form>,
+    );
+
+    const textarea = screen.getByLabelText("Description");
+
+    expect(textarea).toHaveAttribute("placeholder", "Add details");
+    expect(textarea).toBeRequired();
+    expect(textarea).toHaveClass("custom-textarea");
+  });
+
   test("disables when pending or disabled", () => {
     useFormStatusMock.mockReturnValue({ pending: true });
 

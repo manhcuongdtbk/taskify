@@ -60,6 +60,30 @@ describe("FormInput", () => {
     expect(screen.getByText("Title is required")).toBeInTheDocument();
   });
 
+  test("forwards type, placeholder, required, and className", () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+
+    render(
+      <form>
+        <FormInput
+          id="title"
+          label="Board title"
+          type="email"
+          placeholder="Enter title"
+          required
+          className="custom-input"
+        />
+      </form>,
+    );
+
+    const input = screen.getByLabelText("Board title");
+
+    expect(input).toHaveAttribute("type", "email");
+    expect(input).toHaveAttribute("placeholder", "Enter title");
+    expect(input).toBeRequired();
+    expect(input).toHaveClass("custom-input");
+  });
+
   test("disables when pending or disabled", () => {
     useFormStatusMock.mockReturnValue({ pending: true });
 
