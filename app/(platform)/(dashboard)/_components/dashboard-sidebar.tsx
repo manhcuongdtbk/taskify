@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion } from "@/components/ui/accordion";
+import { siteLocalStorageKeys } from "@/config/site";
 import { paths } from "@/lib/paths";
 import { NavItem } from "./nav-item";
 
@@ -18,7 +19,7 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar = ({
-  storageKey = "taskify-sidebar-expanded",
+  storageKey = siteLocalStorageKeys.sidebarExpanded,
 }: DashboardSidebarProps) => {
   const [expanded, setExpanded] = useLocalStorage<Record<string, boolean>>(
     storageKey,

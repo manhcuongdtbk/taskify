@@ -4,8 +4,9 @@ import { useMobileSidebarStore } from "@/stores/use-mobile-sidebar-store";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { siteLocalStorageKeys } from "@/config/site";
+import { Menu } from "lucide-react";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
 export const MobileSidebar = () => {
@@ -45,7 +46,9 @@ export const MobileSidebar = () => {
       </Button>
       <Sheet open={isOpen} onOpenChange={handleClose}>
         <SheetContent side="left" className="p-2 pt-10">
-          <DashboardSidebar storageKey="taskify-mobile-sidebar-expanded" />
+          <DashboardSidebar
+            storageKey={siteLocalStorageKeys.mobileSidebarExpanded}
+          />
         </SheetContent>
       </Sheet>
     </>

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { useMobileSidebarStore } from "@/stores/use-mobile-sidebar-store";
+import { siteLocalStorageKeys } from "@/config/site";
 
 const pathname = vi.hoisted(() => ({ current: "/organization/org_1" }));
 
@@ -43,7 +44,7 @@ describe("MobileSidebar", () => {
     await user.click(screen.getByRole("button"));
 
     expect(await screen.findByTestId("dashboard-sidebar")).toHaveTextContent(
-      "taskify-mobile-sidebar-expanded",
+      siteLocalStorageKeys.mobileSidebarExpanded,
     );
     expect(useMobileSidebarStore.getState().isOpen).toBe(true);
   });
