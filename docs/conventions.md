@@ -211,19 +211,19 @@ A `ref` is a **handle** to a rendered DOM node (or a child that forwards to one)
 
 **Why `ref?` (optional):** Same as with old `forwardRef`. React’s `RefAttributes` types `ref` as optional — most callers never need a handle. Only parents that focus/measure pass one (e.g. list → card form). Do not make `ref` required.
 
-**Typing the prop** (pick one style and stay consistent in the file):
+**Typing the prop** — prefer React’s host types via `Pick` / `ComponentProps` when forwarding; only hand-write a narrower type when the API is intentionally custom:
 
-| Situation                                   | Prefer                                                                                                                |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Custom props + forward to a known host node | `ref?: Ref<HTMLInputElement>` or `ref?: Ref<ComponentRef<"input">>` (same idea; DOM type is clearer when you’re sure) |
-| Forward to a specific component             | `ref?: Ref<ComponentRef<typeof Input>>`                                                                               |
-| Inherit / wrap a host element’s full props  | `ComponentProps<"input">` / `ComponentPropsWithRef<"input">` — not needed just to add a single `ref` field            |
+| Situation                                                    | Prefer                                                                                                                                               |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Forward host props as-is (`ref`, `onBlur`, `placeholder`, …) | `Pick<ComponentProps<"input">, "ref" \| "onBlur" \| …>` (or a wider `ComponentProps` / `ComponentPropsWithRef` when wrapping the full element)       |
+| Intentionally custom handler / value shape                   | Explicit type (e.g. controlled `value` + required `onChange` pair)                                                                                   |
+| Forward to a specific component’s DOM node type in app code  | `ComponentRef<typeof Input>` / `ComponentRef<"input">` when you need the node type itself (e.g. `useRef`), not when declaring a forwarded `ref` prop |
 
-Do **not** reach for `ComponentPropsWithRef` only to type `ref` on a hand-written props interface — declare `ref?: Ref<…>` explicitly.
+Do **not** invent `Ref<HTMLInputElement>` / `FocusEventHandler<…>` by hand when `Pick<ComponentProps<"…">, …>` already matches the host. Custom narrower types are for real API constraints, not preference.
 
 **Forwarding chain** (custom components are not DOM nodes — each hop must pass `ref` until a host element):
 
-1. Parent owns the box: `const textareaRef = useRef<HTMLTextAreaElement>(null)` then `<CardForm ref={textareaRef} />` and later `textareaRef.current?.focus()`.
+1. Parent owns the box: `const textareaRef = useRef<ComponentRef<"textarea">>(null)` then `<CardForm ref={textareaRef} />` and later `textareaRef.current?.focus()`.
 2. Middle child accepts `ref` on props and passes it: `<FormTextarea ref={ref} />`.
 3. Inner child puts it on the real node: `<Textarea ref={ref} />` → `<textarea>`.
 

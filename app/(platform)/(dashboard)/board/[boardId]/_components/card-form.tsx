@@ -5,9 +5,8 @@ import { FormTextarea } from "@/components/form/form-textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
 import {
+  type ComponentProps,
   type ComponentRef,
-  type KeyboardEventHandler,
-  type Ref,
   type RefObject,
   useRef,
 } from "react";
@@ -18,13 +17,12 @@ import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { toast } from "@/components/ui/toast";
 import { formDataString } from "@/lib/form-data";
 
-interface CardFormProps {
+type CardFormProps = {
   listId: string;
   onEnableEditing: () => void;
   onDisableEditing: () => void;
   isEditing: boolean;
-  ref?: Ref<ComponentRef<"textarea">>;
-}
+} & Pick<ComponentProps<typeof FormTextarea>, "ref">;
 
 export const CardForm = ({
   listId,
@@ -64,8 +62,8 @@ export const CardForm = ({
   );
   useEventListener("keydown", handleKeyDown);
 
-  const handleTextareaKeyDown: KeyboardEventHandler<
-    ComponentRef<"textarea">
+  const handleTextareaKeyDown: NonNullable<
+    ComponentProps<typeof FormTextarea>["onKeyDown"]
   > = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
