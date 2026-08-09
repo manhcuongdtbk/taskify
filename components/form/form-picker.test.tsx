@@ -1,5 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 import { defaultImages } from "@/constants/images";
@@ -249,5 +250,53 @@ describe("FormPicker", () => {
         name: firstTileName,
       }),
     ).toBeInTheDocument();
+  });
+
+  test("ignores a stale Unsplash response after the effect re-runs", async () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const stale = {
+      ...firstImage,
+      id: "stale",
+      description: "Stale photo",
+    };
+    const fresh = {
+      ...firstImage,
+      id: "fresh",
+      description: "Fresh photo",
+    };
+
+    let resolveStale!: (value: UnsplashGetMockResult) => void;
+    const stalePromise = new Promise<UnsplashGetMockResult>((resolve) => {
+      resolveStale = resolve;
+    });
+
+    unsplashGet
+      .mockImplementationOnce(() => stalePromise)
+      .mockImplementationOnce(async () => ({ data: [fresh], error: null }));
+
+    render(
+      <StrictMode>
+        <form>
+          <FormPicker onSelect={vi.fn()} />
+        </form>
+      </StrictMode>,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Fresh photo" }),
+    ).toBeInTheDocument();
+
+    resolveStale({ data: [stale], error: null });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: "Stale photo" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Fresh photo" }),
+      ).toBeInTheDocument();
+    });
   });
 });

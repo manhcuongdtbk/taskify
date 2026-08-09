@@ -27,12 +27,20 @@ export const FormPicker = ({
   const [images, setImages] = useState<AssetBasic[]>(defaultImages);
   const [isLoading, setIsLoading] = useState(true);
 
+  // TODO: Move this Unsplash read to TanStack Query (`lib/api/` factory) — client
+  // remote fetch belongs there (docs/data.md), not ad-hoc useEffect. Pick staleTime /
+  // refetchOnMount deliberately: `/photos/random` is random; caching avoids reopen
+  // spinner flash but keeps the same set until stale.
   useEffect(() => {
+    let cancelled = false;
+
     const fetchImages = async () => {
       try {
         const { data, error } = await unsplash.GET("/photos/random", {
           params: { query: { collections: ["317099"], count: 9 } },
         });
+
+        if (cancelled) return;
 
         if (error || !data) {
           console.error("Failed to get images from Unsplash", error);
@@ -42,14 +50,21 @@ export const FormPicker = ({
 
         setImages(Array.isArray(data) ? data : [data]);
       } catch (reason) {
+        if (cancelled) return;
         console.error(reason);
         setImages(defaultImages);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchImages();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (isLoading) {
