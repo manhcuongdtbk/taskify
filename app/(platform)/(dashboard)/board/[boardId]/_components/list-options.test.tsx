@@ -4,8 +4,12 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { List } from "@/app/generated/prisma/client";
 
-const copyList = vi.hoisted(() => vi.fn());
-const deleteList = vi.hoisted(() => vi.fn());
+const copyList = vi.hoisted(() =>
+  vi.fn(async () => ({ data: { id: "list_2", title: "Todo" } })),
+);
+const deleteList = vi.hoisted(() =>
+  vi.fn(async () => ({ data: { id: "list_1", title: "Todo" } })),
+);
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/copy-list", () => ({

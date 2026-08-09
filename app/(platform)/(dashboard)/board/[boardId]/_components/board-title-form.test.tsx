@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { Board } from "@/app/generated/prisma/client";
 
-const updateBoard = vi.hoisted(() => vi.fn());
+const updateBoard = vi.hoisted(() =>
+  vi.fn(async () => ({ data: { id: "board_1", title: "Roadmap" } })),
+);
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/update-board", () => ({

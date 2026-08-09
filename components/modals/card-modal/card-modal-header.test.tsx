@@ -7,7 +7,9 @@ import type { ReactNode } from "react";
 import type { CardWithList } from "@/types";
 import { cardQueries } from "@/lib/api/card";
 
-const updateCard = vi.hoisted(() => vi.fn());
+const updateCard = vi.hoisted(() =>
+  vi.fn(async () => ({ data: { id: "card_1", title: "Renamed" } })),
+);
 const toastAdd = vi.hoisted(() => vi.fn());
 
 vi.mock("@/actions/update-card", () => ({
