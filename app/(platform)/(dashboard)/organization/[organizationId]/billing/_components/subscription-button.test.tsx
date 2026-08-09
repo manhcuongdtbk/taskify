@@ -18,6 +18,8 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { SubscriptionButton } from "./subscription-button";
 
+const portalUrl = "https://billing.stripe.test/portal";
+
 describe("SubscriptionButton", () => {
   beforeEach(() => {
     useProModalStore.getState().close();
@@ -39,9 +41,7 @@ describe("SubscriptionButton", () => {
   });
 
   test("redirects Pro users to the Stripe portal URL", async () => {
-    stripeRedirect.mockResolvedValue({
-      data: "https://billing.stripe.test/portal",
-    });
+    stripeRedirect.mockResolvedValue({ data: portalUrl });
     const user = userEvent.setup();
     const hrefSetter = vi.fn();
     vi.stubGlobal("location", {
@@ -62,9 +62,7 @@ describe("SubscriptionButton", () => {
     await waitFor(() => {
       expect(stripeRedirect).toHaveBeenCalledExactlyOnceWith({});
     });
-    expect(hrefSetter).toHaveBeenCalledExactlyOnceWith(
-      "https://billing.stripe.test/portal",
-    );
+    expect(hrefSetter).toHaveBeenCalledExactlyOnceWith(portalUrl);
 
     vi.unstubAllGlobals();
   });
