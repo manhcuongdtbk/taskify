@@ -1,5 +1,6 @@
 "use client";
 
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type CardWithList } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,6 +16,8 @@ import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
 import { cardQueries } from "@/lib/api/card";
 import { formDataString } from "@/lib/form-data";
+
+const heading = "Description";
 
 interface CardModalDescriptionProps {
   data: CardWithList;
@@ -82,7 +85,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
     <div className="flex w-full items-start gap-x-3">
       <AlignLeft className="mt-0.5 h-5 w-5 text-neutral-700" />
       <div className="w-full">
-        <p className="mb-2 font-semibold text-neutral-700">Description</p>
+        <p className="mb-2 font-semibold text-neutral-700">{heading}</p>
         {isEditing ? (
           <form ref={formRef} className="space-y-2" action={handleSubmit}>
             <FormTextarea
@@ -121,12 +124,15 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
 
 CardModalDescription.Skeleton = function DescriptionSkeleton() {
   return (
-    <div className="flex w-full items-start gap-x-3">
+    <SkeletonStatus
+      heading={heading}
+      className="flex w-full items-start gap-x-3"
+    >
       <Skeleton className="h-6 w-6 bg-neutral-200" />
       <div className="w-full">
         <Skeleton className="mb-2 h-6 w-24 bg-neutral-200" />
         <Skeleton className="mb-2 h-19.5 w-full bg-neutral-200" />
       </div>
-    </div>
+    </SkeletonStatus>
   );
 };

@@ -342,14 +342,22 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
 **Compound on the same binding** (still one named export)
 
 ```ts
-export const CardModalHeader = (/* … */) => {
-  /* … */
+const heading = "Activity";
+
+export const CardModalActivity = (/* … */) => {
+  /* … {heading} … */
 };
-CardModalHeader.Skeleton = function HeaderSkeleton() {
-  /* … */
+CardModalActivity.Skeleton = function ActivitySkeleton() {
+  return (
+    <SkeletonStatus heading={heading} className="…">
+      {/* pulse placeholders */}
+    </SkeletonStatus>
+  );
 };
-// usage: <CardModalHeader.Skeleton />
+// usage: <CardModalActivity.Skeleton />
 ```
+
+Section skeletons: use [`SkeletonStatus`](../components/skeleton-status.tsx) with a shared `heading` when the loaded UI has a section title (`aria-label` becomes `Loading ${heading}`). Hand-rolled `aria-label="Loading …"` is **ESLint-enforced** off. No static title (e.g. header chrome) → still `SkeletonStatus`, with a short region name as `heading`. Keep this under shared app `components/` — not [`components/ui/`](./project-structure.md) (shadcn-only).
 
 **Folder-colocated unit tests** (Vitest — see [`testing.md`](./testing.md)). Prefer next to the module, not `__tests__/`, `tests/`, or root `test/` ([`project-structure.md`](./project-structure.md)):
 
@@ -411,32 +419,32 @@ components/form/
 
 ##### Cheat sheet
 
-| Situation                                         | Do                                                                                                    |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                                                          |
-| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`                                           |
-| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`                                       |
-| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                                                     |
-| Types imported by actions / callers               | `actions/…/types.ts`                                                                                  |
-| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file)                             |
-| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                                                   |
-| Second UI under the same component                | `.Skeleton` (etc.) on the export                                                                      |
-| Unit / component test                             | Colocate `*.test.ts` / `*.test.tsx` matching the source; props inline; don’t export props “for tests” |
-| E2E                                               | `e2e/`, not next to every UI file                                                                     |
+| Situation                                         | Do                                                                                                              |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                                                                    |
+| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`                                                     |
+| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`                                                 |
+| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                                                               |
+| Types imported by actions / callers               | `actions/…/types.ts`                                                                                            |
+| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file)                                       |
+| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                                                             |
+| Second UI under the same component                | `.Skeleton` (etc.) on the export; section skeletons via `SkeletonStatus` + shared `heading` when a title exists |
+| Unit / component test                             | Colocate `*.test.ts` / `*.test.tsx` matching the source; props inline; don’t export props “for tests”           |
+| E2E                                               | `e2e/`, not next to every UI file                                                                               |
 
 ##### Enforcement status (colocation & companions)
 
-| Rule                                                                                                                                    | Status                                                           |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| No `export type` / `export interface` in app UI component files (`components/**`, `app/**/_components/**`; not `ui/`; not `*.types.ts`) | **Enforced** (ESLint)                                            |
-| Export keyword shape / `memo` identifier-only / no `forwardRef` (ref-as-prop) / filename ↔ export / `Form*` / generics denylist         | **Enforced** (ESLint) — see above                                |
-| Action folder shape (`actions/<name>/` bare `index.ts` + `schema.ts` + `types.ts`)                                                      | **Docs only** — candidate for a `lint:routes`-style script later |
-| Colocated `*.test.tsx` / `*.stories.tsx` must sit next to the primary module                                                            | **Docs only** — add checks when Vitest / Storybook land          |
-| Mid-suffix allowlist (forbid inventing `*.foo.tsx`)                                                                                     | **Docs only**                                                    |
-| Feature-folder migration when triggers fire                                                                                             | **Docs only** ([`project-structure.md`](./project-structure.md)) |
-| Create `*.types.ts` only when a real importer exists                                                                                    | **Docs only** (judgment)                                         |
-| `index.tsx` export named after parent folder                                                                                            | **Docs only** (plugin skips `index.*`)                           |
-| Full path→name mirroring for `_components`; global symbol uniqueness                                                                    | **Not enforced**                                                 |
+| Rule                                                                                                                            | Status                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Hand-rolled `aria-label="Loading …"` on skeleton regions (use `SkeletonStatus`)                                                 | **Enforced** (ESLint)                                            |
+| Export keyword shape / `memo` identifier-only / no `forwardRef` (ref-as-prop) / filename ↔ export / `Form*` / generics denylist | **Enforced** (ESLint) — see above                                |
+| Action folder shape (`actions/<name>/` bare `index.ts` + `schema.ts` + `types.ts`)                                              | **Docs only** — candidate for a `lint:routes`-style script later |
+| Colocated `*.test.tsx` / `*.stories.tsx` must sit next to the primary module                                                    | **Docs only** — add checks when Vitest / Storybook land          |
+| Mid-suffix allowlist (forbid inventing `*.foo.tsx`)                                                                             | **Docs only**                                                    |
+| Feature-folder migration when triggers fire                                                                                     | **Docs only** ([`project-structure.md`](./project-structure.md)) |
+| Create `*.types.ts` only when a real importer exists                                                                            | **Docs only** (judgment)                                         |
+| `index.tsx` export named after parent folder                                                                                    | **Docs only** (plugin skips `index.*`)                           |
+| Full path→name mirroring for `_components`; global symbol uniqueness                                                            | **Not enforced**                                                 |
 
 ### React / UI
 

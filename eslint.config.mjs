@@ -534,6 +534,33 @@ const nodeEnvViaLibEnvRestrictions = [
   },
 ];
 
+/**
+ * Hand-rolled `aria-label="Loading …"` bypasses SkeletonStatus. Build loading
+ * status labels via <SkeletonStatus heading={…}> from
+ * `@/components/skeleton-status` (share `heading` with the section title when
+ * one exists). docs/conventions.md · docs/project-structure.md
+ */
+const skeletonStatusLabelMessage =
+  "Use <SkeletonStatus heading={…}> from @/components/skeleton-status for loading-region labels (share `heading` with the section title when one exists). See docs/conventions.md.";
+
+const skeletonStatusLabelRestrictions = [
+  {
+    selector:
+      'JSXAttribute[name.name="aria-label"] > Literal[value=/^Loading /]',
+    message: skeletonStatusLabelMessage,
+  },
+  {
+    selector:
+      'JSXAttribute[name.name="aria-label"] > JSXExpressionContainer > Literal[value=/^Loading /]',
+    message: skeletonStatusLabelMessage,
+  },
+  {
+    selector:
+      'JSXAttribute[name.name="aria-label"] > JSXExpressionContainer > TemplateLiteral[quasis.0.value.raw=/^Loading /]',
+    message: skeletonStatusLabelMessage,
+  },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -568,6 +595,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
       ],
     },
   },
@@ -584,6 +612,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
     },
@@ -601,6 +630,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
       ],
@@ -626,6 +656,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -671,6 +702,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
         ...zustandCreateStoreRequiredRestrictions,
@@ -708,6 +740,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
     },
@@ -724,6 +757,7 @@ const eslintConfig = defineConfig([
         ...eventHandlerNamingRestrictions,
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -767,6 +801,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,

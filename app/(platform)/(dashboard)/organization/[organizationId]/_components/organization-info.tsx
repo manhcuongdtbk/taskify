@@ -1,5 +1,6 @@
 "use client";
 
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FREE_PLAN, PRO_PLAN } from "@/constants/pricing-plans";
 import { useOrganization } from "@clerk/nextjs";
@@ -42,7 +43,10 @@ export const OrganizationInfo = ({ isPro }: OrganizationInfoProps) => {
 
 OrganizationInfo.Skeleton = function InfoSkeleton() {
   return (
-    <div className="flex items-center gap-x-4">
+    <SkeletonStatus
+      heading="organization"
+      className="flex items-center gap-x-4"
+    >
       <div className="relative h-15 w-15">
         <Skeleton className="absolute h-full w-full" />
       </div>
@@ -53,6 +57,6 @@ OrganizationInfo.Skeleton = function InfoSkeleton() {
           <Skeleton className="h-4 w-25" />
         </div>
       </div>
-    </div>
+    </SkeletonStatus>
   );
 };

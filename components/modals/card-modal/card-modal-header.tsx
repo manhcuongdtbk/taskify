@@ -1,6 +1,7 @@
 "use client";
 
 import { FormInput } from "@/components/form/form-input";
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type CardWithList } from "@/types";
 import { Layout } from "lucide-react";
@@ -75,12 +76,15 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
 
 CardModalHeader.Skeleton = function HeaderSkeleton() {
   return (
-    <div className="mb-6 flex items-start gap-x-3">
+    <SkeletonStatus
+      heading="card header"
+      className="mb-6 flex items-start gap-x-3"
+    >
       <Skeleton className="mt-1 h-6 w-6 bg-neutral-200" />
       <div>
         <Skeleton className="mb-1 h-6 w-24 bg-neutral-200" />
         <Skeleton className="h-4 w-12 bg-neutral-200" />
       </div>
-    </div>
+    </SkeletonStatus>
   );
 };
