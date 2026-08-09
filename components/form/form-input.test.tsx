@@ -40,8 +40,11 @@ describe("FormInput", () => {
       </form>,
     );
 
-    expect(screen.getByRole("textbox")).toHaveAttribute("id", "title");
-    expect(screen.queryByText("Board title")).not.toBeInTheDocument();
+    const input = screen.getByRole("textbox");
+
+    expect(input).toHaveAttribute("id", "title");
+    // Optional label → no <Label>; assert missing accessible name, not a hard-coded string we never passed.
+    expect(input).not.toHaveAccessibleName();
   });
 
   test("renders field errors", () => {

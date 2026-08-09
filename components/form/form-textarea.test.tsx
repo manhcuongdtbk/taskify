@@ -44,7 +44,11 @@ describe("FormTextarea", () => {
       </form>,
     );
 
-    expect(screen.getByRole("textbox")).toHaveAttribute("id", "description");
+    const textarea = screen.getByRole("textbox");
+
+    expect(textarea).toHaveAttribute("id", "description");
+    // Optional label → no <Label>; assert missing accessible name, not a hard-coded string we never passed.
+    expect(textarea).not.toHaveAccessibleName();
   });
 
   test("renders field errors", () => {
