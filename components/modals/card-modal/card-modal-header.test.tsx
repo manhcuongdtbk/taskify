@@ -1,10 +1,9 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { ReactNode } from "react";
 
 import { cardQueries } from "@/lib/api/card";
+import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
 const updateCard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -40,19 +39,6 @@ const card = {
     updatedAt: new Date("2026-01-01"),
   },
 };
-
-function renderWithQuery(ui: ReactNode) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  const invalidateQueries = vi.spyOn(queryClient, "invalidateQueries");
-  return {
-    invalidateQueries,
-    ...render(
-      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
-    ),
-  };
-}
 
 describe("CardModalHeader", () => {
   beforeEach(() => {
