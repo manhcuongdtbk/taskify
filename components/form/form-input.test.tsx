@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ComponentRef, RefObject } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 const useFormStatusMock = vi.hoisted(() => vi.fn(() => ({ pending: false })));
@@ -140,6 +140,12 @@ describe("FormInput", () => {
 
     render(
       <form>
+        {/*
+          Intentionally invalid props: `value` without `onChange`. Types reject that
+          on JSX attributes, so we cast an object and spread (`...`) it — cast alone
+          on each prop still type-checks the element; spread is how we bypass the union
+          to exercise the runtime `readOnly` guard when types are skipped.
+        */}
         <FormInput
           {...({
             id: "title",
@@ -185,5 +191,19 @@ describe("FormInput", () => {
     await user.tab();
 
     expect(onBlur).toHaveBeenCalledOnce();
+  });
+
+  test("forwards ref to the underlying input", () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+    // Same `{ current }` shape as `useRef` in app code (tests sit outside a component).
+    const ref: RefObject<ComponentRef<"input"> | null> = { current: null };
+
+    render(
+      <form>
+        <FormInput id="title" label="Board title" ref={ref} />
+      </form>,
+    );
+
+    expect(ref.current).toBe(screen.getByLabelText("Board title"));
   });
 });

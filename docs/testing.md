@@ -512,6 +512,10 @@ Visual regression only? ──yes──► Playwright (for now)
 | Use when  | Props → markup                      | Behavior matters                                   |
 | Still     | Vitest + Testing Library + jest-dom | Vitest + Testing Library + jest-dom + `user-event` |
 
+### Prop coverage (component suites)
+
+When writing or extending a Vitest suite for a component, **exercise every prop** on its public props type — including `ref`, optional pass-throughs (`className`, `variant`, …), and event handlers. Bundle pure attribute forwards in one test if that stays readable; do **not** skip a prop because it “only forwards.” That is how broken `ref` / className / variant wiring ships unnoticed.
+
 jsdom is **not** a real browser: no real layout engine, incomplete Web APIs. If the bug is “dnd geometry,” “Clerk hosted UI,” or “RSC stream on this route,” that is **Playwright**, not a harder Vitest test — and usually not “switch the whole suite to Browser Mode” either. Browser Mode is for _isolated_ real-browser component fidelity when [triggers](#trigger-checklist-for-switching-the-component-default) say so; product journeys stay Playwright.
 
 ### Overlap traps (pick one owner)

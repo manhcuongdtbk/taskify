@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ComponentRef, RefObject } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 const useFormStatusMock = vi.hoisted(() => vi.fn(() => ({ pending: false })));
@@ -137,5 +138,19 @@ describe("FormTextarea", () => {
     expect(onClick).toHaveBeenCalled();
     expect(onKeyDown).toHaveBeenCalled();
     expect(onBlur).toHaveBeenCalledOnce();
+  });
+
+  test("forwards ref to the underlying textarea", () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+    // Same `{ current }` shape as `useRef` in app code (tests sit outside a component).
+    const ref: RefObject<ComponentRef<"textarea"> | null> = { current: null };
+
+    render(
+      <form>
+        <FormTextarea id="description" label="Description" ref={ref} />
+      </form>,
+    );
+
+    expect(ref.current).toBe(screen.getByLabelText("Description"));
   });
 });
