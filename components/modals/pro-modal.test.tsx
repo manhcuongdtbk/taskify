@@ -6,7 +6,6 @@ import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { PRO_PLAN, formatBoardLimit } from "@/constants/pricing-plans";
 import { siteConfig } from "@/config/site";
 
-// Untyped: ActionState variants (data | serverError) must all mock-resolve.
 const stripeRedirect = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
@@ -21,6 +20,8 @@ vi.mock("@/components/ui/toast", () => ({
 vi.mock("next/image", () => import("@/lib/testing/next/image"));
 
 import { ProModal } from "./pro-modal";
+
+const checkoutUrl = "https://checkout.stripe.test/session";
 
 describe("ProModal", () => {
   beforeEach(() => {
@@ -49,9 +50,7 @@ describe("ProModal", () => {
   });
 
   test("redirects to the Stripe URL on successful upgrade", async () => {
-    stripeRedirect.mockResolvedValue({
-      data: "https://checkout.stripe.test/session",
-    });
+    stripeRedirect.mockResolvedValue({ data: checkoutUrl });
     useProModalStore.getState().open();
     const user = userEvent.setup();
     const hrefSetter = vi.fn();
@@ -71,9 +70,7 @@ describe("ProModal", () => {
     await waitFor(() => {
       expect(stripeRedirect).toHaveBeenCalledExactlyOnceWith({});
     });
-    expect(hrefSetter).toHaveBeenCalledExactlyOnceWith(
-      "https://checkout.stripe.test/session",
-    );
+    expect(hrefSetter).toHaveBeenCalledExactlyOnceWith(checkoutUrl);
 
     vi.unstubAllGlobals();
   });
