@@ -12,20 +12,29 @@ import { type BoardImageInput } from "@/actions/create-board/types";
 import { FormInput } from "./form-input";
 import { FormSubmit } from "./form-submit";
 import { Button } from "@/components/ui/button";
-import { type BaseUIRenderForwardingProps } from "@/types";
 import { X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { FormPicker } from "./form-picker";
-import { type ComponentRef, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  type ComponentRef,
+  type ReactElement,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
 
-interface FormPopoverProps extends BaseUIRenderForwardingProps {
-  side?: "top" | "right" | "bottom" | "left";
-  align?: "start" | "center" | "end";
-  sideOffset?: number;
-}
+type FormPopoverProps = {
+  children: Extract<
+    ComponentProps<typeof PopoverTrigger>["render"],
+    ReactElement
+  >;
+} & Pick<
+  ComponentProps<typeof PopoverContent>,
+  "side" | "align" | "sideOffset"
+>;
 
 export const FormPopover = ({
   children,
