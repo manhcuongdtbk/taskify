@@ -128,6 +128,9 @@ describe("CardModalActions", () => {
     expect(
       screen.queryByRole("button", { name: /Copy/i }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Delete/i }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("Actions")).not.toBeInTheDocument();
   });
 });
