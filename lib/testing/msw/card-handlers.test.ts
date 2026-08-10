@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 import { type CardWithList } from "@/types";
@@ -48,10 +48,6 @@ const log = {
 };
 
 describe("card MSW handlers", () => {
-  afterEach(() => {
-    server.resetHandlers();
-  });
-
   test("exports path constants used by cardQueries", () => {
     expect(cardDetailPath).toBe("/api/cards/:cardId");
     expect(cardLogsPath).toBe("/api/cards/:cardId/logs");
