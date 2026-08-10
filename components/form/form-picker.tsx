@@ -89,7 +89,10 @@ export const FormPicker = ({
     <div className="relative">
       <div className="mb-2 grid grid-cols-3 gap-2">
         {images.map((image) => {
-          const label = image.description || "Unsplash Image";
+          // Many Unsplash photos have no description; fall back to the
+          // photographer so tiles don't share one accessible name.
+          const label =
+            image.description || `Unsplash image by ${image.user.name}`;
           const isSelected = selectedImage?.id === image.id;
 
           return (

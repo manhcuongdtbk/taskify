@@ -34,7 +34,8 @@ vi.mock("next/image", () => import("@/lib/testing/next/image"));
 import { FormPicker } from "./form-picker";
 
 const firstImage = defaultImages[0]!;
-const firstTileName = firstImage.description || "Unsplash Image";
+const firstTileName =
+  firstImage.description || `Unsplash image by ${firstImage.user.name}`;
 
 function expectedSelection(image = firstImage): BoardImageInput {
   return {
@@ -206,6 +207,7 @@ describe("FormPicker", () => {
       ...firstImage,
       id: "remote-single",
       description: null,
+      user: { ...firstImage.user, name: "Ada Lovelace" },
     };
     unsplashGet.mockResolvedValue({ data: remote, error: null });
     useFormStatusMock.mockReturnValue({ pending: false });
@@ -216,8 +218,12 @@ describe("FormPicker", () => {
       </form>,
     );
 
+    // No description → the photographer names the tile, so untitled photos
+    // don't collide on one accessible name.
     expect(
-      await screen.findByRole("button", { name: "Unsplash Image" }),
+      await screen.findByRole("button", {
+        name: "Unsplash image by Ada Lovelace",
+      }),
     ).toBeInTheDocument();
   });
 
