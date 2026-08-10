@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 const createList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -22,12 +22,6 @@ vi.mock("next/navigation", () => ({
 import { ListForm } from "./list-form";
 
 describe("ListForm", () => {
-  beforeEach(() => {
-    createList.mockReset();
-    toastAdd.mockReset();
-    refresh.mockReset();
-  });
-
   test("submits title and boardId to createList", async () => {
     createList.mockResolvedValue({
       data: { id: "list_1", title: "Todo" },

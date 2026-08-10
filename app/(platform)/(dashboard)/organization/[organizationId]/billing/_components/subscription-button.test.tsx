@@ -23,8 +23,6 @@ const portalUrl = "https://billing.stripe.test/portal";
 describe("SubscriptionButton", () => {
   beforeEach(() => {
     useProModalStore.getState().close();
-    stripeRedirect.mockReset();
-    toastAdd.mockReset();
   });
 
   test("opens the pro modal for free users", async () => {
@@ -63,8 +61,6 @@ describe("SubscriptionButton", () => {
       expect(stripeRedirect).toHaveBeenCalledExactlyOnceWith({});
     });
     expect(hrefSetter).toHaveBeenCalledExactlyOnceWith(portalUrl);
-
-    vi.unstubAllGlobals();
   });
 
   test("toasts when stripe redirect fails for Pro users", async () => {

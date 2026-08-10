@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 const deleteBoard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -16,11 +16,6 @@ vi.mock("@/components/ui/toast", () => ({
 import { BoardOptions } from "./board-options";
 
 describe("BoardOptions", () => {
-  beforeEach(() => {
-    deleteBoard.mockReset();
-    toastAdd.mockReset();
-  });
-
   test("deletes the board with the given id", async () => {
     deleteBoard.mockResolvedValue({ data: { id: "board_1" } });
     const user = userEvent.setup();

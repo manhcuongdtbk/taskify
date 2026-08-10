@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 const updateList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -30,11 +30,6 @@ const list = {
 };
 
 describe("ListHeader", () => {
-  beforeEach(() => {
-    updateList.mockReset();
-    toastAdd.mockReset();
-  });
-
   test("submits a changed title to updateList", async () => {
     updateList.mockResolvedValue({
       data: { id: "list_1", title: "Done" },

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 const createCard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -20,11 +20,6 @@ vi.mock("next/navigation", () => ({
 import { CardForm } from "./card-form";
 
 describe("CardForm", () => {
-  beforeEach(() => {
-    createCard.mockReset();
-    toastAdd.mockReset();
-  });
-
   test("submits title, boardId, and listId to createCard", async () => {
     createCard.mockResolvedValue({
       data: { id: "card_1", title: "Ship P2" },

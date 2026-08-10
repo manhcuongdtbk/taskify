@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 const copyList = vi.hoisted(() => vi.fn());
 const deleteList = vi.hoisted(() => vi.fn());
@@ -30,12 +30,6 @@ const list = {
 };
 
 describe("ListOptions", () => {
-  beforeEach(() => {
-    copyList.mockReset();
-    deleteList.mockReset();
-    toastAdd.mockReset();
-  });
-
   test("copies the list with id and boardId", async () => {
     copyList.mockResolvedValue({
       data: { id: "list_2", title: "Todo" },

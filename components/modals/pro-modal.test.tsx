@@ -26,8 +26,6 @@ const checkoutUrl = "https://checkout.stripe.test/session";
 describe("ProModal", () => {
   beforeEach(() => {
     useProModalStore.getState().close();
-    stripeRedirect.mockReset();
-    toastAdd.mockReset();
   });
 
   test("renders upgrade content when the store is open", () => {
@@ -71,8 +69,6 @@ describe("ProModal", () => {
       expect(stripeRedirect).toHaveBeenCalledExactlyOnceWith({});
     });
     expect(hrefSetter).toHaveBeenCalledExactlyOnceWith(checkoutUrl);
-
-    vi.unstubAllGlobals();
   });
 
   test("toasts on stripe redirect error", async () => {

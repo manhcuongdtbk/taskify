@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/api/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
@@ -41,11 +41,6 @@ const card = {
 };
 
 describe("CardModalDescription", () => {
-  beforeEach(() => {
-    updateCard.mockReset();
-    toastAdd.mockReset();
-  });
-
   test("submits description to updateCard", async () => {
     updateCard.mockResolvedValue({
       data: { id: "card_1", title: "Ship P2", description: "Details" },

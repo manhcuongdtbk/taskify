@@ -49,9 +49,8 @@ async function openPopover(user: ReturnType<typeof userEvent.setup>) {
 describe("FormPopover", () => {
   beforeEach(() => {
     useProModalStore.getState().close();
-    createBoard.mockReset();
-    push.mockReset();
-    toastAdd.mockReset();
+    // Global `mockReset` clears the hoisted default impl — re-seed the network
+    // fallback so FormPicker can fall back to `defaultImages`.
     unsplashGet.mockResolvedValue(unsplashGetNetworkError);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });

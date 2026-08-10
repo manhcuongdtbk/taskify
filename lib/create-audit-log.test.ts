@@ -1,5 +1,4 @@
 import {
-  afterEach,
   beforeEach,
   describe,
   expect,
@@ -38,12 +37,9 @@ describe("createAuditLog", () => {
 
   // Every failure path is swallowed through console.log — silence it for the
   // whole suite so the failure cases don't dump stack traces into the output.
+  // `restoreMocks` / `mockReset` clear spy + mock state between tests.
   beforeEach(() => {
     logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   test("writes an audit log row for the action", async () => {

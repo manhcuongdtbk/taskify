@@ -47,9 +47,6 @@ const card = {
 describe("CardModalActions", () => {
   beforeEach(() => {
     useCardModalStore.getState().open("card_1");
-    copyCard.mockReset();
-    deleteCard.mockReset();
-    toastAdd.mockReset();
   });
 
   test("copies the card, toasts, and closes the modal", async () => {

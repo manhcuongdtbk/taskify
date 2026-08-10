@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 const updateBoard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -29,11 +29,6 @@ const board = {
 };
 
 describe("BoardTitleForm", () => {
-  beforeEach(() => {
-    updateBoard.mockReset();
-    toastAdd.mockReset();
-  });
-
   test("renames the board title on success", async () => {
     updateBoard.mockResolvedValue({
       data: { ...board, title: "Roadmap" },

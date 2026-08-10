@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 
 describe("env", () => {
   afterEach(() => {
-    vi.unstubAllEnvs();
+    // `unstubEnvs` is on in vitest.config.mts; still reset modules that cached env.
     vi.resetModules();
   });
 
