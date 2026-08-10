@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentRef, type KeyboardEventHandler, type Ref } from "react";
+import { type ComponentProps } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -8,20 +8,22 @@ import { type FieldErrors } from "@/lib/create-safe-action.types";
 import { FormErrors } from "./form-errors";
 import { useFormStatus } from "react-dom";
 
-interface FormTextareaProps {
+type FormTextareaProps = {
   id: string;
   label?: string;
-  placeholder?: string;
-  required?: boolean;
-  disabled?: boolean;
   errors?: FieldErrors;
-  className?: string;
-  onBlur?: () => void;
-  onClick?: () => void;
-  onKeyDown?: KeyboardEventHandler<ComponentRef<"textarea">> | undefined;
-  defaultValue?: string;
-  ref?: Ref<ComponentRef<"textarea">>;
-}
+} & Pick<
+  ComponentProps<"textarea">,
+  | "placeholder"
+  | "required"
+  | "disabled"
+  | "className"
+  | "defaultValue"
+  | "onBlur"
+  | "onClick"
+  | "onKeyDown"
+  | "ref"
+>;
 
 export const FormTextarea = ({
   id,

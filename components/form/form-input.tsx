@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentRef, type Ref } from "react";
+import { type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -8,19 +8,35 @@ import { cn } from "@/lib/utils";
 import { type FieldErrors } from "@/lib/create-safe-action.types";
 import { FormErrors } from "./form-errors";
 
-interface FormInputProps {
+type FormInputSharedProps = {
   id: string;
   label?: string;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
-  disabled?: boolean;
   errors?: FieldErrors;
-  className?: string;
-  defaultValue?: string;
-  onBlur?: () => void;
-  ref?: Ref<ComponentRef<"input">>;
-}
+} & Pick<
+  ComponentProps<"input">,
+  | "type"
+  | "placeholder"
+  | "required"
+  | "disabled"
+  | "className"
+  | "onBlur"
+  | "ref"
+>;
+
+/** Controlled: `value` and `onChange` are a required pair (no `defaultValue`). */
+type FormInputControlledProps = FormInputSharedProps & {
+  value: string;
+  onChange: NonNullable<ComponentProps<"input">["onChange"]>;
+  defaultValue?: never;
+};
+
+/** Uncontrolled: optional `defaultValue`; `onChange` may still listen without owning the value. */
+type FormInputUncontrolledProps = FormInputSharedProps &
+  Pick<ComponentProps<"input">, "defaultValue" | "onChange"> & {
+    value?: never;
+  };
+
+type FormInputProps = FormInputControlledProps | FormInputUncontrolledProps;
 
 export const FormInput = ({
   id,
@@ -32,10 +48,13 @@ export const FormInput = ({
   errors,
   className,
   defaultValue,
+  value,
+  onChange,
   onBlur,
   ref,
 }: FormInputProps) => {
   const { pending } = useFormStatus();
+  const isControlled = value !== undefined;
 
   return (
     <div className="space-y-2">
@@ -50,7 +69,10 @@ export const FormInput = ({
         ) : null}
         <Input
           onBlur={onBlur}
-          defaultValue={defaultValue}
+          onChange={onChange}
+          {...(isControlled ? { value } : { defaultValue })}
+          // Runtime guard if types are bypassed: controlled without onChange would otherwise stick.
+          readOnly={isControlled && !onChange}
           ref={ref}
           required={required}
           name={id}

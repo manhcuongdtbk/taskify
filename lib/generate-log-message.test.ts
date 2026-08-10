@@ -10,8 +10,9 @@ import { generateLogMessage } from "./generate-log-message";
 
 /**
  * Test-only: supply fields under test. Unused `AuditLog` columns are not part of
- * this suite — cast instead of inventing a full row fixture. Prod stays typed as
- * `AuditLog` (call sites pass real rows). See docs/testing.md (Prisma-related).
+ * this suite — named cast instead of inventing a full row fixture. Prod stays
+ * typed as `AuditLog` (call sites pass real rows). See docs/testing.md
+ * (Prisma-related / model fixtures).
  */
 function auditLogForMessage(
   fields: Pick<AuditLog, "action" | "entityTitle" | "entityType">,

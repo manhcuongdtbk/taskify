@@ -1,6 +1,7 @@
 "use client";
 
 import { FormInput } from "@/components/form/form-input";
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type CardWithList } from "@/types";
 import { Layout } from "lucide-react";
@@ -11,6 +12,7 @@ import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
 import { cardQueries } from "@/lib/api/card";
+import { formDataString } from "@/lib/form-data";
 
 interface CardModalHeaderProps {
   data: CardWithList;
@@ -26,7 +28,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
         type: "success",
         title: `Renamed to ${data.title}`,
       });
-      setTitle(data.title);
+      setTitle(data.title); // Confirmed local mirror — docs/data.md
     },
     onError: (error) => {
       toast.add({
@@ -43,7 +45,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    const title = formData.get("title") as string;
+    const title = formDataString(formData, "title");
     const boardId = params.boardId as string;
 
     if (title === data.title) return;
@@ -74,12 +76,15 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
 
 CardModalHeader.Skeleton = function HeaderSkeleton() {
   return (
-    <div className="mb-6 flex items-start gap-x-3">
+    <SkeletonStatus
+      heading="card header"
+      className="mb-6 flex items-start gap-x-3"
+    >
       <Skeleton className="mt-1 h-6 w-6 bg-neutral-200" />
       <div>
         <Skeleton className="mb-1 h-6 w-24 bg-neutral-200" />
         <Skeleton className="h-4 w-12 bg-neutral-200" />
       </div>
-    </div>
+    </SkeletonStatus>
   );
 };

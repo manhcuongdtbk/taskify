@@ -3,13 +3,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { type BaseUIRenderForwardingProps } from "@/types";
+import { type ComponentProps, type ReactElement } from "react";
 
-interface HintProps extends BaseUIRenderForwardingProps {
+type HintProps = {
+  children: Extract<
+    ComponentProps<typeof TooltipTrigger>["render"],
+    ReactElement
+  >;
   description: string;
-  side?: "top" | "right" | "bottom" | "left";
-  sideOffset?: number;
-}
+} & Pick<ComponentProps<typeof TooltipContent>, "side" | "sideOffset">;
 
 export const Hint = ({
   children,

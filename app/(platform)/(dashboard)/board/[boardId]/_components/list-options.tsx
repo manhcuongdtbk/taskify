@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useAction } from "@/hooks/use-action";
+import { formDataString } from "@/lib/form-data";
 import { MoreHorizontal, X } from "lucide-react";
 import { type ComponentRef, useRef } from "react";
 import { toast } from "@/components/ui/toast";
@@ -58,14 +59,14 @@ export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
   });
 
   const handleDelete = (formData: FormData) => {
-    const id = formData.get("id") as string;
-    const boardId = formData.get("boardId") as string;
+    const id = formDataString(formData, "id");
+    const boardId = formDataString(formData, "boardId");
     executeDelete({ id, boardId });
   };
 
   const handleCopy = (formData: FormData) => {
-    const id = formData.get("id") as string;
-    const boardId = formData.get("boardId") as string;
+    const id = formDataString(formData, "id");
+    const boardId = formDataString(formData, "boardId");
     executeCopy({ id, boardId });
   };
 

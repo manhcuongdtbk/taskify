@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { absoluteUrl, cn, cssUrl } from "./utils";
 
@@ -19,10 +19,6 @@ describe("cn", () => {
 });
 
 describe("absoluteUrl", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
   test("prefixes path with NEXT_PUBLIC_APP_URL", () => {
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://app.example");
 

@@ -1,16 +1,14 @@
 "use client";
 
+import { type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-interface FormSubmitProps {
-  children: React.ReactNode;
-  disabled?: boolean;
-  className?: string;
-  variant?:
-    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"; // All variants in components/ui/button.tsx
-}
+type FormSubmitProps = Pick<
+  ComponentProps<typeof Button>,
+  "children" | "disabled" | "className" | "variant"
+>;
 
 export const FormSubmit = ({
   children,

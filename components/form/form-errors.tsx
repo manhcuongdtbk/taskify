@@ -15,6 +15,7 @@ export const FormErrors = ({ id, errors }: FormErrorsProps) => {
   return (
     <div
       id={`${id}-error`}
+      role="status"
       aria-live="polite"
       className="mt-2 text-xs text-rose-500"
     >

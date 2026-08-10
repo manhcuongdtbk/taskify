@@ -1,13 +1,9 @@
 import { partialMatchKey } from "@tanstack/react-query";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "./card";
 
 describe("cardQueries", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   test("all returns the card root key", () => {
     expect(cardQueries.all()).toStrictEqual(["card"]);
   });

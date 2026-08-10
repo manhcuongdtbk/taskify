@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { createList } from "@/actions/create-list";
 import { toast } from "@/components/ui/toast";
+import { formDataString } from "@/lib/form-data";
 
 export const ListForm = () => {
   const router = useRouter();
@@ -60,8 +61,8 @@ export const ListForm = () => {
   );
 
   const handleSubmit = (formData: FormData) => {
-    const title = formData.get("title") as string;
-    const boardId = formData.get("boardId") as string;
+    const title = formDataString(formData, "title");
+    const boardId = formDataString(formData, "boardId");
     execute({ title, boardId });
   };
 
@@ -83,7 +84,12 @@ export const ListForm = () => {
           <input type="hidden" name="boardId" value={params.boardId} />
           <div className="flex items-center gap-x-1">
             <FormSubmit>Add List</FormSubmit>
-            <Button variant="ghost" size="sm" onClick={handleDisableEditing}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDisableEditing}
+              aria-label="Cancel"
+            >
               <X className="h-5 w-5" />
             </Button>
           </div>

@@ -12,20 +12,29 @@ import { type BoardImageInput } from "@/actions/create-board/types";
 import { FormInput } from "./form-input";
 import { FormSubmit } from "./form-submit";
 import { Button } from "@/components/ui/button";
-import { type BaseUIRenderForwardingProps } from "@/types";
 import { X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { FormPicker } from "./form-picker";
-import { type ComponentRef, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  type ComponentRef,
+  type ReactElement,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
 
-interface FormPopoverProps extends BaseUIRenderForwardingProps {
-  side?: "top" | "right" | "bottom" | "left";
-  align?: "start" | "center" | "end";
-  sideOffset?: number;
-}
+type FormPopoverProps = {
+  children: Extract<
+    ComponentProps<typeof PopoverTrigger>["render"],
+    ReactElement
+  >;
+} & Pick<
+  ComponentProps<typeof PopoverContent>,
+  "side" | "align" | "sideOffset"
+>;
 
 export const FormPopover = ({
   children,
@@ -36,6 +45,7 @@ export const FormPopover = ({
   const openProModal = useProModalStore((state) => state.open);
   const router = useRouter();
   const closeRef = useRef<ComponentRef<"button">>(null);
+  const [title, setTitle] = useState("");
   const [selectedImage, setSelectedImage] = useState<BoardImageInput>();
 
   const { execute, fieldErrors } = useAction(createBoard, {
@@ -64,14 +74,15 @@ export const FormPopover = ({
   // FormPicker unmounts on close and refetches new images, so a kept selection
   // would be submitted without any check mark to show it.
   const handleOpenChange = (open: boolean) => {
-    if (!open) setSelectedImage(undefined);
+    if (!open) {
+      setSelectedImage(undefined);
+      setTitle("");
+    }
   };
 
-  const handleSubmit = (formData: FormData) => {
-    const title = formData.get("title");
-
+  const handleSubmit = () => {
     execute({
-      title: typeof title === "string" ? title : "",
+      title,
       // Sent unchecked so an empty picker fails in the schema as "Missing Image".
       image: selectedImage as BoardImageInput,
     });
@@ -107,12 +118,13 @@ export const FormPopover = ({
               onSelect={handleSelectImage}
               errors={fieldErrors}
             />
-            {/* TODO: title clears after invalid submit — controlled title after failing test; see vitest backlog p2-form-popover-controlled-title */}
             <FormInput
               id="title"
               label="Board title"
               type="text"
               errors={fieldErrors}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
             />
           </div>
           <FormSubmit className="w-full">Create</FormSubmit>

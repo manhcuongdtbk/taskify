@@ -534,6 +534,54 @@ const nodeEnvViaLibEnvRestrictions = [
   },
 ];
 
+/**
+ * SkeletonStatus + section/item compounds — docs/conventions.md
+ * (section vs item skeletons).
+ * - Hand-rolled `aria-label="Loading …"` → use SkeletonStatus
+ * - `Foo.Skeleton` must wrap SkeletonStatus (section landmark)
+ * - `Foo.SkeletonItem` must not wrap SkeletonStatus (row placeholder)
+ * - `<SkeletonStatus>` only inside a `Foo.Skeleton =` assignment
+ */
+const skeletonStatusLabelMessage =
+  "Use <SkeletonStatus heading={…}> from @/components/skeleton-status for loading-region labels (share `heading` with the section title when one exists). See docs/conventions.md.";
+
+const skeletonCompoundFunction =
+  "AssignmentExpression[left.property.name='$NAME'][right.type=/^(FunctionExpression|ArrowFunctionExpression)$/]";
+
+const skeletonStatusLabelRestrictions = [
+  {
+    selector:
+      'JSXAttribute[name.name="aria-label"] > Literal[value=/^Loading /]',
+    message: skeletonStatusLabelMessage,
+  },
+  {
+    selector:
+      'JSXAttribute[name.name="aria-label"] > JSXExpressionContainer > Literal[value=/^Loading /]',
+    message: skeletonStatusLabelMessage,
+  },
+  {
+    selector:
+      'JSXAttribute[name.name="aria-label"] > JSXExpressionContainer > TemplateLiteral[quasis.0.value.raw=/^Loading /]',
+    message: skeletonStatusLabelMessage,
+  },
+  {
+    selector: `${skeletonCompoundFunction.replace("$NAME", "Skeleton")}:not(:has(JSXOpeningElement[name.name='SkeletonStatus']))`,
+    message:
+      "Section compound `Foo.Skeleton` must wrap content in <SkeletonStatus heading={…}>. For bare row placeholders use `Foo.SkeletonItem` instead. See docs/conventions.md.",
+  },
+  {
+    selector: `${skeletonCompoundFunction.replace("$NAME", "SkeletonItem")}:has(JSXOpeningElement[name.name='SkeletonStatus'])`,
+    message:
+      "Item compound `Foo.SkeletonItem` must stay a bare row placeholder — do not wrap <SkeletonStatus> (parent `Foo.Skeleton` owns the landmark). See docs/conventions.md.",
+  },
+  {
+    selector:
+      "JSXOpeningElement[name.name='SkeletonStatus']:not(AssignmentExpression[left.property.name='Skeleton'] JSXOpeningElement)",
+    message:
+      "Use <SkeletonStatus> only inside a section compound `Foo.Skeleton = …` (not inline in load branches or item skeletons). See docs/conventions.md.",
+  },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -568,6 +616,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
       ],
     },
   },
@@ -584,6 +633,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
     },
@@ -601,6 +651,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
       ],
@@ -626,6 +677,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -671,6 +723,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
         ...zustandCreateStoreRequiredRestrictions,
@@ -708,6 +761,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
     },
@@ -724,6 +778,7 @@ const eslintConfig = defineConfig([
         ...eventHandlerNamingRestrictions,
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -767,6 +822,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,

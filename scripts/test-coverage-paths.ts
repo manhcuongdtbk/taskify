@@ -173,13 +173,18 @@ for (const { source, test } of pairs) {
   console.error(`Coverage: ${source} ← ${test}`);
 }
 
+/** Vitest `--coverage.include` is a glob; escape `[]` and `()` in real paths. */
+function escapeCoverageInclude(path: string): string {
+  return path.replace(/[()[\]]/g, "\\$&");
+}
+
 const vitestArgs = [
   "exec",
   "vitest",
   "run",
   "--coverage",
   ...pairs.map((p) => p.test),
-  ...pairs.map((p) => `--coverage.include=${p.source}`),
+  ...pairs.map((p) => `--coverage.include=${escapeCoverageInclude(p.source)}`),
 ];
 
 const result = spawnSync("pnpm", vitestArgs, {

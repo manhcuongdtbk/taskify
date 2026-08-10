@@ -1,12 +1,8 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { fetcher } from "./fetcher";
 
 describe("fetcher", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   test("returns the parsed JSON body for an ok response", async () => {
     const json = vi.fn().mockResolvedValue({ id: "card_1" });
     const fetchMock = vi.fn().mockResolvedValue({

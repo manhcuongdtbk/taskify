@@ -54,7 +54,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
   });
 
   useEffect(() => {
-    // TODO: Implement optimistic update
+    // TODO: true optimistic UI (`useOptimistic`) while dragging — docs/data.md
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOrderedData(data);
   }, [data]);

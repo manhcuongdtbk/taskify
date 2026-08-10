@@ -20,6 +20,11 @@ export default defineConfig({
     ],
     // Mock/assert hygiene — rationale: docs/testing.md
     restoreMocks: true,
+    // `restoreMocks` does not clear/reset `vi.fn()` history or implementations
+    mockReset: true,
+    // `restoreMocks` does not undo stubGlobal / stubEnv
+    unstubGlobals: true,
+    unstubEnvs: true,
     expect: {
       requireAssertions: true,
     },

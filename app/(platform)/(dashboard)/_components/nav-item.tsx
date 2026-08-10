@@ -104,7 +104,9 @@ export const NavItem = ({
   );
 };
 
-NavItem.Skeleton = function NavItemSkeleton() {
+// Item / row skeleton — no SkeletonStatus. Parent section owns the landmark
+// (e.g. DashboardSidebar.Skeleton). docs/conventions.md
+NavItem.SkeletonItem = function NavItemSkeletonItem() {
   return (
     <div className="flex items-center gap-x-2">
       <div className="relative h-10 w-10 shrink-0">

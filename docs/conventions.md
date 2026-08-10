@@ -211,19 +211,31 @@ A `ref` is a **handle** to a rendered DOM node (or a child that forwards to one)
 
 **Why `ref?` (optional):** Same as with old `forwardRef`. React’s `RefAttributes` types `ref` as optional — most callers never need a handle. Only parents that focus/measure pass one (e.g. list → card form). Do not make `ref` required.
 
-**Typing the prop** (pick one style and stay consistent in the file):
+**Typing the prop** — prefer React’s host types via `Pick` / `ComponentProps` when forwarding; only hand-write a narrower type when the API is intentionally custom:
 
-| Situation                                   | Prefer                                                                                                                |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Custom props + forward to a known host node | `ref?: Ref<HTMLInputElement>` or `ref?: Ref<ComponentRef<"input">>` (same idea; DOM type is clearer when you’re sure) |
-| Forward to a specific component             | `ref?: Ref<ComponentRef<typeof Input>>`                                                                               |
-| Inherit / wrap a host element’s full props  | `ComponentProps<"input">` / `ComponentPropsWithRef<"input">` — not needed just to add a single `ref` field            |
+| Situation                                                     | Prefer                                                                                                                                               |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Forward host props as-is (`ref`, `onBlur`, `placeholder`, …)  | `Pick<ComponentProps<"input">, "ref" \| "onBlur" \| …>` (or a wider `ComponentProps` / `ComponentPropsWithRef` when wrapping the full element)       |
+| Forward props from a child component (e.g. `Button` variants) | `Pick<ComponentProps<typeof Button>, "disabled" \| "variant" \| …>`                                                                                  |
+| Intentionally custom handler / value shape                    | Explicit type (e.g. controlled `value` + required `onChange` pair)                                                                                   |
+| Forward to a specific component’s DOM node type in app code   | `ComponentRef<typeof Input>` / `ComponentRef<"input">` when you need the node type itself (e.g. `useRef`), not when declaring a forwarded `ref` prop |
 
-Do **not** reach for `ComponentPropsWithRef` only to type `ref` on a hand-written props interface — declare `ref?: Ref<…>` explicitly.
+Do **not** invent `Ref<HTMLInputElement>` / `FocusEventHandler<…>` by hand when `Pick<ComponentProps<"…">, …>` already matches the host. Custom narrower types are for real API constraints, not preference.
+
+##### Base UI `render` wrappers (`children` → Trigger `render`)
+
+Product wrappers that take a trigger as JSX **`children`** and pass it to a Base UI Trigger’s **`render`** (Base UI’s equivalent of Radix `asChild`):
+
+- Keep the public prop name **`children`** (call sites stay `<FormPopover><Button /></FormPopover>`). Wire internally as `render={children}`.
+- Type `children` from the Trigger: `Extract<ComponentProps<typeof PopoverTrigger>["render"], ReactElement>` (same idea for `TooltipTrigger`, …). Base UI’s `render` is `ReactElement | RenderFn | undefined`; these wrappers require a trigger and stay **element-only** (JSX) until a real call site needs a render function — then widen to `NonNullable<…["render"]>`.
+- Position / content props: `Pick<ComponentProps<typeof PopoverContent>, "side" | "align" | "sideOffset">` (or the matching Content for that primitive).
+- Keep the props type **file-local** next to the wrapper. Do **not** add a shared root alias (e.g. a global `BaseUIRenderForwardingProps`) — each Trigger/Content pair documents itself.
+
+Examples: [`form-popover.tsx`](../components/form/form-popover.tsx), [`hint.tsx`](../components/hint.tsx).
 
 **Forwarding chain** (custom components are not DOM nodes — each hop must pass `ref` until a host element):
 
-1. Parent owns the box: `const textareaRef = useRef<HTMLTextAreaElement>(null)` then `<CardForm ref={textareaRef} />` and later `textareaRef.current?.focus()`.
+1. Parent owns the box: `const textareaRef = useRef<ComponentRef<"textarea">>(null)` then `<CardForm ref={textareaRef} />` and later `textareaRef.current?.focus()`.
 2. Middle child accepts `ref` on props and passes it: `<FormTextarea ref={ref} />`.
 3. Inner child puts it on the real node: `<Textarea ref={ref} />` → `<textarea>`.
 
@@ -330,14 +342,33 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
 **Compound on the same binding** (still one named export)
 
 ```ts
-export const CardModalHeader = (/* … */) => {
-  /* … */
+const heading = "Activity";
+
+export const CardModalActivity = (/* … */) => {
+  /* … {heading} … */
 };
-CardModalHeader.Skeleton = function HeaderSkeleton() {
-  /* … */
+CardModalActivity.Skeleton = function ActivitySkeleton() {
+  return (
+    <SkeletonStatus heading={heading} className="…">
+      {/* pulse placeholders */}
+    </SkeletonStatus>
+  );
 };
-// usage: <CardModalHeader.Skeleton />
+// usage: <CardModalActivity.Skeleton />
 ```
+
+**Section vs item skeletons** (one `role="status"` per loading **region**):
+
+| Kind           | Compound           | Owns [`SkeletonStatus`](../components/skeleton-status.tsx)?                                        | Example                                                                         |
+| -------------- | ------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Section**    | `Foo.Skeleton`     | Yes — shared `heading` with the loaded title when one exists (`aria-label` → `Loading ${heading}`) | `BoardList.Skeleton`, `CardModalActivity.Skeleton`, `DashboardSidebar.Skeleton` |
+| **Item / row** | `Foo.SkeletonItem` | No — bare placeholder, safe to repeat                                                              | `NavItem.SkeletonItem`                                                          |
+
+Prefer a parent section `.Skeleton` over wrapping `SkeletonStatus` inline in an `if (!ready)` branch. No static title (e.g. header chrome) → still `SkeletonStatus`, with a short region name as `heading`. Keep `SkeletonStatus` under shared app `components/` — not [`components/ui/`](./project-structure.md) (shadcn-only).
+
+**Do not** make one binding silently serve both roles. Use `.Skeleton` vs `.SkeletonItem` instead of an optional `heading` flag. A one-item region is still a parent `.Skeleton` (or, only if you must, a one-off section compound) wrapping one `.SkeletonItem`.
+
+**Enforced** (ESLint `no-restricted-syntax` in [`eslint.config.mjs`](../eslint.config.mjs)): hand-rolled `aria-label="Loading …"`; `.Skeleton` without `SkeletonStatus`; `.SkeletonItem` with `SkeletonStatus`; `<SkeletonStatus>` outside a `.Skeleton` assignment.
 
 **Folder-colocated unit tests** (Vitest — see [`testing.md`](./testing.md)). Prefer next to the module, not `__tests__/`, `tests/`, or root `test/` ([`project-structure.md`](./project-structure.md)):
 
@@ -399,32 +430,32 @@ components/form/
 
 ##### Cheat sheet
 
-| Situation                                         | Do                                                                                                    |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                                                          |
-| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`                                           |
-| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`                                       |
-| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                                                     |
-| Types imported by actions / callers               | `actions/…/types.ts`                                                                                  |
-| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file)                             |
-| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                                                   |
-| Second UI under the same component                | `.Skeleton` (etc.) on the export                                                                      |
-| Unit / component test                             | Colocate `*.test.ts` / `*.test.tsx` matching the source; props inline; don’t export props “for tests” |
-| E2E                                               | `e2e/`, not next to every UI file                                                                     |
+| Situation                                         | Do                                                                                                                                      |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                                                                                            |
+| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`                                                                             |
+| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`                                                                         |
+| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                                                                                       |
+| Types imported by actions / callers               | `actions/…/types.ts`                                                                                                                    |
+| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file)                                                               |
+| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                                                                                     |
+| Second UI under the same component                | `.Skeleton` (section + `SkeletonStatus`) or `.SkeletonItem` (bare row); see [section vs item skeletons](#colocation-and-public-exports) |
+| Unit / component test                             | Colocate `*.test.ts` / `*.test.tsx` matching the source; props inline; don’t export props “for tests”                                   |
+| E2E                                               | `e2e/`, not next to every UI file                                                                                                       |
 
 ##### Enforcement status (colocation & companions)
 
-| Rule                                                                                                                                    | Status                                                           |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| No `export type` / `export interface` in app UI component files (`components/**`, `app/**/_components/**`; not `ui/`; not `*.types.ts`) | **Enforced** (ESLint)                                            |
-| Export keyword shape / `memo` identifier-only / no `forwardRef` (ref-as-prop) / filename ↔ export / `Form*` / generics denylist         | **Enforced** (ESLint) — see above                                |
-| Action folder shape (`actions/<name>/` bare `index.ts` + `schema.ts` + `types.ts`)                                                      | **Docs only** — candidate for a `lint:routes`-style script later |
-| Colocated `*.test.tsx` / `*.stories.tsx` must sit next to the primary module                                                            | **Docs only** — add checks when Vitest / Storybook land          |
-| Mid-suffix allowlist (forbid inventing `*.foo.tsx`)                                                                                     | **Docs only**                                                    |
-| Feature-folder migration when triggers fire                                                                                             | **Docs only** ([`project-structure.md`](./project-structure.md)) |
-| Create `*.types.ts` only when a real importer exists                                                                                    | **Docs only** (judgment)                                         |
-| `index.tsx` export named after parent folder                                                                                            | **Docs only** (plugin skips `index.*`)                           |
-| Full path→name mirroring for `_components`; global symbol uniqueness                                                                    | **Not enforced**                                                 |
+| Rule                                                                                                                            | Status                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Hand-rolled `aria-label="Loading …"`; `.Skeleton` / `.SkeletonItem` / inline `SkeletonStatus` (section vs item)                 | **Enforced** (ESLint)                                            |
+| Export keyword shape / `memo` identifier-only / no `forwardRef` (ref-as-prop) / filename ↔ export / `Form*` / generics denylist | **Enforced** (ESLint) — see above                                |
+| Action folder shape (`actions/<name>/` bare `index.ts` + `schema.ts` + `types.ts`)                                              | **Docs only** — candidate for a `lint:routes`-style script later |
+| Colocated `*.test.tsx` / `*.stories.tsx` must sit next to the primary module                                                    | **Docs only** — add checks when Vitest / Storybook land          |
+| Mid-suffix allowlist (forbid inventing `*.foo.tsx`)                                                                             | **Docs only**                                                    |
+| Feature-folder migration when triggers fire                                                                                     | **Docs only** ([`project-structure.md`](./project-structure.md)) |
+| Create `*.types.ts` only when a real importer exists                                                                            | **Docs only** (judgment)                                         |
+| `index.tsx` export named after parent folder                                                                                    | **Docs only** (plugin skips `index.*`)                           |
+| Full path→name mirroring for `_components`; global symbol uniqueness                                                            | **Not enforced**                                                 |
 
 ### React / UI
 
@@ -436,6 +467,7 @@ components/form/
 | `"use client"` only where client APIs are required                                                                                                                          | Adopted                             | [React Server Components](https://react.dev/reference/rsc/server-components) · [Next.js Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)                                                                                                                                                                                                                                                                          |
 | Shared providers under top-level **`providers/`** (Query, Clerk, theme, modal mount, …)                                                                                     | Adopted                             | App wiring/injection — not product UI under `components/`. Don’t use Context for Zustand-owned UI flags — [`client-ui-state.md`](./client-ui-state.md#one-tool-per-job-zustand--context)                                                                                                                                                                                                                                                                      |
 | shadcn primitives only under `components/ui/`                                                                                                                               | Adopted (repo rule on top of habit) | [shadcn/ui docs](https://ui.shadcn.com/docs) · [project-structure](./project-structure.md)                                                                                                                                                                                                                                                                                                                                                                    |
+| Base UI Trigger wrappers: public **`children`** → `render={children}`; type via `Extract<…["render"], ReactElement>` + `Pick` Content props; file-local (no shared alias)   | Adopted                             | [Base UI `render` wrappers](#base-ui-render-wrappers-children--trigger-render) · examples: `form-popover.tsx`, `hint.tsx`                                                                                                                                                                                                                                                                                                                                     |
 | Error boundaries for recoverable client UI failures                                                                                                                         | When needed                         | [React: Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary) · Next [`error.js`](https://nextjs.org/docs/app/api-reference/file-conventions/error)                                                                                                                                                                                                                                                 |
 | Client data cache via **TanStack Query** (`QueryProvider`, `useQuery`, `lib/api/*` factories)                                                                               | Adopted                             | [TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview). **When / why / newcomers:** [`data.md`](./data.md#tanstack-query-client-only). Paths: [`lib/api/`](../lib/api/) ≠ [`app/api/`](../app/api/). Avoid SWR; Query is **HTTP-client agnostic** ([query functions](https://tanstack.com/query/latest/docs/framework/react/guides/query-functions))                                                                               |
 | Query + transport defaults (docs / community)                                                                                                                               | Adopted / When needed               | **REST / JSON:** Web `fetch` via `lib/fetcher.ts` (**Adopted**) — throw on `!res.ok`. **GraphQL:** [`graphql-request`](https://www.npmjs.com/package/graphql-request) as in [TanStack GraphQL guide](https://tanstack.com/query/latest/docs/framework/react/graphql) (**When needed** — only if we adopt GraphQL). **Mocks:** [MSW](https://mswjs.io) with Query (**When needed**) — [`testing.md`](./testing.md). Prefer these over inventing a fourth stack |
@@ -445,7 +477,7 @@ components/form/
 | **SWR** as a second client-fetch library                                                                                                                                    | Avoid here                          | Same job as TanStack Query ([SWR](https://swr.vercel.app) vs [Query](https://tanstack.com/query)); don’t add both                                                                                                                                                                                                                                                                                                                                             |
 | Client UI state with **Zustand** (modals, sidebars, …); **multiple small stores** (not one Redux-style store); **domain-verb actions** + **slice selectors** + **devtools** | Adopted                             | Map: [`client-ui-state.md`](./client-ui-state.md) ([stores vs slices](./client-ui-state.md#stores-vs-slices-not-redux-default)). Providers = injection only. No Redux/Jotai alongside                                                                                                                                                                                                                                                                         |
 | URL state: Next **`searchParams`** first; **nuqs** when filters/tabs get painful                                                                                            | When needed                         | [Next.js `searchParams`](https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional) · [nuqs](https://nuqs.47ng.com) — don’t invent a third URL-state lib                                                                                                                                                                                                                                                                          |
-| Optimistic UI for mutations                                                                                                                                                 | When needed                         | Prefer React [`useOptimistic`](https://react.dev/reference/react/useOptimistic) + Server Actions; TanStack Query optimistic updates only where Query already owns the cache                                                                                                                                                                                                                                                                                   |
+| Optimistic UI for mutations                                                                                                                                                 | When needed                         | **True** optimistic (before Action finishes): React [`useOptimistic`](https://react.dev/reference/react/useOptimistic) + Server Actions. **Confirmed local mirror** (after success, before RSC props catch up): plain `setState` from Action `data` — teach + examples: [`data.md`](./data.md). Query optimistic only where Query already owns the cache                                                                                                      |
 | Internationalization with **next-intl** (when we ship a second locale)                                                                                                      | When needed                         | Prefer [next-intl](https://next-intl.dev) for App Router over next-i18next / ad-hoc — [Next.js i18n routing](https://nextjs.org/docs/app/guides/internationalization)                                                                                                                                                                                                                                                                                         |
 | Storybook for isolated UI                                                                                                                                                   | When needed                         | SoT: [`testing.md` → Storybook](./testing.md#storybook-when-needed) — catalog/workshop only; prefer [Storybook](https://storybook.js.org) over Ladle/Histoire                                                                                                                                                                                                                                                                                                 |
 | Feature flags: **Vercel Flags** first on this host; third-party (LaunchDarkly, …) only if we outgrow it                                                                     | When needed                         | [Vercel Flags](https://vercel.com/docs/feature-flags) · don’t run two flag systems                                                                                                                                                                                                                                                                                                                                                                            |
@@ -458,7 +490,7 @@ components/form/
 | Prefer **`unknown` over `any`** for values you have not narrowed; avoid `any` for throwaway casts              | Adopted     | [`unknown`](https://www.typescriptlang.org/docs/handbook/2/functions.html#unknown) forces narrowing; [`any`](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#any) disables checking. Test-only arity casts (e.g. invoking TanStack `queryFn` without a client): [`testing.md`](./testing.md)                                                                                                                                                                    |
 | Prefer **es-toolkit** for shared JS utilities it already provides; don’t invent one-off helpers or add Lodash  | Adopted     | [es-toolkit](https://es-toolkit.dev) (already in `package.json`). Array/object/string/function/promise helpers → check the [reference](https://es-toolkit.dev/reference/array/uniq) (or repo skill `recommend`) before writing `uniq` / `compact` / `debounce` / case transforms / etc. Domain helpers in `lib/` (`cn`, Prisma client, …) stay. Don’t add Lodash/Underscore beside it (ESLint `no-restricted-imports`). Trivial one-liners that are clearer as native JS are fine. |
 | Validate **boundaries** (forms, Server Actions, webhooks) with a schema lib (Zod here)                         | Adopted     | [Zod](https://zod.dev) · common “parse at the edge” habit · **user-facing copy:** [Action validation messages](#action-validation-messages-zod)                                                                                                                                                                                                                                                                                                                                    |
-| Co-locate types with the module that owns them; avoid a giant dumping-ground `types/` unless it earns its keep | Adopted     | Common TS habit; this repo also has a root `types.ts` for a few shared shapes — don’t grow it blindly                                                                                                                                                                                                                                                                                                                                                                              |
+| Co-locate types with the module that owns them; avoid a giant dumping-ground `types/` unless it earns its keep | Adopted     | Common TS habit; root `types.ts` is for a few **domain** shapes (`ListWithCards`, …) — don’t park UI wrapper props there                                                                                                                                                                                                                                                                                                                                                           |
 | Sibling **`*.types.ts`** / `actions/<name>/types.ts` when another file must `import type`                      | When needed | Default stays local unexported props on the component. Split only when a real importer exists — see [When sibling types files are needed](#when-sibling-types-files-are-needed)                                                                                                                                                                                                                                                                                                    |
 | Path alias `@/` → repo root                                                                                    | Adopted     | [Next.js Absolute Imports](https://nextjs.org/docs/app/getting-started/installation#set-up-absolute-imports-and-module-path-aliases)                                                                                                                                                                                                                                                                                                                                               |
 | Shared `schemas/` when the same Zod types are imported across many features                                    | When needed | Same as folder catalog — extract only after duplication hurts                                                                                                                                                                                                                                                                                                                                                                                                                      |

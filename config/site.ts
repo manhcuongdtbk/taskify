@@ -11,3 +11,11 @@ export const siteConfig = {
   description:
     "Collaborate, manage projects, and reach new productivity peaks.",
 };
+
+const brandSlug = siteConfig.name.toLowerCase();
+
+/** localStorage keys prefixed with the product slug — keep brand renames in one place. */
+export const siteLocalStorageKeys = {
+  sidebarExpanded: `${brandSlug}-sidebar-expanded`,
+  mobileSidebarExpanded: `${brandSlug}-mobile-sidebar-expanded`,
+} as const;

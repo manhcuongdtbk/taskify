@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAvailableCount } from "@/lib/organization-limit";
 import {
@@ -83,7 +84,10 @@ export const BoardList = async () => {
 
 BoardList.Skeleton = function BoardListSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    <SkeletonStatus
+      heading="boards"
+      className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+    >
       <Skeleton className="aspect-video h-full w-full p-2" />
       <Skeleton className="aspect-video h-full w-full p-2" />
       <Skeleton className="aspect-video h-full w-full p-2" />
@@ -92,6 +96,6 @@ BoardList.Skeleton = function BoardListSkeleton() {
       <Skeleton className="aspect-video h-full w-full p-2" />
       <Skeleton className="aspect-video h-full w-full p-2" />
       <Skeleton className="aspect-video h-full w-full p-2" />
-    </div>
+    </SkeletonStatus>
   );
 };

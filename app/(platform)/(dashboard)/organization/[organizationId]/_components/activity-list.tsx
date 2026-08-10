@@ -1,4 +1,5 @@
 import { ActivityItem } from "@/components/activity-item";
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
@@ -35,12 +36,12 @@ export const ActivityList = async () => {
 
 ActivityList.Skeleton = function ActivityListSkeleton() {
   return (
-    <ol className="mt-4 space-y-4">
+    <SkeletonStatus heading="activity" className="mt-4 space-y-4">
       <Skeleton className="h-14 w-[80%]" />
       <Skeleton className="h-14 w-[50%]" />
       <Skeleton className="h-14 w-[70%]" />
       <Skeleton className="h-14 w-[80%]" />
       <Skeleton className="h-14 w-[75%]" />
-    </ol>
+    </SkeletonStatus>
   );
 };

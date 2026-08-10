@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type CardWithList } from "@/types";
 import { Copy, Trash } from "lucide-react";
@@ -10,6 +11,8 @@ import { deleteCard } from "@/actions/delete-card";
 import { useParams } from "next/navigation";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
 import { toast } from "@/components/ui/toast";
+
+const heading = "Actions";
 
 interface CardModalActionsProps {
   data: CardWithList;
@@ -70,7 +73,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
 
   return (
     <div className="mt-2 space-y-2">
-      <p className="text-sm font-semibold">Actions</p>
+      <p className="text-sm font-semibold">{heading}</p>
       <Button
         variant="secondary"
         className="w-full justify-start"
@@ -97,10 +100,10 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
 
 CardModalActions.Skeleton = function ActionsSkeleton() {
   return (
-    <div className="mt-2 space-y-2">
+    <SkeletonStatus heading={heading} className="mt-2 space-y-2">
       <Skeleton className="h-4 w-20 bg-neutral-200" />
       <Skeleton className="h-8 w-full bg-neutral-200" />
       <Skeleton className="h-8 w-full bg-neutral-200" />
-    </div>
+    </SkeletonStatus>
   );
 };
