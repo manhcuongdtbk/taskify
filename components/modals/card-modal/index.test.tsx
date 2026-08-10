@@ -1,7 +1,10 @@
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
+import {
+  cardAuditLogFactory,
+  cardWithListFactory,
+} from "@/lib/testing/factories/card";
 import {
   cardDetailOk,
   cardDetailPending,
@@ -13,7 +16,6 @@ import {
 import { server } from "@/lib/testing/msw/server";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
-import { type CardWithList } from "@/types";
 
 vi.mock("./card-modal-header", () => {
   const Skeleton = () => <div data-testid="card-header-skeleton" />;
@@ -61,37 +63,8 @@ vi.mock("./card-modal-activity", () => {
 
 import { CardModal } from "./index";
 
-const card: CardWithList = {
-  id: "card_1",
-  title: "Ship P3",
-  description: null,
-  order: 0,
-  listId: "list_1",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
-  list: {
-    id: "list_1",
-    title: "Todo",
-    order: 0,
-    boardId: "board_1",
-    createdAt: new Date("2026-01-01"),
-    updatedAt: new Date("2026-01-01"),
-  },
-};
-
-const log = {
-  id: "log_1",
-  orgId: "org_1",
-  action: ACTION.CREATE,
-  entityId: "card_1",
-  entityType: ENTITY_TYPE.CARD,
-  entityTitle: "Ship P3",
-  userId: "user_1",
-  userImage: "https://example.com/avatar.png",
-  userName: "Ada Lovelace",
-  createdAt: new Date("2026-01-15T10:30:00.000Z"),
-  updatedAt: new Date("2026-01-15T10:30:00.000Z"),
-};
+const card = cardWithListFactory.build();
+const log = cardAuditLogFactory.build();
 
 describe("CardModal", () => {
   beforeEach(() => {
@@ -114,7 +87,7 @@ describe("CardModal", () => {
     renderWithQuery(<CardModal />);
 
     expect(await screen.findByTestId("card-header")).toHaveTextContent(
-      "Ship P3",
+      "Ship P2",
     );
     expect(screen.getByTestId("card-description")).toHaveTextContent("card_1");
     expect(screen.getByTestId("card-actions")).toHaveTextContent("card_1");

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { cardWithListFactory } from "@/lib/testing/factories/card";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
 
 const copyCard = vi.hoisted(() => vi.fn());
@@ -26,23 +27,7 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { CardModalActions } from "./card-modal-actions";
 
-const card = {
-  id: "card_1",
-  title: "Ship P2",
-  description: null,
-  order: 0,
-  listId: "list_1",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
-  list: {
-    id: "list_1",
-    title: "Todo",
-    order: 0,
-    boardId: "board_1",
-    createdAt: new Date("2026-01-01"),
-    updatedAt: new Date("2026-01-01"),
-  },
-};
+const card = cardWithListFactory.build();
 
 describe("CardModalActions", () => {
   beforeEach(() => {

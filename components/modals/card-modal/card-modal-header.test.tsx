@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/api/card";
+import { cardWithListFactory } from "@/lib/testing/factories/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
 const updateCard = vi.hoisted(() => vi.fn());
@@ -22,23 +23,7 @@ vi.mock("next/navigation", () => ({
 
 import { CardModalHeader } from "./card-modal-header";
 
-const card = {
-  id: "card_1",
-  title: "Ship P2",
-  description: null,
-  order: 0,
-  listId: "list_1",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
-  list: {
-    id: "list_1",
-    title: "Todo",
-    order: 0,
-    boardId: "board_1",
-    createdAt: new Date("2026-01-01"),
-    updatedAt: new Date("2026-01-01"),
-  },
-};
+const card = cardWithListFactory.build();
 
 describe("CardModalHeader", () => {
   test("submits a changed title to updateCard", async () => {
