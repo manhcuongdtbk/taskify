@@ -749,6 +749,14 @@ const eslintConfig = defineConfig([
     },
   },
 
+  // Vitest setup may import MSW server from lib/testing (same test-only surface).
+  {
+    files: ["vitest.setup.ts"],
+    rules: {
+      ...noForwardRefImportAllowTestOnly,
+    },
+  },
+
   // Sole `as Route` cast site: enforce export style here, but do not ban casts.
   {
     files: ["lib/paths.ts"],

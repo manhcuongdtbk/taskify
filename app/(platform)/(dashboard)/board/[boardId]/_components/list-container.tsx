@@ -112,6 +112,8 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
 
       // moving the card in the same list
       if (source.droppableId === destination.droppableId) {
+        if (sourceList.cards.length === 0) return;
+
         const reorderedCards = reorder(
           sourceList.cards,
           source.index,
@@ -133,6 +135,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
       } else {
         // remove card from the source list
         const [movedCard] = sourceList.cards.splice(source.index, 1);
+        if (!movedCard) return;
 
         // assign the new listId to the moved card
         movedCard.listId = destination.droppableId;

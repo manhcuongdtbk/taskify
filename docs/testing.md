@@ -154,11 +154,11 @@ test("submits on click", async () => {
 
 Helpers that exist **only** to serve suites live in [`lib/testing/`](../lib/testing/) — not loose in `lib/`, where they read like shipped app code.
 
-- **Import from suites only.** ESLint `no-restricted-imports` bans `@/lib/testing/**` everywhere except `**/*.test.{ts,tsx}` (`lib/testing/**` may import its own siblings) — [`eslint.config.mjs`](../eslint.config.mjs).
+- **Import from suites and Vitest setup only.** ESLint `no-restricted-imports` bans `@/lib/testing/**` everywhere except `**/*.test.{ts,tsx}`, `lib/testing/**` (siblings), and [`vitest.setup.ts`](../vitest.setup.ts) (MSW lifecycle) — [`eslint.config.mjs`](../eslint.config.mjs).
 - **Group by concern.** Nest under a library/domain folder when the helper is tied to one stack (e.g. [`lib/testing/zod/`](../lib/testing/zod/) for Zod `safeParse` helpers, [`lib/testing/tanstack-query/`](../lib/testing/tanstack-query/) for Query render wrappers). Keep the `lib/testing/` root for truly cross-cutting helpers — don’t invent empty sibling folders early.
 - **Cover executable helper logic.** `lib/testing/**` stays in [`vitest.config.mts`](../vitest.config.mts) coverage; test-only location controls imports, not whether branches deserve verification.
 - **Still Vitest-tested.** Each helper keeps a colocated `*.test.ts` (same colocation rule as everywhere else).
-- **Add one only when a pattern repeats.** Today: [`safe-parse-field-errors.ts`](../lib/testing/zod/safe-parse-field-errors.ts) (narrow a failed Zod `safeParse` → `fieldErrors`), [`default-issue-messages.ts`](../lib/testing/zod/default-issue-messages.ts) (Zod English default **issue messages** derived from a failed parse, so schema suites don’t hardcode copy), [`get-mock-result.ts`](../lib/testing/unsplash/get-mock-result.ts) (`UnsplashGetMockResult` + network-error payload for mocked `unsplash.GET`), [`next/image.tsx`](../lib/testing/next/image.tsx) (plain `<img>` drop-in — `vi.mock("next/image", () => import("@/lib/testing/next/image"))`), and [`tanstack-query/render-with-query.tsx`](../lib/testing/tanstack-query/render-with-query.tsx) (`QueryClientProvider` + `invalidateQueries` spy). Prefer plain code in the suite until repetition is real.
+- **Add one only when a pattern repeats.** Today: [`safe-parse-field-errors.ts`](../lib/testing/zod/safe-parse-field-errors.ts) (narrow a failed Zod `safeParse` → `fieldErrors`), [`default-issue-messages.ts`](../lib/testing/zod/default-issue-messages.ts) (Zod English default **issue messages** derived from a failed parse, so schema suites don’t hardcode copy), [`get-mock-result.ts`](../lib/testing/unsplash/get-mock-result.ts) (`UnsplashGetMockResult` + network-error payload for mocked `unsplash.GET`), [`next/image.tsx`](../lib/testing/next/image.tsx) (plain `<img>` drop-in — `vi.mock("next/image", () => import("@/lib/testing/next/image"))`), [`tanstack-query/render-with-query.tsx`](../lib/testing/tanstack-query/render-with-query.tsx) (`QueryClientProvider` + `invalidateQueries` spy), and [`msw/`](../lib/testing/msw/) (`setupServer` + card HTTP handler helpers; lifecycle in [`vitest.setup.ts`](../vitest.setup.ts) — not a top-level `mocks/` folder). Prefer plain code in the suite until repetition is real.
 - **Zod default issue-message names** ([`default-issue-messages.ts`](../lib/testing/zod/default-issue-messages.ts)): `{issueCodeInCamelCase}{ExpectedKind}` — camelCase of Zod’s issue `code`, then the expected type/format (e.g. `invalid_type` + string → `invalidTypeString`; `too_small` + string → `tooSmallString`; `invalid_format` + url → `invalidFormatUrl`). JSDoc cites the Zod `code`. Don’t invent parallel terms like “missing” when Zod says `invalid_type`.
 - **`invalid_type` vs “missing”.** Zod has no separate missing-field issue. Omitting a required key (or passing `undefined`) is still `invalid_type`, with an issue message like `… received undefined`. That is what `invalidTypeString` / `invalidTypeNumber` / … capture. The same `code` applies when the value is present but the wrong type (`… received number`, etc.) — **same code, different issue message** — so those helpers must not be used for wrong-type cases.
 - **Not a suite folder.** `lib/testing/` holds helpers; cases stay colocated with the module under test ([`project-structure.md`](./project-structure.md)).
@@ -410,10 +410,10 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 ## TODO
 
 - [x] First colocated suite(s) — pure `lib/` helpers + Zod `actions/*/schema.ts` (P0).
-- [x] Mocked I/O / stores / `use-action` / first Prisma Client mock (`create-audit-log`) (P1). Remaining Vitest backlog (P2 components, P3 MSW + reorder, P4 polish): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
+- [x] Mocked I/O / stores / `use-action` / first Prisma Client mock (`create-audit-log`) (P1). Remaining Vitest backlog (P4 polish): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
 - [x] Client component suites (jest-dom for DOM asserts; `userEvent.setup()` for interactions) — plan P2
 - [ ] Drop `vite-tsconfig-paths` for Vite native `resolve.tsconfigPaths` if the deprecation warning stays noisy
-- [ ] MSW when a Query-backed UI needs HTTP mocks — [`conventions.md`](./conventions.md) · plan P3
+- [x] MSW when a Query-backed UI needs HTTP mocks — [`lib/testing/msw/`](../lib/testing/msw/) + lifecycle in [`vitest.setup.ts`](../vitest.setup.ts) · [`conventions.md`](./conventions.md) · plan P3
 - [ ] Playwright for critical flows (auth, board, billing) — `e2e/*.spec.ts` only (never `*.test.*`; only E2E tool; no Cypress)
 - [ ] Storybook when [catalog triggers](#storybook-when-needed) pass — catalog/workshop only; colocated `*.stories.tsx` (not CI component-test owner unless [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) rewritten)
 - [ ] Revisit Vitest Browser Mode only if [triggers](#trigger-checklist-for-switching-the-component-default) fire — pilot jsdom vs Browser Mode before blanket switch; update decision record + config together
@@ -424,7 +424,7 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 
 ## Vitest backlog freeze & coverage ratchet
 
-**Hard rules while** [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md) **is unfinished** (P3–P4 still open):
+**Hard rules while** [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md) **is unfinished** (P4 still open):
 
 1. **No new product features** — no new user-facing capability, schema/API surface, or parallel “while we’re here” product work. Allowed:
    - Tests, test doubles, docs/plans
