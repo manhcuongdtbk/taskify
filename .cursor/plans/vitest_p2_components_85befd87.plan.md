@@ -1,6 +1,6 @@
 ---
 name: Vitest P2 components
-overview: "Implement backlog P2 as one branch/PR (same cadence as P0/P1): first real `*.test.tsx` component suites, TDD for FormPicker a11y + FormPopover controlled title, FormData `as string` cleanup after submit→execute tests, 100% peer coverage per suite, and overall coverage above the P1 ledger."
+overview: "Done — P2 component suites shipped on test/vitest-p2-components (PR #8). Keep this plan in-repo until the Vitest backlog is finished so P3+ can look back at *.test.tsx house style, FormPicker/FormPopover TDD, FormData cleanup, SkeletonStatus, and Vitest mock/stub hygiene."
 todos:
   - id: branch-p2
     content: Create test/vitest-p2-components from up-to-date main; write this plan file under .cursor/plans/
@@ -125,6 +125,18 @@ Drive editing UI with `userEvent` (enable edit / blur / FormSubmit click) as nee
 3. `pnpm test:coverage` All files stmts **> 27.27%**; branch/funcs/lines not below P1.
 4. Update backlog plan: mark P2 todos completed; fill P2 ledger row **only after merge** (same rule as P1). Mark [`docs/testing.md`](docs/testing.md) TODO “Client component suites” done when this PR lands.
 5. Self-review, push, open PR to `main`.
+
+**Merged:** [PR #8](https://github.com/manhcuongdtbk/taskify/pull/8). Ledger filled after merge on `main`.
+
+## What landed / patterns to reuse (P3+)
+
+Wave suites as planned, plus post-wave polish on the same branch:
+
+- [`SkeletonStatus`](../../components/skeleton-status.tsx) + **section** `.Skeleton` vs **item** `.SkeletonItem` (ESLint in [`eslint.config.mjs`](../../eslint.config.mjs)) — [`docs/conventions.md`](../../docs/conventions.md)
+- Vitest hygiene: `mockReset` / `unstubGlobals` / `unstubEnvs` beside `restoreMocks` — [`docs/testing.md`](../../docs/testing.md)
+- Confirmed local mirror (not optimistic) for board/list/card title forms — [`docs/data.md`](../../docs/data.md)
+- Shared doubles: [`lib/testing/next/image.tsx`](../../lib/testing/next/image.tsx), [`lib/testing/tanstack-query/render-with-query.tsx`](../../lib/testing/tanstack-query/render-with-query.tsx), [`lib/testing/unsplash/get-mock-result.ts`](../../lib/testing/unsplash/get-mock-result.ts)
+- Bare `vi.fn()` for Server Action mocks (error + success payloads) — [`docs/testing.md`](../../docs/testing.md)
 
 ## Explicit non-goals (P3+)
 

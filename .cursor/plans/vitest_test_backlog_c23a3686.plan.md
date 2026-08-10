@@ -67,7 +67,7 @@ SoT detail: [`docs/testing.md`](../../docs/testing.md) (**Vitest backlog freeze 
 
 | Rule                     | Meaning                                                                                                                                                                                                                       |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No new features**      | No new product capability until P2–P4 are finished. Tests, docs/plans, TDD-forced fixes, backlog-listed cleanups, and **store/Query hygiene** paired with colocated suites ([`docs/testing.md`](../../docs/testing.md)) only. |
+| **No new features**      | No new product capability until P3–P4 are finished. Tests, docs/plans, TDD-forced fixes, backlog-listed cleanups, and **store/Query hygiene** paired with colocated suites ([`docs/testing.md`](../../docs/testing.md)) only. |
 | **New test → 100% peer** | Each new/expanded `*.test.*` must drive its colocated source peer(s) to **100%** stmts / branch / funcs / lines (`pnpm test:coverage:paths …`).                                                                               |
 | **End of P → overall ↑** | Closing a P requires `pnpm test:coverage` **All files** statements **strictly above** the previous closed P in the ledger (other metrics must not regress). Do not shrink `coverage.include` to fake the rise.                |
 
@@ -79,7 +79,7 @@ Record from `pnpm test:coverage` summary **after each P is merged** (same `vites
 | -------- | ---------- | ------- | -------- | ------- | ------- | ----------------------------------------------------------------------------------------------------- |
 | P0       |            |         |          |         |         | Not captured at merge; P1 is the ratchet baseline for P2                                              |
 | P1       | 2026-08-07 | 27.27   | 23.07    | 37.00   | 27.06   | After [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7) merge — `pnpm test:coverage` All files |
-| P2       |            |         |          |         |         | Fill after merge — local pre-PR: stmts 63.3 / branch 48.09 / funcs 84.15 / lines 62.99                |
+| P2       | 2026-08-10 | 64.12   | 49.63    | 84.49   | 63.87   | After [PR #8](https://github.com/manhcuongdtbk/taskify/pull/8) merge — `pnpm test:coverage` All files |
 | P3       |            |         |          |         |         | Must beat P2                                                                                          |
 | P4       |            |         |          |         |         | Must beat P3; then formal thresholds / include polish                                                 |
 
@@ -125,16 +125,19 @@ Still deferred: heavy Clerk+Prisma paths (`subscription`, `organization-limit`);
 
 ---
 
-## TODO later
+## P2 — Done: component static + interactive
 
-### P2 — Done: component static + interactive
-
-Shipped on `test/vitest-p2-components`. Execution plan: [`vitest_p2_components_85befd87.plan.md`](vitest_p2_components_85befd87.plan.md). First `*.test.tsx` house style + RTL `cleanup` in [`vitest.setup.ts`](../../vitest.setup.ts). Highlights:
+Shipped on `test/vitest-p2-components` → [PR #8](https://github.com/manhcuongdtbk/taskify/pull/8). Execution plan: [`vitest_p2_components_85befd87.plan.md`](vitest_p2_components_85befd87.plan.md). First `*.test.tsx` house style + RTL `cleanup` in [`vitest.setup.ts`](../../vitest.setup.ts). Highlights:
 
 - Form primitives; FormPicker a11y (button tiles, attribution `<a>` sibling); FormPopover controlled title
 - ProModal / SubscriptionButton / BoardOptions / card-modal actions+activity / MobileSidebar
 - FormData cleanup via shared [`lib/form-data.ts`](../../lib/form-data.ts) `formDataString` (no remaining `formData.get(…) as string` in app UI)
 - `test:coverage:paths` escapes `[]`/`()` in path globs (Next `[boardId]` routes)
+- Same PR follow-ups: `SkeletonStatus` + section vs item compounds (ESLint); Vitest `mockReset` / `unstubGlobals` / `unstubEnvs`; board title confirmed local mirror + docs; FormPicker untitled-tile labels; `renderWithQuery`; sidebar storage keys; `useIsClient`
+
+---
+
+## TODO later
 
 ### P3 — Component + HTTP (MSW) + reorder
 
