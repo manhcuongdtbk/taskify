@@ -12,7 +12,6 @@ import { Activity, CreditCard, Layout, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { paths } from "@/lib/paths";
 import type { Route } from "next";
@@ -105,16 +104,15 @@ export const NavItem = ({
   );
 };
 
-NavItem.Skeleton = function NavItemSkeleton() {
+// Item / row skeleton — no SkeletonStatus. Parent section owns the landmark
+// (e.g. DashboardSidebar.Skeleton). docs/conventions.md
+NavItem.SkeletonItem = function NavItemSkeletonItem() {
   return (
-    <SkeletonStatus
-      heading="navigation item"
-      className="flex items-center gap-x-2"
-    >
+    <div className="flex items-center gap-x-2">
       <div className="relative h-10 w-10 shrink-0">
         <Skeleton className="absolute h-full w-full" />
       </div>
       <Skeleton className="h-10 w-full" />
-    </SkeletonStatus>
+    </div>
   );
 };

@@ -7,12 +7,14 @@ import { Plus } from "lucide-react";
 import { useLocalStorage } from "usehooks-ts";
 import { useOrganization, useOrganizationList } from "@clerk/nextjs";
 import { buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion } from "@/components/ui/accordion";
+import { SkeletonStatus } from "@/components/skeleton-status";
 import { siteLocalStorageKeys } from "@/config/site";
 import { paths } from "@/lib/paths";
 import { NavItem } from "./nav-item";
+
+const workspacesHeading = "Workspaces";
 
 interface DashboardSidebarProps {
   storageKey?: string;
@@ -54,25 +56,13 @@ export const DashboardSidebar = ({
     !isLoadedOrganizationList ||
     userMemberships.isLoading
   ) {
-    return (
-      <>
-        <div className="mb-2 flex items-center justify-between">
-          <Skeleton className="h-10 w-[50%]" />
-          <Skeleton className="h-10 w-10" />
-        </div>
-        <div className="space-y-2">
-          <NavItem.Skeleton />
-          <NavItem.Skeleton />
-          <NavItem.Skeleton />
-        </div>
-      </>
-    );
+    return <DashboardSidebar.Skeleton />;
   }
 
   return (
     <>
       <div className="mb-1 flex items-center text-xs font-medium">
-        <span className="pl-4">Workspaces</span>
+        <span className="pl-4">{workspacesHeading}</span>
         <Link
           href={paths.selectOrg}
           className={buttonVariants({
@@ -99,6 +89,24 @@ export const DashboardSidebar = ({
           />
         ))}
       </Accordion>
+    </>
+  );
+};
+
+// Section skeleton: one SkeletonStatus for the workspaces list. NavItem.SkeletonItem
+// is a bare row — docs/conventions.md (section vs item skeletons).
+DashboardSidebar.Skeleton = function DashboardSidebarSkeleton() {
+  return (
+    <>
+      <div className="mb-2 flex items-center justify-between">
+        <Skeleton className="h-10 w-[50%]" />
+        <Skeleton className="h-10 w-10" />
+      </div>
+      <SkeletonStatus heading={workspacesHeading} className="space-y-2">
+        <NavItem.SkeletonItem />
+        <NavItem.SkeletonItem />
+        <NavItem.SkeletonItem />
+      </SkeletonStatus>
     </>
   );
 };

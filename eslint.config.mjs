@@ -535,13 +535,18 @@ const nodeEnvViaLibEnvRestrictions = [
 ];
 
 /**
- * Hand-rolled `aria-label="Loading …"` bypasses SkeletonStatus. Build loading
- * status labels via <SkeletonStatus heading={…}> from
- * `@/components/skeleton-status` (share `heading` with the section title when
- * one exists). docs/conventions.md · docs/project-structure.md
+ * SkeletonStatus + section/item compounds — docs/conventions.md
+ * (section vs item skeletons).
+ * - Hand-rolled `aria-label="Loading …"` → use SkeletonStatus
+ * - `Foo.Skeleton` must wrap SkeletonStatus (section landmark)
+ * - `Foo.SkeletonItem` must not wrap SkeletonStatus (row placeholder)
+ * - `<SkeletonStatus>` only inside a `Foo.Skeleton =` assignment
  */
 const skeletonStatusLabelMessage =
   "Use <SkeletonStatus heading={…}> from @/components/skeleton-status for loading-region labels (share `heading` with the section title when one exists). See docs/conventions.md.";
+
+const skeletonCompoundFunction =
+  "AssignmentExpression[left.property.name='$NAME'][right.type=/^(FunctionExpression|ArrowFunctionExpression)$/]";
 
 const skeletonStatusLabelRestrictions = [
   {
@@ -558,6 +563,22 @@ const skeletonStatusLabelRestrictions = [
     selector:
       'JSXAttribute[name.name="aria-label"] > JSXExpressionContainer > TemplateLiteral[quasis.0.value.raw=/^Loading /]',
     message: skeletonStatusLabelMessage,
+  },
+  {
+    selector: `${skeletonCompoundFunction.replace("$NAME", "Skeleton")}:not(:has(JSXOpeningElement[name.name='SkeletonStatus']))`,
+    message:
+      "Section compound `Foo.Skeleton` must wrap content in <SkeletonStatus heading={…}>. For bare row placeholders use `Foo.SkeletonItem` instead. See docs/conventions.md.",
+  },
+  {
+    selector: `${skeletonCompoundFunction.replace("$NAME", "SkeletonItem")}:has(JSXOpeningElement[name.name='SkeletonStatus'])`,
+    message:
+      "Item compound `Foo.SkeletonItem` must stay a bare row placeholder — do not wrap <SkeletonStatus> (parent `Foo.Skeleton` owns the landmark). See docs/conventions.md.",
+  },
+  {
+    selector:
+      "JSXOpeningElement[name.name='SkeletonStatus']:not(AssignmentExpression[left.property.name='Skeleton'] JSXOpeningElement)",
+    message:
+      "Use <SkeletonStatus> only inside a section compound `Foo.Skeleton = …` (not inline in load branches or item skeletons). See docs/conventions.md.",
   },
 ];
 

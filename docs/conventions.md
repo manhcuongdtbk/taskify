@@ -357,7 +357,18 @@ CardModalActivity.Skeleton = function ActivitySkeleton() {
 // usage: <CardModalActivity.Skeleton />
 ```
 
-Section skeletons: use [`SkeletonStatus`](../components/skeleton-status.tsx) with a shared `heading` when the loaded UI has a section title (`aria-label` becomes `Loading ${heading}`). Hand-rolled `aria-label="Loading …"` is **ESLint-enforced** off. No static title (e.g. header chrome) → still `SkeletonStatus`, with a short region name as `heading`. Keep this under shared app `components/` — not [`components/ui/`](./project-structure.md) (shadcn-only).
+**Section vs item skeletons** (one `role="status"` per loading **region**):
+
+| Kind           | Compound           | Owns [`SkeletonStatus`](../components/skeleton-status.tsx)?                                        | Example                                                                         |
+| -------------- | ------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Section**    | `Foo.Skeleton`     | Yes — shared `heading` with the loaded title when one exists (`aria-label` → `Loading ${heading}`) | `BoardList.Skeleton`, `CardModalActivity.Skeleton`, `DashboardSidebar.Skeleton` |
+| **Item / row** | `Foo.SkeletonItem` | No — bare placeholder, safe to repeat                                                              | `NavItem.SkeletonItem`                                                          |
+
+Prefer a parent section `.Skeleton` over wrapping `SkeletonStatus` inline in an `if (!ready)` branch. No static title (e.g. header chrome) → still `SkeletonStatus`, with a short region name as `heading`. Keep `SkeletonStatus` under shared app `components/` — not [`components/ui/`](./project-structure.md) (shadcn-only).
+
+**Do not** make one binding silently serve both roles. Use `.Skeleton` vs `.SkeletonItem` instead of an optional `heading` flag. A one-item region is still a parent `.Skeleton` (or, only if you must, a one-off section compound) wrapping one `.SkeletonItem`.
+
+**Enforced** (ESLint `no-restricted-syntax` in [`eslint.config.mjs`](../eslint.config.mjs)): hand-rolled `aria-label="Loading …"`; `.Skeleton` without `SkeletonStatus`; `.SkeletonItem` with `SkeletonStatus`; `<SkeletonStatus>` outside a `.Skeleton` assignment.
 
 **Folder-colocated unit tests** (Vitest — see [`testing.md`](./testing.md)). Prefer next to the module, not `__tests__/`, `tests/`, or root `test/` ([`project-structure.md`](./project-structure.md)):
 
@@ -419,24 +430,24 @@ components/form/
 
 ##### Cheat sheet
 
-| Situation                                         | Do                                                                                                              |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                                                                    |
-| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`                                                     |
-| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`                                                 |
-| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                                                               |
-| Types imported by actions / callers               | `actions/…/types.ts`                                                                                            |
-| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file)                                       |
-| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                                                             |
-| Second UI under the same component                | `.Skeleton` (etc.) on the export; section skeletons via `SkeletonStatus` + shared `heading` when a title exists |
-| Unit / component test                             | Colocate `*.test.ts` / `*.test.tsx` matching the source; props inline; don’t export props “for tests”           |
-| E2E                                               | `e2e/`, not next to every UI file                                                                               |
+| Situation                                         | Do                                                                                                                                      |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Several UI pieces for one feature                 | Folder (`card-modal/`, route `_components/`)                                                                                            |
+| Types/schema inside an action (or similar) folder | Bare `types.ts` / `schema.ts` — not `create-board.types.ts`                                                                             |
+| Test / story / CSS Module beside a flat peer file | Mid-suffix: `foo.test.tsx`, `foo.stories.tsx`, `foo.module.css`                                                                         |
+| Props only used by that component                 | Same file, **don’t** export — **no** `*.types.ts`                                                                                       |
+| Types imported by actions / callers               | `actions/…/types.ts`                                                                                                                    |
+| Types imported by a UI wrapper / siblings         | Sibling `*.types.ts` (ESLint forbids `export type` on the component file)                                                               |
+| Shared domain model                               | `@/types` / Prisma — not per-component `*.types.ts`                                                                                     |
+| Second UI under the same component                | `.Skeleton` (section + `SkeletonStatus`) or `.SkeletonItem` (bare row); see [section vs item skeletons](#colocation-and-public-exports) |
+| Unit / component test                             | Colocate `*.test.ts` / `*.test.tsx` matching the source; props inline; don’t export props “for tests”                                   |
+| E2E                                               | `e2e/`, not next to every UI file                                                                                                       |
 
 ##### Enforcement status (colocation & companions)
 
 | Rule                                                                                                                            | Status                                                           |
 | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Hand-rolled `aria-label="Loading …"` on skeleton regions (use `SkeletonStatus`)                                                 | **Enforced** (ESLint)                                            |
+| Hand-rolled `aria-label="Loading …"`; `.Skeleton` / `.SkeletonItem` / inline `SkeletonStatus` (section vs item)                 | **Enforced** (ESLint)                                            |
 | Export keyword shape / `memo` identifier-only / no `forwardRef` (ref-as-prop) / filename ↔ export / `Form*` / generics denylist | **Enforced** (ESLint) — see above                                |
 | Action folder shape (`actions/<name>/` bare `index.ts` + `schema.ts` + `types.ts`)                                              | **Docs only** — candidate for a `lint:routes`-style script later |
 | Colocated `*.test.tsx` / `*.stories.tsx` must sit next to the primary module                                                    | **Docs only** — add checks when Vitest / Storybook land          |
