@@ -7,7 +7,7 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 | **Owner / SoT** | This file — App Router fetch/mutate map, cache vocabulary, DAL/DTO teaching, when TanStack Query applies                  |
 | **Open when**   | Choosing or changing how we load or save data (RSC, Server Actions, Route Handlers, client Query, cache/`revalidatePath`) |
 
-**Do not** re-teach Next.js or TanStack Query APIs here. Prefer official pages, then this map. Catalog / picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
+**Do not** re-teach Next.js or TanStack Query APIs here. Prefer official pages for the **installed** majors ([`conventions.md` → Match installed](./conventions.md#match-installed-official-docs) — Next, Query, MSW rows), then this map for **our** paths (RSC vs Query vs Actions vs Route Handlers; `lib/api` vs `app/api`; when MSW applies). Catalog / picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
 
 **Page shape:** Already following → TODO → Out of scope → deep detail (mental model, decision map, Next thin spots, SPA/Pages orientation).
 

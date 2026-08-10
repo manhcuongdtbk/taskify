@@ -7,11 +7,11 @@ Ephemeral **browser UI state** shared across components — modals open/closed, 
 | **Owner / SoT** | This file — when to use a client store, mental model, repo patterns (Zustand today)         |
 | **Open when**   | Adding shared client UI state, debugging a store, onboarding to Zustand, or “what is Flux?” |
 
-**Implementation today:** [Zustand](https://zustand.docs.pmnd.rs). Catalog picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
+**Implementation today:** [Zustand](https://zustand.docs.pmnd.rs) for the installed major — [`conventions.md` → Match installed](./conventions.md#match-installed-official-docs) (Zustand row). Catalog picks: [`conventions.md`](./conventions.md). Index: [`README.md`](./README.md).
 
 **Do not** put remote/API payload data here (boards, cards, billing rows). That is TanStack Query / RSC / Actions — [`data.md`](./data.md) ([Query vs this page](./data.md#tanstack-query-client-only)). This file is only **ephemeral UI intent** (which modal, which id, sidebar open).
 
-Official Zustand docs cover the API well but say little about _how we compose it with React naming, Next.js, and this repo’s factory_. This page is that missing layer.
+Official Zustand docs cover the API well but say little about _how we compose it with React naming, Next.js, and this repo’s factory_. This page is that missing layer (**our wiring**: many small `use*Store`s, `select*`, sole `zustand` import via [`lib/create-store.ts`](../lib/create-store.ts)).
 
 ## Already following
 

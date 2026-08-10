@@ -10,7 +10,7 @@ Choose a tool carefully for a given purpose. Once adopted, **do not add another 
 
 ### Match installed official docs (hard rule)
 
-**Do not trust training data or random blog posts for APIs.** For every dependency you touch, use official docs that match the **installed version** in `package.json` / `node_modules/<pkg>/package.json`. Procedure + per-package how-to: [`docs/conventions.md`](docs/conventions.md#match-installed-official-docs). Repo concern docs (`docs/*.md`) are **our wiring** — not a substitute for that library’s versioned docs.
+**Do not trust training data or random blog posts for APIs.** For every dependency you touch, use official docs that match the **installed version** in `package.json` / `node_modules/<pkg>/package.json`. Procedure + per-package how-to: [`docs/conventions.md`](docs/conventions.md#match-installed-official-docs). Repo concern docs (`docs/*.md`) are **our wiring** — not a substitute for that library’s versioned docs. **Do not** dump every library’s “best practices” into this file — put overrides in the concern doc; add a bullet here only for **high-drift** defaults ([Official guidance vs our wiring](docs/conventions.md#official-guidance-vs-our-wiring)).
 
 ### pnpm store (hard rule)
 

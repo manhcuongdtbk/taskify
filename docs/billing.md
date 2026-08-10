@@ -7,7 +7,7 @@ How **billing** works for the **Pro** pricing plan. **Stripe** is the current **
 | **Owner / SoT** | This file — Checkout / Portal / webhooks / `checkSubscription` map, hardening backlog, growth doors        |
 | **Open when**   | Stripe Checkout, Customer Portal, webhooks, Pro gating, pricing-plan entitlements, or monetization backlog |
 
-Index: [`README.md`](./README.md). Terms: [`vocabulary.md`](./vocabulary.md). Pricing numbers: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts). Provider _why_: [`product.md`](./product.md). Official Stripe later: [Checkout](https://docs.stripe.com/payments/checkout) · [Customer Portal](https://docs.stripe.com/customer-management) · [Webhooks](https://docs.stripe.com/webhooks) · [Subscription webhooks](https://docs.stripe.com/billing/subscriptions/webhooks).
+Index: [`README.md`](./README.md). Terms: [`vocabulary.md`](./vocabulary.md). Pricing numbers: [`constants/pricing-plans.ts`](../constants/pricing-plans.ts). Provider _why_: [`product.md`](./product.md). **Official Stripe** for the installed `stripe` SDK **and** Dashboard API version — [`conventions.md` → Match installed](./conventions.md#match-installed-official-docs) (Stripe · dinero.js rows). Entry points: [Checkout](https://docs.stripe.com/payments/checkout) · [Customer Portal](https://docs.stripe.com/customer-management) · [Webhooks](https://docs.stripe.com/webhooks) · [Subscription webhooks](https://docs.stripe.com/billing/subscriptions/webhooks). This file is **our** Checkout / Portal / webhook / `checkSubscription` map and backlog — not a Stripe docs mirror.
 
 **Page shape:** Already following → TODO (harden) → Out of scope (growth) → deep detail (concepts, flows, file map).
 

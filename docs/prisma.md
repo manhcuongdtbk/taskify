@@ -7,7 +7,7 @@ Learning reference for **Prisma ORM** as used in this app (Postgres + Next.js).
 | **Owner / SoT** | This file — schema/Client/migrations patterns and Prisma TODOs (not App Router fetch/mutate — that’s [`data.md`](./data.md)) |
 | **Open when**   | Changing schema, Client setup, migrations, or org-scoped query patterns                                                      |
 
-Prefer [Prisma docs](https://www.prisma.io/docs) for the version in `package.json`. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` help with CLI/Client. Index: [`README.md`](./README.md).
+Prefer [Prisma docs](https://www.prisma.io/docs) for the versions in `package.json` (`prisma`, `@prisma/client`, `@prisma/adapter-pg`, `pg`) — [`conventions.md` → Match installed](./conventions.md#match-installed-official-docs). This file is **our** schema / Client / migration patterns — not a Prisma docs mirror. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` help with CLI/Client. Index: [`README.md`](./README.md).
 
 **Testing code that touches Prisma** (types-only vs mocked Client vs real DB vs Playwright; fixture vs mock; no root `"type": "module"` for blog parity): [`testing.md`](./testing.md) — section **Prisma-related code (what to test how)**. Do not duplicate that decision tree here.
 
