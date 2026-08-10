@@ -15,12 +15,15 @@ interface BoardTitleFormProps {
 
 export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
   const { execute } = useAction(updateBoard, {
-    onSuccess: (data) => {
+    onSuccess: (result) => {
       toast.add({
         type: "success",
-        title: `Board "${data.title}" updated`,
+        title: `Board "${result.title}" updated`,
       });
-      setTitle(title); // Optimistically update the title
+      // Confirmed local mirror (not classic optimistic): apply Action `data`
+      // after success. RSC props lag behind `revalidatePath`, and
+      // `useState(data.title)` does not re-seed on re-render — see docs/data.md.
+      setTitle(result.title);
       handleDisableEditing();
     },
     onError: (error) => {

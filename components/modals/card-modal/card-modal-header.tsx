@@ -28,7 +28,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
         type: "success",
         title: `Renamed to ${data.title}`,
       });
-      setTitle(data.title);
+      setTitle(data.title); // Confirmed local mirror — docs/data.md
     },
     onError: (error) => {
       toast.add({

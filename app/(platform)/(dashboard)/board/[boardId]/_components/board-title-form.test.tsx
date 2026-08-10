@@ -34,7 +34,7 @@ describe("BoardTitleForm", () => {
     toastAdd.mockReset();
   });
 
-  test("submits the edited title to updateBoard", async () => {
+  test("renames the board title on success", async () => {
     updateBoard.mockResolvedValue({
       data: { ...board, title: "Roadmap" },
     });
@@ -58,6 +58,11 @@ describe("BoardTitleForm", () => {
       type: "success",
       title: 'Board "Roadmap" updated',
     });
+    // Confirmed local mirror: UI must show Action `data.title`, not stale
+    // `useState` / props — see docs/data.md (Client mirrors after Server Actions).
+    expect(
+      await screen.findByRole("button", { name: "Roadmap" }),
+    ).toBeInTheDocument();
   });
 
   test("toasts when update fails", async () => {

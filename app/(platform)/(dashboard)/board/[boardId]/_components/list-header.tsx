@@ -41,7 +41,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
         type: "success",
         title: `Renamed to "${data.title}"`,
       });
-      setTitle(data.title); // Optimistic update
+      setTitle(data.title); // Confirmed local mirror — docs/data.md
       handleDisableEditing();
     },
     onError: (error) => {
