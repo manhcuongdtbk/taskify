@@ -11,6 +11,10 @@ Choose a tool carefully for a given purpose. Once adopted, **do not add another 
 ### Match installed official docs (hard rule)
 
 **Do not trust training data or random blog posts for APIs.** For every dependency you touch, use official docs that match the **installed version** in `package.json` / `node_modules/<pkg>/package.json`. Procedure + per-package how-to: [`docs/conventions.md`](docs/conventions.md#match-installed-official-docs). Repo concern docs (`docs/*.md`) are **our wiring** — not a substitute for that library’s versioned docs.
+
+### pnpm store (hard rule)
+
+Use pnpm’s **default global** store. Never create or commit a project-local `.pnpm-store/`. For `pnpm add` / `install` / `update` / `remove`, run the shell **outside** the Cursor sandbox so the global store is writable — details: [`docs/conventions.md`](docs/conventions.md) (pnpm store / agents) · `.cursor/rules/pnpm.mdc`.
 <!-- END:project-docs -->
 
 <!-- BEGIN:nextjs-agent-rules -->
