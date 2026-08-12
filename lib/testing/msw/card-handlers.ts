@@ -8,13 +8,13 @@
 import { http, HttpResponse } from "msw";
 
 import { type AuditLog } from "@/app/generated/prisma/client";
-import { type CardWithList } from "@/lib/prisma/payloads";
+import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 /** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/api/card.ts`. */
 export const cardDetailPath = "/api/cards/:cardId" as const;
 export const cardLogsPath = "/api/cards/:cardId/logs" as const;
 
-export const cardDetailOk = (card: CardWithList | null) =>
+export const cardDetailOk = (card: CardWithListTitle | null) =>
   http.get(cardDetailPath, () => HttpResponse.json(card));
 
 export const cardLogsOk = (logs: AuditLog[]) =>

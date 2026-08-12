@@ -1,6 +1,6 @@
 "use client";
 
-import { type ListWithCards } from "@/lib/prisma/payloads";
+import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/list";
 import { ListForm } from "./list-form";
 import { useEffect, useState } from "react";
 import { ListItem } from "./list-item";
@@ -12,7 +12,7 @@ import { updateCardOrder } from "@/actions/update-card-order";
 
 interface ListContainerProps {
   boardId: string;
-  data: ListWithCards[];
+  data: ListWithCardsOrderedByOrderAsc[];
 }
 
 function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {

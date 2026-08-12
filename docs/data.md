@@ -197,7 +197,7 @@ Official depth: [Mutating Data](https://nextjs.org/docs/app/getting-started/muta
 | `services/` as a parallel tree                      | **No**                   | Same job as `lib/api/` — [one tool / one folder per job](./vocabulary.md#one-tool-per-job).                                                                                                                                                                                                                                                                                                                       |
 | Inline `useQuery({ queryKey, queryFn })` everywhere | **Avoid**                | Breaks `@tanstack/query/prefer-query-options`, duplicates keys, and makes invalidation drift. Use `queryOptions` inside the resource factory; call `useQuery(cardQueries.detail(id))`.                                                                                                                                                                                                                            |
 
-**Typing:** prefer typing the **`fetcher` / `queryFn`** boundary (`fetcher<CardWithList>(…)`) so `useQuery` infers `data` — don’t duplicate the generic on `useQuery` unless you need an override.
+**Typing:** prefer typing the **`fetcher` / `queryFn`** boundary (`fetcher<CardWithListTitle>(…)`) so `useQuery` infers `data` — don’t duplicate the generic on `useQuery` unless you need an override.
 
 **Example in tree today:** [`lib/api/card.ts`](../lib/api/card.ts). Provider: `providers/query-provider.tsx`.
 

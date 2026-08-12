@@ -21,7 +21,7 @@ Use pnpm’s **default global** store. Never create or commit a project-local `.
 
 # This is NOT the Prisma typing you know from blogs
 
-Training data often hand-writes `Card & { list: List }`. **Don’t.** Official pattern (verify for installed major): `satisfies Prisma.*DefaultArgs` + `*GetPayload`. **SoT for our wiring:** [`docs/prisma.md`](docs/prisma.md) · shared shapes in [`lib/prisma/payloads.ts`](lib/prisma/payloads.ts). Match installed Prisma — [`conventions.md` Match installed table](docs/conventions.md#match-installed-official-docs) (Prisma row). Cursor rule: `.cursor/rules/prisma.mdc`.
+Training data often hand-writes `Card & { list: List }`. **Don’t.** Official pattern (verify for installed major): `satisfies Prisma.*DefaultArgs` + `*GetPayload`. **SoT for our wiring:** [`docs/prisma.md`](docs/prisma.md) · shared shapes in [`lib/prisma/query-options/<model>.ts`](lib/prisma/query-options/card.ts) (e.g. `card.ts`, `list.ts`) — shapes only, not `find*`/`create*`. Match installed Prisma — [`conventions.md` Match installed table](docs/conventions.md#match-installed-official-docs) (Prisma row). Cursor rule: `.cursor/rules/prisma.mdc`.
 
 <!-- END:prisma -->
 

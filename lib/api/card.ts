@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { type AuditLog } from "@/app/generated/prisma/client";
 import { fetcher } from "@/lib/fetcher";
-import { type CardWithList } from "@/lib/prisma/payloads";
+import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 /**
  * Card remote-data factory for TanStack Query (client).
@@ -23,7 +23,7 @@ export const cardQueries = {
       // 200 `null` body instead of a 404. Widening the type here only stops the
       // compiler from lying; drop the `| null` once the route returns 404.
       // See docs/data.md (TODO — clarify / harden data paths).
-      queryFn: () => fetcher<CardWithList | null>(`/api/cards/${id}`),
+      queryFn: () => fetcher<CardWithListTitle | null>(`/api/cards/${id}`),
       enabled: !!id,
     }),
   logs: (id: string | undefined) =>

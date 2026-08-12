@@ -165,7 +165,7 @@ Rows are grouped by Kind, in the same order as [Convention priority](#convention
 | `hooks/`               | Shared client hooks                                                                                                                | Common practice                  |
 | `lib/`                 | Shared helpers and integrations                                                                                                    | Common practice                  |
 | `lib/api/`             | Client remote factories (`queryOptions`, later mutations); any origin — **why:** [`data.md`](./data.md#tanstack-query-client-only) | Common practice (Adopted)        |
-| `lib/prisma/`          | Prisma Client singleton + shared `GetPayload` query shapes (`payloads.ts`) — [`prisma.md`](./prisma.md)                            | Common practice (Adopted)        |
+| `lib/prisma/`          | `client.ts` + `query-options/<model>.ts` (shared `*Args` / GetPayload only) — [`prisma.md`](./prisma.md)                           | Common practice (Adopted)        |
 | `config/`              | App config; **product name** in `config/site.ts` (`siteConfig.name`)                                                               | Common practice                  |
 | `constants/`           | App constants; **pricing plans** in `constants/pricing-plans.ts`                                                                   | Common practice                  |
 | `prisma/`              | Schema + migrations                                                                                                                | Common (Prisma)                  |
@@ -195,13 +195,13 @@ Details for each top-level folder are in the [quick map](#in-this-repo-quick-map
 
 Full shipped map: [`features.md`](./features.md). Vision / audience: [`product.md`](./product.md). Below is only a coarse pointer into the tree.
 
-| Area                                             | Start looking in                                 |
-| ------------------------------------------------ | ------------------------------------------------ |
-| Authentication / organization selection          | `proxy.ts`, `app/(platform)/(clerk)/`            |
-| Boards (lists / cards)                           | `app/(platform)/(dashboard)/board/`              |
-| Organization (home, settings, activity, billing) | `app/(platform)/(dashboard)/organization/`       |
-| Server mutations                                 | `actions/`                                       |
-| Data models / DB access                          | `prisma/`, `lib/prisma/` (`client` + `payloads`) |
+| Area                                             | Start looking in                                       |
+| ------------------------------------------------ | ------------------------------------------------------ |
+| Authentication / organization selection          | `proxy.ts`, `app/(platform)/(clerk)/`                  |
+| Boards (lists / cards)                           | `app/(platform)/(dashboard)/board/`                    |
+| Organization (home, settings, activity, billing) | `app/(platform)/(dashboard)/organization/`             |
+| Server mutations                                 | `actions/`                                             |
+| Data models / DB access                          | `prisma/`, `lib/prisma/` (`client` + `query-options/`) |
 
 ## Repo conventions (keep this list short)
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { type ListWithCards } from "@/lib/prisma/payloads";
+import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/list";
 import { ListHeader } from "./list-header";
 import { type ComponentRef, useRef, useState } from "react";
 import { CardForm } from "./card-form";
@@ -10,7 +10,7 @@ import { Draggable, Droppable } from "@hello-pangea/dnd";
 
 interface ListItemProps {
   index: number;
-  data: ListWithCards;
+  data: ListWithCardsOrderedByOrderAsc;
 }
 
 export const ListItem = ({ index, data }: ListItemProps) => {

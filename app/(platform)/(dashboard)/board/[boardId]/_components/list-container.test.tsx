@@ -7,7 +7,7 @@ import {
 import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import { type ListWithCards } from "@/lib/prisma/payloads";
+import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/list";
 
 const onDragEndRef = vi.hoisted(() => ({
   current: null as
@@ -87,7 +87,7 @@ function makeCard(
   listId: string,
   order: number,
   title = id,
-): ListWithCards["cards"][number] {
+): ListWithCardsOrderedByOrderAsc["cards"][number] {
   return {
     id,
     title,
@@ -102,8 +102,8 @@ function makeCard(
 function makeList(
   id: string,
   order: number,
-  cards: ListWithCards["cards"] = [],
-): ListWithCards {
+  cards: ListWithCardsOrderedByOrderAsc["cards"] = [],
+): ListWithCardsOrderedByOrderAsc {
   return {
     id,
     title: id,
@@ -349,7 +349,7 @@ describe("ListContainer", () => {
     const source = makeList("list_a", 0, [makeCard("card_a", "list_a", 0)]);
     const destination = {
       ...makeList("list_b", 1),
-      cards: undefined as unknown as ListWithCards["cards"],
+      cards: undefined as unknown as ListWithCardsOrderedByOrderAsc["cards"],
     };
 
     render(<ListContainer boardId={boardId} data={[source, destination]} />);
@@ -379,7 +379,7 @@ describe("ListContainer", () => {
   test("initializes a missing source cards array and no-ops when empty", () => {
     const source = {
       ...makeList("list_a", 0),
-      cards: undefined as unknown as ListWithCards["cards"],
+      cards: undefined as unknown as ListWithCardsOrderedByOrderAsc["cards"],
     };
 
     render(<ListContainer boardId={boardId} data={[source]} />);

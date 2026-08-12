@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ListContainer } from "./_components/list-container";
 import { paths } from "@/lib/paths";
-import { listWithCardsArgs } from "@/lib/prisma/payloads";
+import { listWithCardsOrderedByOrderAscArgs } from "@/lib/prisma/query-options/list";
 
 export default async function BoardIdPage({
   params,
@@ -23,7 +23,7 @@ export default async function BoardIdPage({
         orgId,
       },
     },
-    ...listWithCardsArgs,
+    ...listWithCardsOrderedByOrderAscArgs,
     orderBy: {
       order: "asc",
     },

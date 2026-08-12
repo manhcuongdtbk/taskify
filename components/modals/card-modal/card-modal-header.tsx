@@ -3,7 +3,7 @@
 import { FormInput } from "@/components/form/form-input";
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type CardWithList } from "@/lib/prisma/payloads";
+import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 import { Layout } from "lucide-react";
 import { type ComponentRef, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,7 +15,7 @@ import { cardQueries } from "@/lib/api/card";
 import { formDataString } from "@/lib/form-data";
 
 interface CardModalHeaderProps {
-  data: CardWithList;
+  data: CardWithListTitle;
 }
 
 export const CardModalHeader = ({ data }: CardModalHeaderProps) => {

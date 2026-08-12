@@ -3,7 +3,7 @@
  * See docs/testing.md (Fishery practices).
  *
  * - `cardFactory` → Prisma `Card` row (FK `listId`, no nested `list`)
- * - `cardWithListFactory` → `CardWithList` (API detail: `list` is `{ title }` only)
+ * - `cardWithListFactory` → `CardWithListTitle` (API detail: `list` is `{ title }` only)
  *
  * List row defaults live in `./list`. Do not redefine List factories here.
  */
@@ -11,7 +11,7 @@
 import { Factory } from "fishery";
 
 import { type Card } from "@/app/generated/prisma/client";
-import { type CardWithList } from "@/lib/prisma/payloads";
+import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 import { listFactory, rewindListFactory } from "./list";
 
@@ -31,9 +31,9 @@ export const cardFactory = Factory.define<Card>(({ sequence }) => {
   };
 });
 
-export const cardWithListFactory = Factory.define<CardWithList>(
+export const cardWithListFactory = Factory.define<CardWithListTitle>(
   ({ associations }) => {
-    // API select is `{ title }` only (`cardWithListArgs`). Build a full list row for
+    // API select is `{ title }` only (`cardWithListTitleArgs`). Build a full list row for
     // a real listId, then project to the payload shape.
     const listRow = listFactory.build();
     const title = associations.list?.title ?? listRow.title;

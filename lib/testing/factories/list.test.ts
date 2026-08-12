@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { cardFactory, rewindCardFactory } from "./card";
 import {
   listFactory,
-  listWithCardsFactory,
+  listWithCardsOrderedByOrderAscFactory,
   rewindListFactory,
-  rewindListWithCardsFactory,
+  rewindListWithCardsOrderedByOrderAscFactory,
 } from "./list";
 
 describe("listFactory", () => {
@@ -35,14 +35,14 @@ describe("listFactory", () => {
   });
 });
 
-describe("listWithCardsFactory", () => {
+describe("listWithCardsOrderedByOrderAscFactory", () => {
   beforeEach(() => {
-    rewindListWithCardsFactory();
+    rewindListWithCardsOrderedByOrderAscFactory();
     rewindCardFactory();
   });
 
-  test("builds a ListWithCards with empty cards by default", () => {
-    expect(listWithCardsFactory.build()).toMatchObject({
+  test("builds a ListWithCardsOrderedByOrderAsc with empty cards by default", () => {
+    expect(listWithCardsOrderedByOrderAscFactory.build()).toMatchObject({
       id: "list_1",
       title: "Todo",
       boardId: "board_1",
@@ -51,7 +51,7 @@ describe("listWithCardsFactory", () => {
   });
 
   test("accepts cards via associations and syncs listId", () => {
-    const list = listWithCardsFactory.build(
+    const list = listWithCardsOrderedByOrderAscFactory.build(
       {},
       {
         associations: {

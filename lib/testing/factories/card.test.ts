@@ -39,7 +39,7 @@ describe("cardWithListFactory", () => {
     rewindCardWithListFactory();
   });
 
-  test("builds a CardWithList with sequenced defaults (list title only)", () => {
+  test("builds a CardWithListTitle with sequenced defaults (list title only)", () => {
     expect(cardWithListFactory.build()).toMatchObject({
       id: "card_1",
       title: "Ship P2",
