@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/api/card";
 import {
-  cardWithListFactory,
-  rewindCardWithListFactory,
+  cardWithListTitleFactory,
+  rewindCardWithListTitleFactory,
 } from "@/lib/testing/factories/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
@@ -28,11 +28,11 @@ import { CardModalDescription } from "./card-modal-description";
 
 describe("CardModalDescription", () => {
   beforeEach(() => {
-    rewindCardWithListFactory();
+    rewindCardWithListTitleFactory();
   });
 
   test("submits description to updateCard", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     updateCard.mockResolvedValue({
       data: { id: card.id, title: card.title, description: "Details" },
     });
@@ -69,7 +69,7 @@ describe("CardModalDescription", () => {
   });
 
   test("toasts when update fails", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     updateCard.mockResolvedValue({ serverError: "Update failed" });
     const user = userEvent.setup();
     renderWithQuery(<CardModalDescription data={card} />);
@@ -94,7 +94,7 @@ describe("CardModalDescription", () => {
   });
 
   test("cancels editing", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     const user = userEvent.setup();
     renderWithQuery(<CardModalDescription data={card} />);
 
@@ -113,7 +113,7 @@ describe("CardModalDescription", () => {
   });
 
   test("closes editing on Escape", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     const user = userEvent.setup();
     renderWithQuery(<CardModalDescription data={card} />);
 
@@ -132,7 +132,7 @@ describe("CardModalDescription", () => {
   });
 
   test("renders existing description text", () => {
-    const card = cardWithListFactory.build({
+    const card = cardWithListTitleFactory.build({
       description: "Existing details",
     });
     renderWithQuery(<CardModalDescription data={card} />);

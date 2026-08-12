@@ -33,7 +33,7 @@ export const listFactory = Factory.define<List>(({ sequence }) => {
 export const listWithCardsOrderedByOrderAscFactory =
   Factory.define<ListWithCardsOrderedByOrderAsc>(
     ({ associations, afterBuild }) => {
-      // TODO: Same DeepPartial review as cardWithListFactory — nested `cards` /
+      // TODO: Same DeepPartial review as cardWithListTitleFactory — nested `cards` /
       // card field overlays vs list.id FK sync.
       // More info: https://github.com/thoughtbot/fishery#use-params-to-access-passed-in-properties
       afterBuild((list) => {

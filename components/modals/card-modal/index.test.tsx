@@ -2,8 +2,8 @@ import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
-  cardWithListFactory,
-  rewindCardWithListFactory,
+  cardWithListTitleFactory,
+  rewindCardWithListTitleFactory,
 } from "@/lib/testing/factories/card";
 import {
   auditLogFactory,
@@ -69,7 +69,7 @@ import { CardModal } from "./index";
 
 describe("CardModal", () => {
   beforeEach(() => {
-    rewindCardWithListFactory();
+    rewindCardWithListTitleFactory();
     rewindAuditLogFactory();
     useCardModalStore.getState().close();
   });
@@ -84,7 +84,7 @@ describe("CardModal", () => {
   });
 
   test("shows loaded sections when card and logs fetch succeed", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     const log = auditLogFactory.build({}, { transient: { card } });
     server.use(cardDetailOk(card), cardLogsOk([log]));
     useCardModalStore.getState().open(card.id);
@@ -103,7 +103,7 @@ describe("CardModal", () => {
   });
 
   test("shows card skeletons while the card query is pending", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     server.use(cardDetailPending(), cardLogsPending());
     useCardModalStore.getState().open(card.id);
 
@@ -118,7 +118,7 @@ describe("CardModal", () => {
   });
 
   test("keeps the activity skeleton when only logs are pending", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     server.use(cardDetailOk(card), cardLogsPending());
     useCardModalStore.getState().open(card.id);
 
@@ -131,7 +131,7 @@ describe("CardModal", () => {
   });
 
   test("stays on card skeletons when the detail body is null", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     const log = auditLogFactory.build({}, { transient: { card } });
     server.use(cardDetailOk(null), cardLogsOk([log]));
     useCardModalStore.getState().open(card.id);
@@ -150,7 +150,7 @@ describe("CardModal", () => {
   });
 
   test("stays on skeletons when card fetches are unauthorized", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     server.use(cardDetailUnauthorized(), cardLogsUnauthorized());
     useCardModalStore.getState().open(card.id);
 

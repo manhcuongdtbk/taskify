@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
-  cardWithListFactory,
-  rewindCardWithListFactory,
+  cardWithListTitleFactory,
+  rewindCardWithListTitleFactory,
 } from "@/lib/testing/factories/card";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
 
@@ -32,11 +32,11 @@ import { CardModalActions } from "./card-modal-actions";
 
 describe("CardModalActions", () => {
   beforeEach(() => {
-    rewindCardWithListFactory();
+    rewindCardWithListTitleFactory();
   });
 
   test("copies the card, toasts, and closes the modal", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     useCardModalStore.getState().open(card.id);
     copyCard.mockResolvedValue({ data: { id: card.id } });
     const user = userEvent.setup();
@@ -58,7 +58,7 @@ describe("CardModalActions", () => {
   });
 
   test("toasts when copy fails", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     useCardModalStore.getState().open(card.id);
     copyCard.mockResolvedValue({ serverError: "Copy failed" });
     const user = userEvent.setup();
@@ -75,7 +75,7 @@ describe("CardModalActions", () => {
   });
 
   test("deletes the card, toasts, and closes the modal", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     useCardModalStore.getState().open(card.id);
     deleteCard.mockResolvedValue({ data: { id: card.id } });
     const user = userEvent.setup();
@@ -97,7 +97,7 @@ describe("CardModalActions", () => {
   });
 
   test("toasts when delete fails", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     useCardModalStore.getState().open(card.id);
     deleteCard.mockResolvedValue({ serverError: "Delete failed" });
     const user = userEvent.setup();

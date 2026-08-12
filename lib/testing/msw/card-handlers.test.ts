@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
-import { cardWithListFactory } from "@/lib/testing/factories/card";
+import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 
 import {
   cardDetailOk,
@@ -22,7 +22,7 @@ describe("card MSW handlers", () => {
   });
 
   test("serves card detail and logs JSON", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     const log = auditLogFactory.build({}, { transient: { card } });
     server.use(cardDetailOk(card), cardLogsOk([log]));
 
@@ -47,7 +47,7 @@ describe("card MSW handlers", () => {
   });
 
   test("serves a null card body", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     server.use(cardDetailOk(null));
 
     const detail = await fetch(`/api/cards/${card.id}`);
@@ -57,7 +57,7 @@ describe("card MSW handlers", () => {
   });
 
   test("serves unauthorized text responses", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     server.use(cardDetailUnauthorized(), cardLogsUnauthorized());
 
     const detail = await fetch(`/api/cards/${card.id}`);
@@ -70,7 +70,7 @@ describe("card MSW handlers", () => {
   });
 
   test("pending handlers never settle", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     server.use(cardDetailPending(), cardLogsPending());
 
     const detail = fetch(`/api/cards/${card.id}`);

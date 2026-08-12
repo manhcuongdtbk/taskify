@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import {
   cardFactory,
-  cardWithListFactory,
+  cardWithListTitleFactory,
   rewindCardFactory,
-  rewindCardWithListFactory,
+  rewindCardWithListTitleFactory,
 } from "./card";
 
 describe("cardFactory", () => {
@@ -34,13 +34,13 @@ describe("cardFactory", () => {
   });
 });
 
-describe("cardWithListFactory", () => {
+describe("cardWithListTitleFactory", () => {
   beforeEach(() => {
-    rewindCardWithListFactory();
+    rewindCardWithListTitleFactory();
   });
 
   test("builds a CardWithListTitle with sequenced defaults (list title only)", () => {
-    expect(cardWithListFactory.build()).toMatchObject({
+    expect(cardWithListTitleFactory.build()).toMatchObject({
       id: "card_1",
       title: "Ship P2",
       list: { title: "Todo" },
@@ -48,7 +48,7 @@ describe("cardWithListFactory", () => {
   });
 
   test("merges card and list title overrides", () => {
-    const card = cardWithListFactory.build({
+    const card = cardWithListTitleFactory.build({
       title: "Renamed",
       description: "Details",
       list: { title: "Doing" },

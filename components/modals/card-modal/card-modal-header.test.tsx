@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/api/card";
 import {
-  cardWithListFactory,
-  rewindCardWithListFactory,
+  cardWithListTitleFactory,
+  rewindCardWithListTitleFactory,
 } from "@/lib/testing/factories/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
@@ -28,11 +28,11 @@ import { CardModalHeader } from "./card-modal-header";
 
 describe("CardModalHeader", () => {
   beforeEach(() => {
-    rewindCardWithListFactory();
+    rewindCardWithListTitleFactory();
   });
 
   test("submits a changed title to updateCard", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     updateCard.mockResolvedValue({
       data: { id: card.id, title: "Renamed" },
     });
@@ -63,7 +63,7 @@ describe("CardModalHeader", () => {
   });
 
   test("does not execute when the title is unchanged", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     const user = userEvent.setup();
     renderWithQuery(<CardModalHeader data={card} />);
 
@@ -74,7 +74,7 @@ describe("CardModalHeader", () => {
   });
 
   test("toasts when update fails", async () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     updateCard.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
     renderWithQuery(<CardModalHeader data={card} />);
@@ -102,7 +102,7 @@ describe("CardModalHeader", () => {
   });
 
   test("shows the list title", () => {
-    const card = cardWithListFactory.build();
+    const card = cardWithListTitleFactory.build();
     renderWithQuery(<CardModalHeader data={card} />);
 
     expect(screen.getByText(card.list.title)).toBeInTheDocument();
