@@ -3,7 +3,7 @@
 import { FormInput } from "@/components/form/form-input";
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type CardWithList } from "@/types";
+import { type CardWithList } from "@/lib/prisma/payloads";
 import { Layout } from "lucide-react";
 import { type ComponentRef, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";

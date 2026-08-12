@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type CardWithList } from "@/types";
+import { type CardWithList } from "@/lib/prisma/payloads";
 import { Copy, Trash } from "lucide-react";
 import { useAction } from "@/hooks/use-action";
 import { copyCard } from "@/actions/copy-card";

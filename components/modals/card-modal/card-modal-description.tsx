@@ -2,7 +2,7 @@
 
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type CardWithList } from "@/types";
+import { type CardWithList } from "@/lib/prisma/payloads";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlignLeft } from "lucide-react";
 import { type ComponentRef, type RefObject, useRef, useState } from "react";

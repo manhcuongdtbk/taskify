@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { type InputType, type ReturnType } from "./types";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";

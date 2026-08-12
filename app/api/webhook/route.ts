@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, stripeTimestampToDate } from "@/lib/stripe";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 
 /**
  * Stripe webhook endpoint.

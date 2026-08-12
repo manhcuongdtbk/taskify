@@ -1,30 +1,53 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 
-import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
+import {
+  cardFactory,
+  cardWithListFactory,
+  rewindCardFactory,
+  rewindCardWithListFactory,
+} from "./card";
 
-import { cardAuditLogFactory, cardWithListFactory, listFactory } from "./card";
+describe("cardFactory", () => {
+  beforeEach(() => {
+    rewindCardFactory();
+  });
 
-describe("listFactory", () => {
-  test("builds a List with defaults", () => {
-    expect(listFactory.build()).toMatchObject({
-      id: "list_1",
-      title: "Todo",
-      boardId: "board_1",
+  test("builds a Card row with sequenced defaults (no nested list)", () => {
+    const card = cardFactory.build();
+
+    expect(card).toMatchObject({
+      id: "card_1",
+      title: "Ship P2",
+      listId: "list_1",
     });
+    expect(card).not.toHaveProperty("list");
+  });
+
+  test("merges overrides", () => {
+    const card = cardFactory.build({
+      title: "Renamed",
+      listId: "list_other",
+    });
+
+    expect(card.title).toBe("Renamed");
+    expect(card.listId).toBe("list_other");
   });
 });
 
 describe("cardWithListFactory", () => {
-  test("builds a CardWithList with defaults", () => {
+  beforeEach(() => {
+    rewindCardWithListFactory();
+  });
+
+  test("builds a CardWithList with sequenced defaults (list title only)", () => {
     expect(cardWithListFactory.build()).toMatchObject({
       id: "card_1",
       title: "Ship P2",
-      listId: "list_1",
-      list: { id: "list_1", title: "Todo", boardId: "board_1" },
+      list: { title: "Todo" },
     });
   });
 
-  test("merges card and nested list overrides", () => {
+  test("merges card and list title overrides", () => {
     const card = cardWithListFactory.build({
       title: "Renamed",
       description: "Details",
@@ -34,30 +57,5 @@ describe("cardWithListFactory", () => {
     expect(card.title).toBe("Renamed");
     expect(card.description).toBe("Details");
     expect(card.list.title).toBe("Doing");
-    expect(card.list.boardId).toBe("board_1");
-  });
-});
-
-describe("cardAuditLogFactory", () => {
-  test("builds an AuditLog with defaults", () => {
-    expect(cardAuditLogFactory.build()).toMatchObject({
-      id: "log_1",
-      action: ACTION.CREATE,
-      entityType: ENTITY_TYPE.CARD,
-      entityId: "card_1",
-      entityTitle: "Ship P2",
-      userName: "Ada Lovelace",
-    });
-  });
-
-  test("merges overrides", () => {
-    const log = cardAuditLogFactory.build({
-      entityTitle: "Renamed",
-      action: ACTION.UPDATE,
-    });
-
-    expect(log.entityTitle).toBe("Renamed");
-    expect(log.action).toBe(ACTION.UPDATE);
-    expect(log.entityId).toBe("card_1");
   });
 });

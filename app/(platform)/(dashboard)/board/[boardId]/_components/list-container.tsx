@@ -1,6 +1,6 @@
 "use client";
 
-import { type ListWithCards } from "@/types";
+import { type ListWithCards } from "@/lib/prisma/payloads";
 import { ListForm } from "./list-form";
 import { useEffect, useState } from "react";
 import { ListItem } from "./list-item";

@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { type AuditLog } from "@/app/generated/prisma/client";
 import { fetcher } from "@/lib/fetcher";
-import { type CardWithList } from "@/types";
+import { type CardWithList } from "@/lib/prisma/payloads";
 
 /**
  * Card remote-data factory for TanStack Query (client).

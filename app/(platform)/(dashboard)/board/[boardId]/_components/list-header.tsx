@@ -4,7 +4,7 @@ import { updateList } from "@/actions/update-list";
 import { FormInput } from "@/components/form/form-input";
 import { useAction } from "@/hooks/use-action";
 import { formDataString } from "@/lib/form-data";
-import { type ListWithCards } from "@/types";
+import { type ListWithCards } from "@/lib/prisma/payloads";
 import { type ComponentRef, useRef, useState } from "react";
 import { toast } from "@/components/ui/toast";
 import { useEventListener } from "usehooks-ts";

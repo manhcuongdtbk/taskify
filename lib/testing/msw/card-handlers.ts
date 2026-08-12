@@ -8,7 +8,7 @@
 import { http, HttpResponse } from "msw";
 
 import { type AuditLog } from "@/app/generated/prisma/client";
-import { type CardWithList } from "@/types";
+import { type CardWithList } from "@/lib/prisma/payloads";
 
 /** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/api/card.ts`. */
 export const cardDetailPath = "/api/cards/:cardId" as const;

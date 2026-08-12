@@ -1,9 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import {
-  cardAuditLogFactory,
-  cardWithListFactory,
-} from "@/lib/testing/factories/card";
+import { auditLogFactory } from "@/lib/testing/factories/audit-log";
+import { cardWithListFactory } from "@/lib/testing/factories/card";
 
 import {
   cardDetailOk,
@@ -17,9 +15,6 @@ import {
 } from "./card-handlers";
 import { server } from "./server";
 
-const card = cardWithListFactory.build();
-const log = cardAuditLogFactory.build();
-
 describe("card MSW handlers", () => {
   test("exports path constants used by cardQueries", () => {
     expect(cardDetailPath).toBe("/api/cards/:cardId");
@@ -27,21 +22,19 @@ describe("card MSW handlers", () => {
   });
 
   test("serves card detail and logs JSON", async () => {
+    const card = cardWithListFactory.build();
+    const log = auditLogFactory.build({}, { transient: { card } });
     server.use(cardDetailOk(card), cardLogsOk([log]));
 
-    const detail = await fetch("/api/cards/card_1");
-    const logs = await fetch("/api/cards/card_1/logs");
+    const detail = await fetch(`/api/cards/${card.id}`);
+    const logs = await fetch(`/api/cards/${card.id}/logs`);
 
     expect(detail.ok).toBe(true);
     await expect(detail.json()).resolves.toStrictEqual({
       ...card,
       createdAt: card.createdAt.toISOString(),
       updatedAt: card.updatedAt.toISOString(),
-      list: {
-        ...card.list,
-        createdAt: card.list.createdAt.toISOString(),
-        updatedAt: card.list.updatedAt.toISOString(),
-      },
+      list: card.list,
     });
     expect(logs.ok).toBe(true);
     await expect(logs.json()).resolves.toStrictEqual([
@@ -54,19 +47,21 @@ describe("card MSW handlers", () => {
   });
 
   test("serves a null card body", async () => {
+    const card = cardWithListFactory.build();
     server.use(cardDetailOk(null));
 
-    const detail = await fetch("/api/cards/card_1");
+    const detail = await fetch(`/api/cards/${card.id}`);
 
     expect(detail.ok).toBe(true);
     await expect(detail.json()).resolves.toBeNull();
   });
 
   test("serves unauthorized text responses", async () => {
+    const card = cardWithListFactory.build();
     server.use(cardDetailUnauthorized(), cardLogsUnauthorized());
 
-    const detail = await fetch("/api/cards/card_1");
-    const logs = await fetch("/api/cards/card_1/logs");
+    const detail = await fetch(`/api/cards/${card.id}`);
+    const logs = await fetch(`/api/cards/${card.id}/logs`);
 
     expect(detail.status).toBe(401);
     await expect(detail.text()).resolves.toBe("Unauthorized");
@@ -75,10 +70,11 @@ describe("card MSW handlers", () => {
   });
 
   test("pending handlers never settle", async () => {
+    const card = cardWithListFactory.build();
     server.use(cardDetailPending(), cardLogsPending());
 
-    const detail = fetch("/api/cards/card_1");
-    const logs = fetch("/api/cards/card_1/logs");
+    const detail = fetch(`/api/cards/${card.id}`);
+    const logs = fetch(`/api/cards/${card.id}/logs`);
 
     await expect(
       Promise.race([

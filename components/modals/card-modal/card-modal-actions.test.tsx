@@ -2,7 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { cardWithListFactory } from "@/lib/testing/factories/card";
+import {
+  cardWithListFactory,
+  rewindCardWithListFactory,
+} from "@/lib/testing/factories/card";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
 
 const copyCard = vi.hoisted(() => vi.fn());
@@ -27,15 +30,15 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { CardModalActions } from "./card-modal-actions";
 
-const card = cardWithListFactory.build();
-
 describe("CardModalActions", () => {
   beforeEach(() => {
-    useCardModalStore.getState().open("card_1");
+    rewindCardWithListFactory();
   });
 
   test("copies the card, toasts, and closes the modal", async () => {
-    copyCard.mockResolvedValue({ data: { id: "card_1" } });
+    const card = cardWithListFactory.build();
+    useCardModalStore.getState().open(card.id);
+    copyCard.mockResolvedValue({ data: { id: card.id } });
     const user = userEvent.setup();
 
     render(<CardModalActions data={card} />);
@@ -43,18 +46,20 @@ describe("CardModalActions", () => {
 
     await waitFor(() => {
       expect(copyCard).toHaveBeenCalledExactlyOnceWith({
-        id: "card_1",
+        id: card.id,
         boardId: "board_1",
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'Card "Ship P2" copied',
+      title: `Card "${card.title}" copied`,
     });
     expect(useCardModalStore.getState().id).toBeUndefined();
   });
 
   test("toasts when copy fails", async () => {
+    const card = cardWithListFactory.build();
+    useCardModalStore.getState().open(card.id);
     copyCard.mockResolvedValue({ serverError: "Copy failed" });
     const user = userEvent.setup();
 
@@ -70,7 +75,9 @@ describe("CardModalActions", () => {
   });
 
   test("deletes the card, toasts, and closes the modal", async () => {
-    deleteCard.mockResolvedValue({ data: { id: "card_1" } });
+    const card = cardWithListFactory.build();
+    useCardModalStore.getState().open(card.id);
+    deleteCard.mockResolvedValue({ data: { id: card.id } });
     const user = userEvent.setup();
 
     render(<CardModalActions data={card} />);
@@ -78,18 +85,20 @@ describe("CardModalActions", () => {
 
     await waitFor(() => {
       expect(deleteCard).toHaveBeenCalledExactlyOnceWith({
-        id: "card_1",
+        id: card.id,
         boardId: "board_1",
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'Card "Ship P2" deleted',
+      title: `Card "${card.title}" deleted`,
     });
     expect(useCardModalStore.getState().id).toBeUndefined();
   });
 
   test("toasts when delete fails", async () => {
+    const card = cardWithListFactory.build();
+    useCardModalStore.getState().open(card.id);
     deleteCard.mockResolvedValue({ serverError: "Delete failed" });
     const user = userEvent.setup();
 

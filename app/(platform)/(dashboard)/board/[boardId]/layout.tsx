@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";

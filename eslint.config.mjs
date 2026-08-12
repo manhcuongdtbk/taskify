@@ -542,6 +542,31 @@ const nodeEnvViaLibEnvRestrictions = [
  * - `Foo.SkeletonItem` must not wrap SkeletonStatus (row placeholder)
  * - `<SkeletonStatus>` only inside a `Foo.Skeleton =` assignment
  */
+/**
+ * Fishery: call `*Factory.build` / `create` / `buildList` / `createList` inside
+ * `test` (or a helper fn), not at module / describe / beforeEach scope — docs/testing.md.
+ */
+const fisheryFactoryCall =
+  "CallExpression[callee.object.name=/Factory$/][callee.property.name=/^(build|create|buildList|createList)$/]";
+
+const fisheryFactoryBuildRestrictions = [
+  {
+    selector: `Program > VariableDeclaration > VariableDeclarator > ${fisheryFactoryCall}`,
+    message:
+      "Do not call *Factory.build/create at module scope — build inside each test (or a helper). See docs/testing.md (Fishery).",
+  },
+  {
+    selector: `CallExpression[callee.name='describe'] > :matches(ArrowFunctionExpression, FunctionExpression) > BlockStatement > VariableDeclaration > VariableDeclarator > ${fisheryFactoryCall}`,
+    message:
+      "Do not share a *Factory.build/create across tests via describe scope — build inside each test. See docs/testing.md (Fishery).",
+  },
+  {
+    selector: `CallExpression[callee.name=/^(beforeEach|beforeAll)$/] ${fisheryFactoryCall}`,
+    message:
+      "Do not build Fishery objects in beforeEach/beforeAll (shared mutable setup). Build inside each test; rewindSequence is OK. See docs/testing.md (Fishery).",
+  },
+];
+
 const skeletonStatusLabelMessage =
   "Use <SkeletonStatus heading={…}> from @/components/skeleton-status for loading-region labels (share `heading` with the section title when one exists). See docs/conventions.md.";
 
@@ -925,6 +950,15 @@ const eslintConfig = defineConfig([
           patterns: [...noLodashImportPatterns, ...noZustandImportPatterns],
         },
       ],
+    },
+  },
+
+  // Fishery build-site hygiene — docs/testing.md (Fishery practices)
+  {
+    files: ["**/*.test.{ts,tsx}"],
+    ignores: ["e2e/**"],
+    rules: {
+      "no-restricted-syntax": ["error", ...fisheryFactoryBuildRestrictions],
     },
   },
 

@@ -1,19 +1,20 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 
-import { cardAuditLogFactory } from "@/lib/testing/factories/card";
+import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 
 import { CardModalActivity } from "./card-modal-activity";
 
-const log = cardAuditLogFactory.build();
-
 describe("CardModalActivity", () => {
   test("renders activity items from audit logs", () => {
+    const log = auditLogFactory.build();
     render(<CardModalActivity items={[log]} />);
 
     expect(screen.getByText("Activity")).toBeInTheDocument();
     expect(screen.getByText(/ada lovelace/i)).toBeInTheDocument();
-    expect(screen.getByText(/created card "ship p2"/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(`created card "${log.entityTitle}"`, "i")),
+    ).toBeInTheDocument();
   });
 
   test("renders an empty list when there are no items", () => {

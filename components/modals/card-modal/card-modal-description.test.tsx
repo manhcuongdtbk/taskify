@@ -1,9 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/api/card";
-import { cardWithListFactory } from "@/lib/testing/factories/card";
+import {
+  cardWithListFactory,
+  rewindCardWithListFactory,
+} from "@/lib/testing/factories/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
 const updateCard = vi.hoisted(() => vi.fn());
@@ -23,12 +26,15 @@ vi.mock("next/navigation", () => ({
 
 import { CardModalDescription } from "./card-modal-description";
 
-const card = cardWithListFactory.build();
-
 describe("CardModalDescription", () => {
+  beforeEach(() => {
+    rewindCardWithListFactory();
+  });
+
   test("submits description to updateCard", async () => {
+    const card = cardWithListFactory.build();
     updateCard.mockResolvedValue({
-      data: { id: "card_1", title: "Ship P2", description: "Details" },
+      data: { id: card.id, title: card.title, description: "Details" },
     });
     const user = userEvent.setup();
     const { invalidateQueries } = renderWithQuery(
@@ -49,20 +55,21 @@ describe("CardModalDescription", () => {
     await waitFor(() => {
       expect(updateCard).toHaveBeenCalledExactlyOnceWith({
         boardId: "board_1",
-        id: "card_1",
+        id: card.id,
         description: "Details",
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'Card "Ship P2" updated',
+      title: `Card "${card.title}" updated`,
     });
     expect(invalidateQueries).toHaveBeenCalledExactlyOnceWith({
-      queryKey: cardQueries.byId("card_1"),
+      queryKey: cardQueries.byId(card.id),
     });
   });
 
   test("toasts when update fails", async () => {
+    const card = cardWithListFactory.build();
     updateCard.mockResolvedValue({ serverError: "Update failed" });
     const user = userEvent.setup();
     renderWithQuery(<CardModalDescription data={card} />);
@@ -87,6 +94,7 @@ describe("CardModalDescription", () => {
   });
 
   test("cancels editing", async () => {
+    const card = cardWithListFactory.build();
     const user = userEvent.setup();
     renderWithQuery(<CardModalDescription data={card} />);
 
@@ -105,6 +113,7 @@ describe("CardModalDescription", () => {
   });
 
   test("closes editing on Escape", async () => {
+    const card = cardWithListFactory.build();
     const user = userEvent.setup();
     renderWithQuery(<CardModalDescription data={card} />);
 
@@ -123,11 +132,10 @@ describe("CardModalDescription", () => {
   });
 
   test("renders existing description text", () => {
-    renderWithQuery(
-      <CardModalDescription
-        data={{ ...card, description: "Existing details" }}
-      />,
-    );
+    const card = cardWithListFactory.build({
+      description: "Existing details",
+    });
+    renderWithQuery(<CardModalDescription data={card} />);
 
     expect(screen.getByText("Existing details")).toBeInTheDocument();
   });

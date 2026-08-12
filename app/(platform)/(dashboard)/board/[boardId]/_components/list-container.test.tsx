@@ -7,7 +7,7 @@ import {
 import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import { type ListWithCards } from "@/types";
+import { type ListWithCards } from "@/lib/prisma/payloads";
 
 const onDragEndRef = vi.hoisted(() => ({
   current: null as

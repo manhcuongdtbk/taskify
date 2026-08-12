@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { milliseconds } from "date-fns";
 
 const DAY_IN_MS = milliseconds({ days: 1 });

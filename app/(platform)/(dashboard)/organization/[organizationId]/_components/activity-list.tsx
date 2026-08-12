@@ -1,7 +1,7 @@
 import { ActivityItem } from "@/components/activity-item";
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { paths } from "@/lib/paths";

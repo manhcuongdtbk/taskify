@@ -1,64 +1,57 @@
 /**
  * Test-only helper — `lib/testing/**` must not be imported by app code (ESLint).
- * See docs/testing.md.
+ * See docs/testing.md (Fishery practices).
  *
- * Fishery factories for card / list / audit-log test data (not `lib/api` Query
- * factories). Match installed fishery — [`docs/conventions.md`](../../docs/conventions.md).
+ * - `cardFactory` → Prisma `Card` row (FK `listId`, no nested `list`)
+ * - `cardWithListFactory` → `CardWithList` (API detail: `list` is `{ title }` only)
  *
- * Defaults use stable IDs (`card_1`, …) so jsdom/MSW suites stay deterministic.
- * Prefer `sequence` / unique values when a suite needs isolation (e.g. DB).
+ * List row defaults live in `./list`. Do not redefine List factories here.
  */
 
 import { Factory } from "fishery";
 
-import {
-  ACTION,
-  ENTITY_TYPE,
-  type AuditLog,
-  type List,
-} from "@/app/generated/prisma/client";
-import { type CardWithList } from "@/types";
+import { type Card } from "@/app/generated/prisma/client";
+import { type CardWithList } from "@/lib/prisma/payloads";
 
-const defaultCreatedAt = new Date("2026-01-01");
-const defaultUpdatedAt = new Date("2026-01-01");
-const defaultLogAt = new Date("2026-01-15T10:30:00.000Z");
+import { listFactory, rewindListFactory } from "./list";
 
-export const listFactory = Factory.define<List>(() => ({
-  id: "list_1",
-  title: "Todo",
-  order: 0,
-  boardId: "board_1",
-  createdAt: defaultCreatedAt,
-  updatedAt: defaultUpdatedAt,
-}));
+export const cardFactory = Factory.define<Card>(({ sequence }) => {
+  // First persist: createdAt === updatedAt (Prisma @default(now()) + @updatedAt).
+  const now = new Date();
+
+  return {
+    id: `card_${sequence}`,
+    title: "Ship P2",
+    description: null,
+    order: 0,
+    // Placeholder FK — override when pairing with a real list / use cardWithListFactory.
+    listId: `list_${sequence}`,
+    createdAt: now,
+    updatedAt: now,
+  };
+});
 
 export const cardWithListFactory = Factory.define<CardWithList>(
   ({ associations }) => {
-    const list = associations.list ?? listFactory.build();
+    // API select is `{ title }` only (`cardWithListArgs`). Build a full list row for
+    // a real listId, then project to the payload shape.
+    const listRow = listFactory.build();
+    const title = associations.list?.title ?? listRow.title;
+    const card = cardFactory.build({ listId: listRow.id });
 
     return {
-      id: "card_1",
-      title: "Ship P2",
-      description: null,
-      order: 0,
-      listId: list.id,
-      createdAt: defaultCreatedAt,
-      updatedAt: defaultUpdatedAt,
-      list,
+      ...card,
+      list: { title },
     };
   },
 );
 
-export const cardAuditLogFactory = Factory.define<AuditLog>(() => ({
-  id: "log_1",
-  orgId: "org_1",
-  action: ACTION.CREATE,
-  entityId: "card_1",
-  entityType: ENTITY_TYPE.CARD,
-  entityTitle: "Ship P2",
-  userId: "user_1",
-  userImage: "https://example.com/avatar.png",
-  userName: "Ada Lovelace",
-  createdAt: defaultLogAt,
-  updatedAt: defaultLogAt,
-}));
+export const rewindCardFactory = () => {
+  cardFactory.rewindSequence();
+};
+
+/** Rewinds list + card (with-list builds advance both). */
+export const rewindCardWithListFactory = () => {
+  rewindListFactory();
+  rewindCardFactory();
+};

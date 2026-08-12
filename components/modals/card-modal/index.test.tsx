@@ -2,9 +2,13 @@ import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
-  cardAuditLogFactory,
   cardWithListFactory,
+  rewindCardWithListFactory,
 } from "@/lib/testing/factories/card";
+import {
+  auditLogFactory,
+  rewindAuditLogFactory,
+} from "@/lib/testing/factories/audit-log";
 import {
   cardDetailOk,
   cardDetailPending,
@@ -63,11 +67,10 @@ vi.mock("./card-modal-activity", () => {
 
 import { CardModal } from "./index";
 
-const card = cardWithListFactory.build();
-const log = cardAuditLogFactory.build();
-
 describe("CardModal", () => {
   beforeEach(() => {
+    rewindCardWithListFactory();
+    rewindAuditLogFactory();
     useCardModalStore.getState().close();
   });
 
@@ -81,16 +84,18 @@ describe("CardModal", () => {
   });
 
   test("shows loaded sections when card and logs fetch succeed", async () => {
+    const card = cardWithListFactory.build();
+    const log = auditLogFactory.build({}, { transient: { card } });
     server.use(cardDetailOk(card), cardLogsOk([log]));
-    useCardModalStore.getState().open("card_1");
+    useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
 
     expect(await screen.findByTestId("card-header")).toHaveTextContent(
-      "Ship P2",
+      card.title,
     );
-    expect(screen.getByTestId("card-description")).toHaveTextContent("card_1");
-    expect(screen.getByTestId("card-actions")).toHaveTextContent("card_1");
+    expect(screen.getByTestId("card-description")).toHaveTextContent(card.id);
+    expect(screen.getByTestId("card-actions")).toHaveTextContent(card.id);
     expect(screen.getByTestId("card-activity")).toHaveTextContent("1");
     expect(
       screen.queryByTestId("card-header-skeleton"),
@@ -98,8 +103,9 @@ describe("CardModal", () => {
   });
 
   test("shows card skeletons while the card query is pending", async () => {
+    const card = cardWithListFactory.build();
     server.use(cardDetailPending(), cardLogsPending());
-    useCardModalStore.getState().open("card_1");
+    useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
 
@@ -112,8 +118,9 @@ describe("CardModal", () => {
   });
 
   test("keeps the activity skeleton when only logs are pending", async () => {
+    const card = cardWithListFactory.build();
     server.use(cardDetailOk(card), cardLogsPending());
-    useCardModalStore.getState().open("card_1");
+    useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
 
@@ -124,8 +131,10 @@ describe("CardModal", () => {
   });
 
   test("stays on card skeletons when the detail body is null", async () => {
+    const card = cardWithListFactory.build();
+    const log = auditLogFactory.build({}, { transient: { card } });
     server.use(cardDetailOk(null), cardLogsOk([log]));
-    useCardModalStore.getState().open("card_1");
+    useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
 
@@ -141,8 +150,9 @@ describe("CardModal", () => {
   });
 
   test("stays on skeletons when card fetches are unauthorized", async () => {
+    const card = cardWithListFactory.build();
     server.use(cardDetailUnauthorized(), cardLogsUnauthorized());
-    useCardModalStore.getState().open("card_1");
+    useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
 
