@@ -46,7 +46,7 @@ Code that supports the features above — shared building blocks, not rows in th
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Server mutations         | `actions/` (Zod + `create-safe-action`)                                                                                                                                                    |
 | Thin authorization today | Session + active `orgId` + tenant-scoped queries + pricing-plan limits — see [`authentication-and-authorization.md`](./authentication-and-authorization.md) (not a Features-table row yet) |
-| Data models / DB         | `prisma/`, `lib/prisma.ts`                                                                                                                                                                 |
+| Data models / DB         | `prisma/`, `lib/prisma/`                                                                                                                                                                   |
 | Shared UI / shadcn       | `components/` (`ui/` = shadcn only — see [`project-structure.md`](./project-structure.md))                                                                                                 |
 | Dashboard shell          | `app/(platform)/(dashboard)/` (`Navbar`, sidebar, theme)                                                                                                                                   |
 

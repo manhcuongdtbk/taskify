@@ -255,8 +255,8 @@ The assertions target the real helpers (`toStripeUnitAmount`, `toStripeCurrency`
 **Mock — the shape our first Prisma suite uses** ([`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts)). Here the point _is_ the call: we verify the row we would have written, without a database.
 
 ```ts
-// lib/prisma.ts exports the client as `default`
-vi.mock("@/lib/prisma", () => ({
+// lib/prisma (client.ts) exports the client as `default`
+vi.mock("@/lib/prisma/client", () => ({
   default: { auditLog: { create: vi.fn() } },
 }));
 
@@ -589,7 +589,7 @@ Parts **1–2** are the least you need for current/near-term Client unit tests. 
 **Decide in order** (stop at the first match):
 
 1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-log-message.ts`](../lib/generate-log-message.ts) + [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
-2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a **mocked** [`lib/prisma.ts`](../lib/prisma.ts) when that suite lands. First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching (blog part 2).
+2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a **mocked** [`lib/prisma/client.ts`](../lib/prisma/client.ts) when that suite lands. First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching (blog part 2).
 3. **Need real SQL / relations** → integration against a test DB (later; blog part 3 / Prisma integration docs) — not default for app helpers.
 4. **Full product journey** → **Playwright** (blog part 4 when relevant).
 
@@ -608,7 +608,7 @@ Need real DB correctness? ──no──► Vitest + mocked Client (when added)
 Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) · [Vi](https://vitest.dev/api/vi.html)) already supports:
 
 - **`vi.mock` factory** returning only the methods under test as `vi.fn()` (preferred for a small surface like `auditLog.create`)
-- **Colocated `lib/__mocks__/prisma.ts`** loaded by `vi.mock("@/lib/prisma")` without a factory ([`__mocks__` convention](https://vitest.dev/api/vi.html#vi-mock)) — `__mocks__` dirs are allowed; catch-all `__tests__/` / `tests/` are not
+- **Colocated `lib/__mocks__/prisma.ts`** loaded by `vi.mock("@/lib/prisma/client")` without a factory ([`__mocks__` convention](https://vitest.dev/api/vi.html#vi-mock)) — `__mocks__` dirs are allowed; catch-all `__tests__/` / `tests/` are not
 - **Automock** (`vi.mock` with no factory and no `__mocks__` file): Vitest recursively replaces exports (nested objects / class instances); useful for plain modules — Prisma Client is a heavy instance/Proxy, so prefer an explicit factory or `__mocks__` stub of methods you call
 
 **Do not add `vitest-mock-extended` by default.** The Prisma blog uses `mockDeep` for convenience. Vitest does not require it. Add that package only if a narrow manual stub becomes painful (many models, interactive `$transaction`, etc.) — [one tool per job](./vocabulary.md#one-tool-per-job).
@@ -616,9 +616,29 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 **Model / entity test data (typing + sharing):**
 
 - **Complete object** — has every field the production type needs: do **not** use `as Model` or `satisfies Model`. Pass the plain object; the typed call site already checks assignability.
-- **Shared Fishery factories when shapes repeat** — do **not** copy the same `CardWithList` / `AuditLog` object into every suite, and do **not** hand-roll parallel `make*` helpers. Prefer [`lib/testing/factories/`](../lib/testing/factories/) (`Factory.define` → `.build({ …overrides })`). Thin `{ id, boardId }` action inputs stay local. Don’t confuse with Vitest/Playwright **fixtures** (`test.extend` lifecycle). Don’t add `@faker-js/faker` until random/unique values actually hurt.
+- **Shared Fishery factories when shapes repeat** — see [Fishery practices](#fishery-practices) below. Thin `{ id, boardId }` action inputs stay local. Don’t confuse with Vitest/Playwright **fixtures** (`test.extend` lifecycle). Don’t add `@faker-js/faker` until random/unique values actually hurt.
 - **Intentional partial** — production takes a **full** model type but the test only cares about a few fields: keep the production param as the model type; in the test use a **named cast** helper that accepts `Pick<…>` and returns `as Model`. Do **not** invent unused columns only to please TypeScript. See `auditLogForMessage` in [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
 - Zod schema suites and other plain-input unit tests do not need this pattern. Do not blanket-ban `as` — Clerk/auth mocks and similar partial stubs still need casts.
+
+### Fishery practices
+
+Match installed [Fishery](https://github.com/thoughtbot/fishery) (factory_bot-style). Concern wiring lives here; API details in the Fishery README for our version — [`conventions.md` Match installed](./conventions.md#match-installed-official-docs).
+
+| Do                                                                                                                                                                                                                                         | Don’t                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Factory.define` in **one file per entity** under [`lib/testing/factories/`](../lib/testing/factories/) (`list.ts`, `card.ts`, `audit-log.ts`); call `.build({ …overrides })` **inside each `test`** (or a small helper fn the test calls) | Nest another entity’s factory inside a sibling file (e.g. `listFactory` in `card.ts`) — contributors/agents won’t find it and will redefine it; hand-roll parallel `make*` helpers; share one `const x = fooFactory.build()` at **module** / **describe** / **`beforeEach`** scope |
+| Match **return shape** with the factory name — `cardFactory` → `Card`; `cardWithListFactory` → `CardWithList`; `listFactory` → `List`; `listWithCardsFactory` → `ListWithCards`                                                            | One factory for both shapes, or a name that hides whether relations are nested                                                                                                                                                                                                     |
+| Use **`sequence`** for entity ids (`card_${sequence}`) and placeholder FKs (`listId` / `boardId`)                                                                                                                                          | Hardcode `card_1` / `board_1` as permanent defaults (collisions / false sharing)                                                                                                                                                                                                   |
+| On first-save shapes, set **`createdAt` and `updatedAt` to the same build-time `new Date()`**                                                                                                                                              | Hardcode magic timestamps (`2026-01-01`) — suites couple to them; prefer assert/override from the built object                                                                                                                                                                     |
+| Assert against **built fields** (`card.id`, `card.title`, `card.createdAt`)                                                                                                                                                                | Hardcode sequence numbers or factory default dates in every suite unless you deliberately override                                                                                                                                                                                 |
+| **Associations** for nested models (import peer factories; pass `cards` into `listWithCardsFactory`); **`afterBuild`** to keep derived FKs in sync after DeepPartial overlays                                                              | Assume nested overrides leave sibling FKs correct without an after-build sync; redefine another entity’s factory in the wrong file                                                                                                                                                 |
+| Pair related rows explicitly (`auditLogFactory.build({}, { transient: { card } })` or entity field overrides)                                                                                                                              | Rely on two independent factories “happening” to share ids                                                                                                                                                                                                                         |
+| `rewindSequence` / `rewind*Factory` helpers in `beforeEach` when a suite asserts `card_1`-style ids                                                                                                                                        | Build in `beforeEach` into a shared `let` (mutable cross-test state)                                                                                                                                                                                                               |
+| `.build` for in-memory / MSW; reserve `.create` + `onCreate` for real DB later                                                                                                                                                             | Reach for prisma-fabbrica (or similar) for UI/MSW-only data                                                                                                                                                                                                                        |
+
+TODO: Read Fishery **DeepPartial** build overlays, then revisit the `afterBuild` FK-sync row above and [`card.ts`](../lib/testing/factories/card.ts) / [`list.ts`](../lib/testing/factories/list.ts) — [Fishery: params](https://github.com/thoughtbot/fishery#use-params-to-access-passed-in-properties).
+
+**ESLint:** `*.test.*` bans `*Factory.build` / `create` / `buildList` / `createList` at module scope, describe top-level, and inside `beforeEach` / `beforeAll` ([`eslint.config.mjs`](../eslint.config.mjs)). Helper functions that wrap `.build` remain allowed.
 
 **Do not add `"type": "module"` to root [`package.json`](../package.json)** to “match” Prisma blog samples. Those samples are bare Node/Vitest packages. This app relies on Next.js, Vitest/Vite, and `node --import tsx` for scripts; forcing package-wide ESM can break CJS assumptions. Revisit only if a concrete Node entrypoint fails without it.
 

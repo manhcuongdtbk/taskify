@@ -110,7 +110,7 @@ Still prefer the **server** for secrets, Prisma, and most first-load data. Use t
 
 | Situation                                                                         | Prefer                                                                                                                                                                                                                | Example in this repo                                                                                        |
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Data for a route/layout, no browser-only API                                      | **Server Component** + Prisma (`lib/prisma.ts`) or Next [server `fetch`](https://nextjs.org/docs/app/api-reference/functions/fetch)                                                                                   | Organization home, board page                                                                               |
+| Data for a route/layout, no browser-only API                                      | **Server Component** + Prisma (`@/lib/prisma/client`) or Next [server `fetch`](https://nextjs.org/docs/app/api-reference/functions/fetch)                                                                             | Organization home, board page                                                                               |
 | Two+ independent server reads on one route                                        | Start them together (don’t `await` A before starting B) — [Fetching Data → parallel](https://nextjs.org/docs/app/getting-started/fetching-data#parallel-data-fetching)                                                | Prefer when a page needs unrelated Prisma/`fetch` results                                                   |
 | Same server helper called twice in one request                                    | Wrap with React [`cache`](https://react.dev/reference/react/cache) (Next’s DAL examples do this) — [Sharing data](https://nextjs.org/docs/app/getting-started/fetching-data#sharing-data-with-context-and-reactcache) | Session/`orgId` helpers if extracted; not a Redis cache                                                     |
 | Slow server subtree                                                               | Stream: `loading.tsx` / `<Suspense>` — [Fetching Data → streaming](https://nextjs.org/docs/app/getting-started/fetching-data#streaming)                                                                               | Pattern TBD (TODO in [`nextjs.md`](./nextjs.md))                                                            |
@@ -309,7 +309,7 @@ Missing: is this board in the viewer’s organization? Should the client see int
 // Conceptual — not a file we have yet
 import "server-only";
 import { auth } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 
 export type BoardHeaderDTO = {
   id: string;

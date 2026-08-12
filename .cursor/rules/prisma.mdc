@@ -1,0 +1,13 @@
+---
+description: Prisma payload / schema work — read docs/prisma.md; GetPayload not hand intersections
+globs: "{docs/prisma.md,prisma/**,lib/prisma/**,app/generated/prisma/**,lib/testing/factories/**,app/api/cards/**,app/(platform)/(dashboard)/board/**}"
+alwaysApply: false
+---
+
+# Prisma in this repo
+
+Before changing schema, Client wiring, org-scoped queries, or **shared include/select payload types**: read [`docs/prisma.md`](docs/prisma.md).
+
+**Do not** hand-write `Model & { relation: Other }` for query results. Use `satisfies Prisma.*DefaultArgs` + `*GetPayload` (shared args in [`lib/prisma/payloads.ts`](lib/prisma/payloads.ts) when the shape is reused). Match installed Prisma — [partial structures](https://www.prisma.io/docs/orm/prisma-client/type-safety/operating-against-partial-structures-of-model-types).
+
+Do not invent a parallel ORM or a second payload-typing stack.

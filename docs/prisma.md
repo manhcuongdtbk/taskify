@@ -2,10 +2,10 @@
 
 Learning reference for **Prisma ORM** as used in this app (Postgres + Next.js).
 
-|                 |                                                                                                                              |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Owner / SoT** | This file — schema/Client/migrations patterns and Prisma TODOs (not App Router fetch/mutate — that’s [`data.md`](./data.md)) |
-| **Open when**   | Changing schema, Client setup, migrations, or org-scoped query patterns                                                      |
+|                 |                                                                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Owner / SoT** | This file — schema/Client/migrations patterns and Prisma TODOs (not App Router fetch/mutate — that’s [`data.md`](./data.md))                                 |
+| **Open when**   | Changing schema, Client setup, migrations, org-scoped queries, or **shared Prisma payload / include·select types** (`lib/prisma/payloads.ts`, `*GetPayload`) |
 
 Prefer [Prisma docs](https://www.prisma.io/docs) for the versions in `package.json` (`prisma`, `@prisma/client`, `@prisma/adapter-pg`, `pg`) — [`conventions.md` → Match installed](./conventions.md#match-installed-official-docs). This file is **our** schema / Client / migration patterns — not a Prisma docs mirror. Repo skills under `.claude/skills/prisma-*` / `.agents/skills/prisma-*` help with CLI/Client. Index: [`README.md`](./README.md).
 
@@ -16,8 +16,8 @@ Prefer [Prisma docs](https://www.prisma.io/docs) for the versions in `package.js
 ## Already following (keep as examples)
 
 - **Schema + migrations** under `prisma/` (`schema.prisma`, `migrations/`)
-- **Generated Client** output to `app/generated/prisma` (see `generator` in the schema) — import via `@/lib/prisma` or generated paths as needed
-- **Next.js singleton Client** in `lib/prisma.ts` with `@prisma/adapter-pg` and `DATABASE_URL` ([Prisma + Next.js](https://www.prisma.io/docs/guides/frameworks/nextjs))
+- **Generated Client** output to `app/generated/prisma` (see `generator` in the schema) — import Client via `@/lib/prisma/client` or generated paths as needed
+- **Next.js singleton Client** in `lib/prisma/client.ts` with `@prisma/adapter-pg` and `DATABASE_URL` ([Prisma + Next.js](https://www.prisma.io/docs/guides/frameworks/nextjs)) — no barrel `index.ts`; import the file you need (`client` vs `payloads`)
 - **`prisma.config.ts`** for schema/migrations/datasource URL wiring
 - **`postinstall`: `prisma generate`** so Client stays in sync after install
 - **Schema format / validate on the lint contract** — editor uses the Prisma VS Code formatter; `pnpm lint:prisma` / `lint:prisma:fix` (`scripts/check-prisma-schema.ts`); staged `*.prisma` via lint-staged. Do **not** use Prettier on `.prisma`. SQL migrations are left unformatted. See [`conventions.md`](./conventions.md#lint--format-one-contract).
@@ -25,6 +25,7 @@ Prefer [Prisma docs](https://www.prisma.io/docs) for the versions in `package.js
 - **Organization scoping** — queries/mutations typically filter by Clerk `orgId` (tenant id), not a Prisma multi-tenant plugin
 - **Cascade deletes** on list/card relations where the schema defines them
 - **Testing guidance** for Prisma-touched code lives in [`testing.md`](./testing.md) (types-only example: `lib/generate-log-message`; Client-mock when added — not Jest)
+- **Shared include/select + `GetPayload`** — [`lib/prisma/payloads.ts`](../lib/prisma/payloads.ts) exports `listWithCardsArgs` / `cardWithListArgs` (`satisfies Prisma.*DefaultArgs`) and `ListWithCards` / `CardWithList` via `*GetPayload`, matching [Operating against partial structures](https://www.prisma.io/docs/orm/prisma-client/type-safety/operating-against-partial-structures-of-model-types) (still current for Prisma 7.9 — `*DefaultArgs` / `*GetPayload` are in the generated client). Queries (`board/[boardId]/page`, `api/cards/[cardId]`) spread the same args so the type matches the real payload (e.g. card detail’s `list` is `{ title }` only, not a full `List`). Prefer this over `Awaited<ReturnType<typeof queryFn>>` when the shape is shared across call sites. Broader type-safety overview ([Select/Include typing, `Args`/`Result` for extensions](https://www.prisma.io/docs/orm/prisma-client/type-safety)) — don’t use those for domain payload aliases. [Prisma type system](https://www.prisma.io/docs/orm/prisma-client/type-safety/prisma-type-system) is schema scalar / `@db.*` mappings, not relation payloads.
 
 ## TODO — follow Prisma / data-layer recommendations more closely
 
