@@ -6,9 +6,7 @@ import { server } from "./server";
 describe("msw server", () => {
   test("intercepts fetch with a runtime handler", async () => {
     server.use(
-      http.get("/api/msw-smoke", () =>
-        HttpResponse.json({ ok: true as const }),
-      ),
+      http.get("/api/msw-smoke", () => HttpResponse.json({ ok: true })),
     );
 
     const response = await fetch("/api/msw-smoke");

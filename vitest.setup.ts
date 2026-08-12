@@ -20,6 +20,8 @@ import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "./lib/testing/msw/server";
 
 beforeAll(() => {
+  // Fail tests that fetch URLs with no MSW handler (default warn/bypass can hide
+  // real-network or mistyped-path bugs). See docs/testing.md (MSW in this repo).
   server.listen({ onUnhandledRequest: "error" });
 });
 
