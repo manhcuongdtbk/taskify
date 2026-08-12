@@ -265,8 +265,17 @@ const noForwardRefImport = {
   ],
 };
 
-/** Same as `noForwardRefImport`, minus the test-only ban — for `lib/testing/**` itself. */
-const noForwardRefImportAllowTestOnly = {
+/**
+ * `no-restricted-imports` for modules that **may** import `lib/testing/**`.
+ *
+ * Same bans as `noForwardRefImport` (forwardRef, Lodash, Zustand-in-the-wrong-place)
+ * but **omits** `testOnlyImportPatterns`. Needed because flat config replaces the whole
+ * `no-restricted-imports` rule — you cannot “turn off” only the lib/testing patterns.
+ *
+ * Use for: `lib/testing/**` (siblings) and `vitest.setup.ts` (MSW lifecycle import).
+ * Not about React refs — forwardRef stays banned here; the point is allowing test helpers.
+ */
+const noRestrictedImportsAllowLibTesting = {
   "no-restricted-imports": [
     "error",
     {
@@ -766,19 +775,19 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Test-only helpers: may import each other; app code may not import them — docs/testing.md
+  // Test-only helpers: may import each other; app code may not — docs/testing.md
   {
     files: ["lib/testing/**/*.{ts,tsx}"],
     rules: {
-      ...noForwardRefImportAllowTestOnly,
+      ...noRestrictedImportsAllowLibTesting,
     },
   },
 
-  // Vitest setup may import MSW server from lib/testing (same test-only surface).
+  // Setup is not `*.test.*`, but must import MSW from lib/testing — same allowlist as above.
   {
     files: ["vitest.setup.ts"],
     rules: {
-      ...noForwardRefImportAllowTestOnly,
+      ...noRestrictedImportsAllowLibTesting,
     },
   },
 
