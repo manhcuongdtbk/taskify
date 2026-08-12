@@ -3,9 +3,10 @@
  * See docs/testing.md (Fishery practices).
  *
  * - `cardFactory` → Prisma `Card` row (FK `listId`, no nested `list`)
- * - `cardWithListTitleFactory` → `CardWithListTitle` (API detail: `list` is `{ title }` only)
+ * - `cardWithListTitleFactory` → `CardWithListTitle` (API/UI: `list` is `{ title }` only)
  *
  * List row defaults live in `./list`. Do not redefine List factories here.
+ * Fishery builds TypeScript types for tests — not a Prisma/ORM layer.
  */
 
 import { Factory } from "fishery";
@@ -15,7 +16,7 @@ import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 import { listFactory, rewindListFactory } from "./list";
 
-export const cardFactory = Factory.define<Card>(({ sequence }) => {
+export const cardFactory = Factory.define<Card>(({ sequence, params }) => {
   // First persist: createdAt === updatedAt (Prisma @default(now()) + @updatedAt).
   const now = new Date();
 
@@ -24,34 +25,31 @@ export const cardFactory = Factory.define<Card>(({ sequence }) => {
     title: "Ship P2",
     description: null,
     order: 0,
-    // Placeholder FK — override when pairing with a real list / use cardWithListTitleFactory.
-    listId: `list_${sequence}`,
+    // Prefer a real List id; callers may override listId (e.g. payload factory).
+    listId: params.listId ?? listFactory.build().id,
     createdAt: now,
     updatedAt: now,
   };
 });
 
 export const cardWithListTitleFactory = Factory.define<CardWithListTitle>(
-  ({ associations }) => {
-    // API select is `{ title }` only (`cardWithListTitleArgs`). Build a full list row for
-    // a real listId, then project to the payload shape.
-    const listRow = listFactory.build();
-    const title = associations.list?.title ?? listRow.title;
-    const card = cardFactory.build({ listId: listRow.id });
+  () => {
+    const list = listFactory.build();
 
     return {
-      ...card,
-      list: { title },
+      ...cardFactory.build({ listId: list.id }),
+      list: { title: list.title },
     };
   },
 );
 
+/** Rewinds list + card — card builds use `listFactory` when listId is not passed. */
 export const rewindCardFactory = () => {
+  rewindListFactory();
   cardFactory.rewindSequence();
 };
 
-/** Rewinds list + card (with-list builds advance both). */
+/** Payload builds go through `cardFactory` — rewind both. */
 export const rewindCardWithListTitleFactory = () => {
-  rewindListFactory();
   rewindCardFactory();
 };

@@ -55,10 +55,7 @@ describe("listWithCardsOrderedByOrderAscFactory", () => {
       {},
       {
         associations: {
-          cards: [
-            cardFactory.build({ listId: "ignored" }),
-            cardFactory.build({ listId: "ignored" }),
-          ],
+          cards: cardFactory.buildList(2),
         },
       },
     );

@@ -4,8 +4,7 @@
  *
  * - `listFactory` → Prisma `List` row (FK `boardId`, no nested `cards`)
  * - `listWithCardsOrderedByOrderAscFactory` → `ListWithCardsOrderedByOrderAsc`
- *   (board column / API include shape; array order is a query contract, not
- *   encoded in the TypeScript payload shape)
+ *   (board column shape; cards array order is a query contract)
  *
  * Do not put Card factories here — use `./card`. Pass cards via associations.
  */
@@ -33,9 +32,7 @@ export const listFactory = Factory.define<List>(({ sequence }) => {
 export const listWithCardsOrderedByOrderAscFactory =
   Factory.define<ListWithCardsOrderedByOrderAsc>(
     ({ associations, afterBuild }) => {
-      // TODO: Same DeepPartial review as cardWithListTitleFactory — nested `cards` /
-      // card field overlays vs list.id FK sync.
-      // More info: https://github.com/thoughtbot/fishery#use-params-to-access-passed-in-properties
+      // Keep card.listId on this list after DeepPartial overlays of `cards`.
       afterBuild((list) => {
         for (const card of list.cards) {
           card.listId = list.id;

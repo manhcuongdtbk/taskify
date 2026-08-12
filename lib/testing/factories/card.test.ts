@@ -43,6 +43,7 @@ describe("cardWithListTitleFactory", () => {
     expect(cardWithListTitleFactory.build()).toMatchObject({
       id: "card_1",
       title: "Ship P2",
+      listId: "list_1",
       list: { title: "Todo" },
     });
   });
