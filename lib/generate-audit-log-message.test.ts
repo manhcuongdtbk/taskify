@@ -1,24 +1,9 @@
 import { describe, expect, test } from "vitest";
 
-import {
-  ACTION,
-  ENTITY_TYPE,
-  type AuditLog,
-} from "@/app/generated/prisma/browser";
+import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
+import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 
 import { generateAuditLogMessage } from "./generate-audit-log-message";
-
-/**
- * Test-only: supply fields under test. Unused `AuditLog` columns are not part of
- * this suite — named cast instead of inventing a full row fixture. Prod stays
- * typed as `AuditLog` (call sites pass real rows). See docs/testing.md
- * (Prisma-related / model fixtures).
- */
-function auditLogForMessage(
-  fields: Pick<AuditLog, "action" | "entityTitle" | "entityType">,
-): AuditLog {
-  return fields as AuditLog;
-}
 
 describe("generateAuditLogMessage", () => {
   test.for([
@@ -45,7 +30,7 @@ describe("generateAuditLogMessage", () => {
     ({ action, entityType, entityTitle, expected }) => {
       expect(
         generateAuditLogMessage(
-          auditLogForMessage({ action, entityType, entityTitle }),
+          auditLogFactory.build({ action, entityType, entityTitle }),
         ),
       ).toBe(expected);
     },
@@ -54,7 +39,7 @@ describe("generateAuditLogMessage", () => {
   test("falls back for unknown actions", () => {
     expect(
       generateAuditLogMessage(
-        auditLogForMessage({
+        auditLogFactory.build({
           action: "UNKNOWN" as ACTION,
           entityType: ENTITY_TYPE.CARD,
           entityTitle: "Mystery",
