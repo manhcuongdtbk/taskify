@@ -6,14 +6,16 @@ import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { CardModalActivity } from "./card-modal-activity";
 
 describe("CardModalActivity", () => {
-  test("renders activity items from audit logs", () => {
-    const log = auditLogFactory.build();
-    render(<CardModalActivity items={[log]} />);
+  test("renders activity items from card audit logs", () => {
+    const cardAuditLog = auditLogFactory.build();
+    render(<CardModalActivity items={[cardAuditLog]} />);
 
     expect(screen.getByText("Activity")).toBeInTheDocument();
     expect(screen.getByText(/ada lovelace/i)).toBeInTheDocument();
     expect(
-      screen.getByText(new RegExp(`created card "${log.entityTitle}"`, "i")),
+      screen.getByText(
+        new RegExp(`created card "${cardAuditLog.entityTitle}"`, "i"),
+      ),
     ).toBeInTheDocument();
   });
 

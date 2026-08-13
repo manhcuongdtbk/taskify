@@ -27,8 +27,8 @@ export const ActivityList = async () => {
       <p className="hidden text-center text-xs text-muted-foreground last:block">
         No activity found inside this organization
       </p>
-      {auditLogs.map((log) => (
-        <ActivityItem key={log.id} data={log} />
+      {auditLogs.map((auditLog) => (
+        <ActivityItem key={auditLog.id} data={auditLog} />
       ))}
     </ol>
   );

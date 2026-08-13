@@ -10,12 +10,12 @@ import {
   rewindAuditLogFactory,
 } from "@/lib/testing/factories/audit-log";
 import {
+  cardAuditLogsOk,
+  cardAuditLogsPending,
+  cardAuditLogsUnauthorized,
   cardDetailOk,
   cardDetailPending,
   cardDetailUnauthorized,
-  cardLogsOk,
-  cardLogsPending,
-  cardLogsUnauthorized,
 } from "@/lib/testing/msw/card-handlers";
 import { server } from "@/lib/testing/msw/server";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
@@ -83,10 +83,10 @@ describe("CardModal", () => {
     expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
   });
 
-  test("shows loaded sections when card and logs fetch succeed", async () => {
+  test("shows loaded sections when card and card audit logs fetch succeed", async () => {
     const card = cardWithListTitleFactory.build();
-    const log = auditLogFactory.build({}, { transient: { card } });
-    server.use(cardDetailOk(card), cardLogsOk([log]));
+    const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
+    server.use(cardDetailOk(card), cardAuditLogsOk([cardAuditLog]));
     useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
@@ -104,7 +104,7 @@ describe("CardModal", () => {
 
   test("shows card skeletons while the card query is pending", async () => {
     const card = cardWithListTitleFactory.build();
-    server.use(cardDetailPending(), cardLogsPending());
+    server.use(cardDetailPending(), cardAuditLogsPending());
     useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
@@ -117,9 +117,9 @@ describe("CardModal", () => {
     expect(screen.getByTestId("card-activity-skeleton")).toBeInTheDocument();
   });
 
-  test("keeps the activity skeleton when only logs are pending", async () => {
+  test("keeps the activity skeleton when only card audit logs are pending", async () => {
     const card = cardWithListTitleFactory.build();
-    server.use(cardDetailOk(card), cardLogsPending());
+    server.use(cardDetailOk(card), cardAuditLogsPending());
     useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
@@ -132,8 +132,8 @@ describe("CardModal", () => {
 
   test("stays on card skeletons when the detail body is null", async () => {
     const card = cardWithListTitleFactory.build();
-    const log = auditLogFactory.build({}, { transient: { card } });
-    server.use(cardDetailOk(null), cardLogsOk([log]));
+    const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
+    server.use(cardDetailOk(null), cardAuditLogsOk([cardAuditLog]));
     useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
@@ -143,7 +143,7 @@ describe("CardModal", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("card-description-skeleton")).toBeInTheDocument();
     expect(screen.getByTestId("card-actions-skeleton")).toBeInTheDocument();
-    // Logs can still resolve independently.
+    // Card audit logs can still resolve independently.
     await waitFor(() => {
       expect(screen.getByTestId("card-activity")).toHaveTextContent("1");
     });
@@ -151,7 +151,7 @@ describe("CardModal", () => {
 
   test("stays on skeletons when card fetches are unauthorized", async () => {
     const card = cardWithListTitleFactory.build();
-    server.use(cardDetailUnauthorized(), cardLogsUnauthorized());
+    server.use(cardDetailUnauthorized(), cardAuditLogsUnauthorized());
     useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);

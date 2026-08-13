@@ -333,6 +333,7 @@ Follow Vitest ([Descriptive Names](https://vitest.dev/guide/learn/testing-in-pra
 - Prefer **domain wording** for outcomes (`limited` / `unlimited`) over raw assertion echo (`is false` / `is true`) when both are clear.
 - When a suite (or parameterized table) splits happy-path vs rejection, prefix the **test name** with **`valid:`** / **`invalid:`**, then the behavior — e.g. `valid: accepts a copy payload`, `invalid: requires id and boardId`, `valid: formats maxBoards=1 as Up to 1 boards`, `invalid: throws when maxBoards is not a positive integer (-1)`.
 - Interpolate case data in parameterized **test names** (`$maxBoards`, `$expected`, `$0`) so the reporter shows which row failed.
+- **Audit logs:** never say generic **logs** in a test name or identifier. Use the entity-scoped phrase — **card audit log(s)**, **board audit log(s)**, **list audit log(s)** — or **audit log(s)** when the row is mixed/unscoped. SoT: [`vocabulary.md`](./vocabulary.md) (Audit log).
 
 #### Expects follow execution order (hard rule)
 
@@ -514,7 +515,7 @@ Visual regression only? ──yes──► Playwright (for now)
 
 | Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                                        | Typical files                | Examples                                                                                            |
 | --------------------------- | ------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                                           | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/fetcher.ts`, `lib/paths.ts`, `lib/generate-log-message.ts`              |
+| **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                                           | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/fetcher.ts`, `lib/paths.ts`, `lib/generate-audit-log-message.ts`        |
 | **Hook (`renderHook`)**     | Hook state/callbacks without mounting component JSX          | jsdom                    | **Vitest** + Testing Library                                                         | `foo.test.ts` (match source) | [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) — **not** `.tsx` unless the suite has JSX |
 | **Component (static)**      | Given props, the right roles/text/structure appear           | jsdom                    | **Vitest** + Testing Library                                                         | `foo.test.tsx`               | Modal header title, disabled submit, empty list copy                                                |
 | **Component (interactive)** | User events change UI or call callbacks                      | jsdom + synthetic events | **Vitest** + Testing Library + `user-event`                                          | `foo.test.tsx`               | Type board title, open/close modal via store, toggle sidebar                                        |
@@ -588,7 +589,7 @@ Parts **1–2** are the least you need for current/near-term Client unit tests. 
 
 **Decide in order** (stop at the first match):
 
-1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-log-message.ts`](../lib/generate-log-message.ts) + [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
+1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-audit-log-message.ts`](../lib/generate-audit-log-message.ts) + [`lib/generate-audit-log-message.test.ts`](../lib/generate-audit-log-message.test.ts).
 2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a **mocked** [`lib/prisma/client.ts`](../lib/prisma/client.ts) when that suite lands. First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching (blog part 2).
 3. **Need real SQL / relations** → integration against a test DB (later; blog part 3 / Prisma integration docs) — not default for app helpers.
 4. **Full product journey** → **Playwright** (blog part 4 when relevant).
@@ -617,7 +618,7 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 
 - **Complete object** — has every field the production type needs: do **not** use `as Model` or `satisfies Model`. Pass the plain object; the typed call site already checks assignability.
 - **Shared Fishery factories when shapes repeat** — see [Fishery practices](#fishery-practices) below. Thin `{ id, boardId }` action inputs stay local. Don’t confuse with Vitest/Playwright **fixtures** (`test.extend` lifecycle). Don’t add `@faker-js/faker` until random/unique values actually hurt.
-- **Intentional partial** — production takes a **full** model type but the test only cares about a few fields: keep the production param as the model type; in the test use a **named cast** helper that accepts `Pick<…>` and returns `as Model`. Do **not** invent unused columns only to please TypeScript. See `auditLogForMessage` in [`lib/generate-log-message.test.ts`](../lib/generate-log-message.test.ts).
+- **Intentional partial** — production takes a **full** model type but the test only cares about a few fields: keep the production param as the model type; in the test use a **named cast** helper that accepts `Pick<…>` and returns `as Model`. Do **not** invent unused columns only to please TypeScript. See `auditLogForMessage` in [`lib/generate-audit-log-message.test.ts`](../lib/generate-audit-log-message.test.ts).
 - Zod schema suites and other plain-input unit tests do not need this pattern. Do not blanket-ban `as` — Clerk/auth mocks and similar partial stubs still need casts.
 
 ### Fishery practices

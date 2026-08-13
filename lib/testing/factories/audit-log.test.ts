@@ -13,7 +13,7 @@ describe("auditLogFactory", () => {
 
   test("builds an AuditLog with sequenced defaults", () => {
     expect(auditLogFactory.build()).toMatchObject({
-      id: "log_1",
+      id: "auditLog_1",
       action: ACTION.CREATE,
       entityType: ENTITY_TYPE.CARD,
       entityId: "card_1",
@@ -24,25 +24,25 @@ describe("auditLogFactory", () => {
 
   test("pairs entity fields from a transient card", () => {
     const card = cardFactory.build({ title: "Renamed" });
-    const log = auditLogFactory.build(
+    const cardAuditLog = auditLogFactory.build(
       { action: ACTION.UPDATE },
       { transient: { card } },
     );
 
-    expect(log.entityTitle).toBe("Renamed");
-    expect(log.action).toBe(ACTION.UPDATE);
-    expect(log.entityId).toBe(card.id);
+    expect(cardAuditLog.entityTitle).toBe("Renamed");
+    expect(cardAuditLog.action).toBe(ACTION.UPDATE);
+    expect(cardAuditLog.entityId).toBe(card.id);
   });
 
   test("explicit entity overrides win over transient card", () => {
     const card = cardFactory.build({ title: "From card" });
-    const log = auditLogFactory.build(
+    const cardAuditLog = auditLogFactory.build(
       { entityTitle: "Explicit", entityId: "card_explicit" },
       { transient: { card } },
     );
 
     // Fishery overlays params on the returned object after the factory runs.
-    expect(log.entityTitle).toBe("Explicit");
-    expect(log.entityId).toBe("card_explicit");
+    expect(cardAuditLog.entityTitle).toBe("Explicit");
+    expect(cardAuditLog.entityId).toBe("card_explicit");
   });
 });

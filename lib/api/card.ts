@@ -26,10 +26,10 @@ export const cardQueries = {
       queryFn: () => fetcher<CardWithListTitle | null>(`/api/cards/${id}`),
       enabled: !!id,
     }),
-  logs: (id: string | undefined) =>
+  auditLogs: (id: string | undefined) =>
     queryOptions({
-      queryKey: [...cardQueries.byId(id), "logs"] as const,
-      queryFn: () => fetcher<AuditLog[]>(`/api/cards/${id}/logs`),
+      queryKey: [...cardQueries.byId(id), "auditLogs"] as const,
+      queryFn: () => fetcher<AuditLog[]>(`/api/cards/${id}/audit-logs`),
       enabled: !!id,
     }),
 };

@@ -2,7 +2,7 @@
  * Test-only helper — `lib/testing/**` must not be imported by app code (ESLint).
  * See docs/testing.md.
  *
- * MSW handlers for card detail + audit-log routes (mirrors `app/api/cards/...`).
+ * MSW handlers for card detail + card audit-log routes (mirrors `app/api/cards/...`).
  */
 
 import { http, HttpResponse } from "msw";
@@ -12,13 +12,13 @@ import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 /** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/api/card.ts`. */
 export const cardDetailPath = "/api/cards/:cardId" as const;
-export const cardLogsPath = "/api/cards/:cardId/logs" as const;
+export const cardAuditLogsPath = "/api/cards/:cardId/audit-logs" as const;
 
 export const cardDetailOk = (card: CardWithListTitle | null) =>
   http.get(cardDetailPath, () => HttpResponse.json(card));
 
-export const cardLogsOk = (logs: AuditLog[]) =>
-  http.get(cardLogsPath, () => HttpResponse.json(logs));
+export const cardAuditLogsOk = (cardAuditLogs: AuditLog[]) =>
+  http.get(cardAuditLogsPath, () => HttpResponse.json(cardAuditLogs));
 
 export const cardDetailUnauthorized = () =>
   http.get(
@@ -26,9 +26,9 @@ export const cardDetailUnauthorized = () =>
     () => new HttpResponse("Unauthorized", { status: 401 }),
   );
 
-export const cardLogsUnauthorized = () =>
+export const cardAuditLogsUnauthorized = () =>
   http.get(
-    cardLogsPath,
+    cardAuditLogsPath,
     () => new HttpResponse("Unauthorized", { status: 401 }),
   );
 
@@ -36,6 +36,6 @@ export const cardLogsUnauthorized = () =>
 export const cardDetailPending = () =>
   http.get(cardDetailPath, () => new Promise<Response>(() => {}));
 
-/** Never resolves — keeps the logs Query in a pending state. */
-export const cardLogsPending = () =>
-  http.get(cardLogsPath, () => new Promise<Response>(() => {}));
+/** Never resolves — keeps the card audit-logs Query in a pending state. */
+export const cardAuditLogsPending = () =>
+  http.get(cardAuditLogsPath, () => new Promise<Response>(() => {}));

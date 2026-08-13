@@ -30,7 +30,7 @@ export const auditLogFactory = Factory.define<
   const card = transientParams.card;
 
   return {
-    id: `log_${sequence}`,
+    id: `auditLog_${sequence}`,
     orgId: "org_1",
     action: ACTION.CREATE,
     // Placeholder entity — override or pass `{ transient: { card } }`.

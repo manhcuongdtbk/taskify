@@ -6,7 +6,7 @@ import {
   type AuditLog,
 } from "@/app/generated/prisma/browser";
 
-import { generateLogMessage } from "./generate-log-message";
+import { generateAuditLogMessage } from "./generate-audit-log-message";
 
 /**
  * Test-only: supply fields under test. Unused `AuditLog` columns are not part of
@@ -20,7 +20,7 @@ function auditLogForMessage(
   return fields as AuditLog;
 }
 
-describe("generateLogMessage", () => {
+describe("generateAuditLogMessage", () => {
   test.for([
     {
       action: ACTION.CREATE,
@@ -44,7 +44,7 @@ describe("generateLogMessage", () => {
     "$action $entityType → $expected",
     ({ action, entityType, entityTitle, expected }) => {
       expect(
-        generateLogMessage(
+        generateAuditLogMessage(
           auditLogForMessage({ action, entityType, entityTitle }),
         ),
       ).toBe(expected);
@@ -53,7 +53,7 @@ describe("generateLogMessage", () => {
 
   test("falls back for unknown actions", () => {
     expect(
-      generateLogMessage(
+      generateAuditLogMessage(
         auditLogForMessage({
           action: "UNKNOWN" as ACTION,
           entityType: ENTITY_TYPE.CARD,

@@ -24,7 +24,7 @@ Prefer [Prisma docs](https://www.prisma.io/docs) for the versions in `package.js
 - **Domain models** for boards/lists/cards, audit logs, organization limits, and Stripe subscription mirror (`OrganizationSubscription`)
 - **Organization scoping** — queries/mutations typically filter by Clerk `orgId` (tenant id), not a Prisma multi-tenant plugin
 - **Cascade deletes** on list/card relations where the schema defines them
-- **Testing guidance** for Prisma-touched code lives in [`testing.md`](./testing.md) (types-only example: `lib/generate-log-message`; Client-mock when added — not Jest)
+- **Testing guidance** for Prisma-touched code lives in [`testing.md`](./testing.md) (types-only example: `lib/generate-audit-log-message`; Client-mock when added — not Jest)
 - **Shared include/select + `GetPayload`** — one module per Prisma model under [`lib/prisma/query-options/`](../lib/prisma/query-options/) (e.g. [`card.ts`](../lib/prisma/query-options/card.ts), [`list.ts`](../lib/prisma/query-options/list.ts)): export `*Args` (`satisfies Prisma.*DefaultArgs`) for every reused query shape; add `*GetPayload` only when callers need a named result type. **Shapes only** — not `find*` / `create*` / authz (those stay at Actions / Route Handlers / RSC until a server-only access/DAL helper is justified; never in `lib/api/`). Matches [Operating against partial structures](https://www.prisma.io/docs/orm/prisma-client/type-safety/operating-against-partial-structures-of-model-types). Queries spread the same args so types match the real payload (e.g. card detail’s `list` is `{ title }` only). Prefer this over `Awaited<ReturnType<typeof queryFn>>` when the shape is shared. Broader overview: [type safety](https://www.prisma.io/docs/orm/prisma-client/type-safety) — don’t use `Args`/`Result` for domain payload aliases. [Prisma type system](https://www.prisma.io/docs/orm/prisma-client/type-safety/prisma-type-system) is schema scalars / `@db.*`, not relation payloads.
 
 ### If you know another ORM (Rosetta)
@@ -130,7 +130,7 @@ In this repo, we prefer `*GetPayload` for domain aliases because it stays closes
 
 Check items off when the app (and this doc) match current Prisma guidance. Prefer official patterns over new repo-only rules.
 
-- [ ] **Audit Prisma import paths** — resolve `// TODO: fix all prisma imports` in `lib/generate-log-message.ts` and standardize on Client / enums imports from the generated output
+- [ ] **Audit Prisma import paths** — resolve `// TODO: fix all prisma imports` in `lib/generate-audit-log-message.ts` and standardize on Client / enums imports from the generated output
 - [ ] **Consistent `orgId` (and ownership) filters** on every board/list/card mutation and sensitive read — treat missing tenant filters as a security bug ([Next.js data security](https://nextjs.org/docs/app/guides/data-security) applies at the action layer)
 - [ ] **Document migration workflow** for contributors (`prisma migrate` / `db push` policy for local vs prod) using current Prisma CLI docs — keep one short “how we run migrations” note here when decided
 - [ ] **Review indexes** for hot paths (`orgId`, `boardId`, order columns, Stripe id lookups) against real query patterns

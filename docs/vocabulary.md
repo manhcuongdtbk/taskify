@@ -44,6 +44,21 @@ These are **domain objects in the app's UI** — the things users interact with 
 
 These live _inside_ features. "Board canvas" is a feature; "board" is the object. "Card detail" is a feature; "card" is the object.
 
+## Audit log
+
+Prisma `AuditLog` records an action on a **board**, **list**, or **card**. Do **not** call these **logs** — that collides with `console.log`, server logs, and MSW request logs.
+
+Name the **entity** when the row is scoped:
+
+| Phrase              | When                                                                      |
+| ------------------- | ------------------------------------------------------------------------- |
+| **Card audit log**  | `entityType: CARD` (card modal activity, `/api/cards/:cardId/audit-logs`) |
+| **List audit log**  | `entityType: LIST`                                                        |
+| **Board audit log** | `entityType: BOARD`                                                       |
+| **Audit log**       | Mixed/unknown entity, or the Prisma model itself                          |
+
+Identifiers follow the same split: `cardAuditLog` / `cardAuditLogs` / `cardQueries.auditLogs`, not `log` / `logs`. Org-wide activity (mixed entities) stays `auditLog` / `auditLogs`.
+
 ## Framework (two meanings)
 
 | Context                                            | "Framework" means                                                  | Examples                            |
