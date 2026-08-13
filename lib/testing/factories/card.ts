@@ -9,6 +9,7 @@
  * Fishery builds TypeScript types for tests — not a Prisma/ORM layer.
  */
 
+import { constructNow } from "date-fns";
 import { Factory } from "fishery";
 
 import { type Card } from "@/app/generated/prisma/client";
@@ -17,8 +18,7 @@ import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 import { listFactory, rewindListFactory } from "./list";
 
 export const cardFactory = Factory.define<Card>(({ sequence, params }) => {
-  // First persist: createdAt === updatedAt (Prisma @default(now()) + @updatedAt).
-  const now = new Date();
+  const instant = constructNow(undefined);
 
   return {
     id: `card_${sequence}`,
@@ -27,8 +27,8 @@ export const cardFactory = Factory.define<Card>(({ sequence, params }) => {
     order: 0,
     // Prefer a real List id; callers may override listId (e.g. payload factory).
     listId: params.listId ?? listFactory.build().id,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: instant,
+    updatedAt: instant,
   };
 });
 

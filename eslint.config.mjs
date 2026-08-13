@@ -544,6 +544,19 @@ const nodeEnvViaLibEnvRestrictions = [
 ];
 
 /**
+ * Argument-less `new Date()` → date-fns `constructNow(undefined)` (or pass a
+ * reference date for that constructor). `new Date(value)` and `Date.now()` stay.
+ * See docs/conventions.md.
+ */
+const constructNowRestrictions = [
+  {
+    selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+    message:
+      "Use constructNow(undefined) from date-fns instead of new Date(). Pass a Date/TZDate when you need that constructor’s now. new Date(value) is fine for parse/fixed instants; Date.now() for epoch ms. See docs/conventions.md.",
+  },
+];
+
+/**
  * SkeletonStatus + section/item compounds — docs/conventions.md
  * (section vs item skeletons).
  * - Hand-rolled `aria-label="Loading …"` → use SkeletonStatus
@@ -650,6 +663,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
       ],
     },
@@ -667,6 +681,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
@@ -685,6 +700,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
@@ -711,6 +727,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -757,6 +774,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
@@ -803,6 +821,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
@@ -820,6 +839,7 @@ const eslintConfig = defineConfig([
         ...eventHandlerNamingRestrictions,
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -864,6 +884,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -967,7 +988,11 @@ const eslintConfig = defineConfig([
     files: ["**/*.test.{ts,tsx}"],
     ignores: ["e2e/**"],
     rules: {
-      "no-restricted-syntax": ["error", ...fisheryFactoryBuildRestrictions],
+      "no-restricted-syntax": [
+        "error",
+        ...fisheryFactoryBuildRestrictions,
+        ...constructNowRestrictions,
+      ],
     },
   },
 

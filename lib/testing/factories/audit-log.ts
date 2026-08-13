@@ -8,6 +8,7 @@
  * Do not redefine Card factories here — use `./card`.
  */
 
+import { constructNow } from "date-fns";
 import { Factory } from "fishery";
 
 import {
@@ -25,9 +26,8 @@ export const auditLogFactory = Factory.define<
   AuditLog,
   AuditLogTransientParams
 >(({ sequence, transientParams }) => {
-  // First persist: createdAt === updatedAt (Prisma @default(now()) + @updatedAt).
-  const now = new Date();
   const card = transientParams.card;
+  const instant = constructNow(undefined);
 
   return {
     id: `auditLog_${sequence}`,
@@ -40,8 +40,8 @@ export const auditLogFactory = Factory.define<
     userId: "user_1",
     userImage: "https://example.com/avatar.png",
     userName: "Ada Lovelace",
-    createdAt: now,
-    updatedAt: now,
+    createdAt: instant,
+    updatedAt: instant,
   };
 });
 

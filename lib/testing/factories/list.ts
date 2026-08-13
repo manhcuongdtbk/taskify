@@ -9,14 +9,14 @@
  * Do not put Card factories here — use `./card`. Pass cards via associations.
  */
 
+import { constructNow } from "date-fns";
 import { Factory } from "fishery";
 
 import { type List } from "@/app/generated/prisma/client";
 import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/list";
 
 export const listFactory = Factory.define<List>(({ sequence }) => {
-  // First persist: createdAt === updatedAt (Prisma @default(now()) + @updatedAt).
-  const now = new Date();
+  const instant = constructNow(undefined);
 
   return {
     id: `list_${sequence}`,
@@ -24,8 +24,8 @@ export const listFactory = Factory.define<List>(({ sequence }) => {
     order: 0,
     // Placeholder FK — override when pairing with a real board.
     boardId: `board_${sequence}`,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: instant,
+    updatedAt: instant,
   };
 });
 
