@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { handlers } from "./handlers";
+import { handlers } from ".";
 
 describe("msw handlers", () => {
   test("starts with an empty default handler list", () => {

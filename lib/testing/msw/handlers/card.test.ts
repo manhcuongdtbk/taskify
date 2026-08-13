@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 
+import { server } from "../server";
 import {
   cardAuditLogsOk,
   cardAuditLogsPath,
@@ -12,8 +13,7 @@ import {
   cardDetailPath,
   cardDetailPending,
   cardDetailUnauthorized,
-} from "./card-handlers";
-import { server } from "./server";
+} from "./card";
 
 describe("card MSW handlers", () => {
   test("exports path constants used by cardQueries", () => {

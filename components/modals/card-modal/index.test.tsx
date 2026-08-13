@@ -10,7 +10,7 @@ import {
   cardDetailOk,
   cardDetailPending,
   cardDetailUnauthorized,
-} from "@/lib/testing/msw/card-handlers";
+} from "@/lib/testing/msw/handlers/card";
 import { server } from "@/lib/testing/msw/server";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
