@@ -988,10 +988,45 @@ const eslintConfig = defineConfig([
     files: ["**/*.test.{ts,tsx}"],
     ignores: ["e2e/**"],
     rules: {
+      // Re-include prior no-restricted-syntax entries — flat config replaces, does not merge.
       "no-restricted-syntax": [
         "error",
         ...fisheryFactoryBuildRestrictions,
+        ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...skeletonStatusLabelRestrictions,
+        routeCastOnlyInPathsRestriction,
+        ...nonNextExportStyleRestrictions,
+      ],
+    },
+  },
+
+  // Component suites: same as above plus the app-UI entries from the components block.
+  {
+    files: [
+      "components/**/*.test.{ts,tsx}",
+      "app/**/_components/**/*.test.{ts,tsx}",
+    ],
+    ignores: ["components/ui/**", "e2e/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...fisheryFactoryBuildRestrictions,
+        ...genericComponentRestrictions,
+        ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
+        ...skeletonStatusLabelRestrictions,
+        routeCastOnlyInPathsRestriction,
+        ...nonNextExportStyleRestrictions,
+        ...appUiNoExportedTypeRestrictions,
       ],
     },
   },

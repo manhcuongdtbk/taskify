@@ -37,13 +37,14 @@ export const listWithCardsOrderedByOrderAscFactory =
   Factory.define<ListWithCardsOrderedByOrderAsc>(
     ({ associations, afterBuild }) => {
       // Keep card.listId on this list after DeepPartial overlays of `cards`.
-      // Match Prisma `orderBy: { order: "asc" }` on the query args — callers
-      // may pass associations in any order.
+      // Copy each card — associations are caller-owned, and one card array may
+      // be reused across list builds. Match Prisma `orderBy: { order: "asc" }`
+      // on the query args — callers may pass associations in any order.
       afterBuild((list) => {
-        for (const card of list.cards) {
-          card.listId = list.id;
-        }
-        list.cards = sortBy(list.cards, ["order"]);
+        list.cards = sortBy(
+          list.cards.map((card) => ({ ...card, listId: list.id })),
+          ["order"],
+        );
       });
 
       const list = listFactory.build();

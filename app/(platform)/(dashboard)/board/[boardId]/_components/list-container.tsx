@@ -18,13 +18,18 @@ interface ListContainerProps {
 
 type ListOrCard = ListWithCardsOrderedByOrderAsc | Card;
 
+// Copy + `splice`, not `toSpliced`: Next's baseline is Firefox 111+ but
+// `Array.prototype.toSpliced` (ES2023) only landed in Firefox 115, and Next
+// does not polyfill prototype methods.
 function rearrange<T extends ListOrCard>(
   items: T[],
   from: number,
   to: number,
 ): T[] {
-  const item = items[from];
-  return items.toSpliced(from, 1).toSpliced(to, 0, item);
+  const rearranged = Array.from(items);
+  const [item] = rearranged.splice(from, 1);
+  rearranged.splice(to, 0, item);
+  return rearranged;
 }
 
 function updateOrder<T extends ListOrCard>(items: T[]): T[] {
