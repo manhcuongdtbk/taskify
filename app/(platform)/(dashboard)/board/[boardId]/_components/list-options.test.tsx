@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
-import { listFactory, rewindListFactory } from "@/lib/testing/factories/list";
+import { listFactory } from "@/lib/testing/factories/list";
 
 const copyList = vi.hoisted(() => vi.fn());
 const deleteList = vi.hoisted(() => vi.fn());
@@ -23,10 +23,6 @@ vi.mock("@/components/ui/toast", () => ({
 import { ListOptions } from "./list-options";
 
 describe("ListOptions", () => {
-  beforeEach(() => {
-    rewindListFactory();
-  });
-
   test("copies the list with id and boardId", async () => {
     const list = listFactory.build();
     copyList.mockResolvedValue({

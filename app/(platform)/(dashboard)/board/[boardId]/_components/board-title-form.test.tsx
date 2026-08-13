@@ -1,11 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
-import {
-  boardFactory,
-  rewindBoardFactory,
-} from "@/lib/testing/factories/board";
+import { boardFactory } from "@/lib/testing/factories/board";
 
 const updateBoard = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -21,10 +18,6 @@ vi.mock("@/components/ui/toast", () => ({
 import { BoardTitleForm } from "./board-title-form";
 
 describe("BoardTitleForm", () => {
-  beforeEach(() => {
-    rewindBoardFactory();
-  });
-
   test("renames the board title on success", async () => {
     const board = boardFactory.build();
     const updatedBoard = { ...board, title: "Updated title" };

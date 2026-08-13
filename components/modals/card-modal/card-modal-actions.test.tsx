@@ -1,11 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
-import {
-  cardWithListTitleFactory,
-  rewindCardWithListTitleFactory,
-} from "@/lib/testing/factories/card";
+import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { useCardModalStore } from "@/stores/use-card-modal-store";
 
 const copyCard = vi.hoisted(() => vi.fn());
@@ -31,10 +28,6 @@ vi.mock("@/components/ui/toast", () => ({
 import { CardModalActions } from "./card-modal-actions";
 
 describe("CardModalActions", () => {
-  beforeEach(() => {
-    rewindCardWithListTitleFactory();
-  });
-
   test("copies the card, toasts, and closes the modal", async () => {
     const card = cardWithListTitleFactory.build();
     useCardModalStore.getState().open(card.id);

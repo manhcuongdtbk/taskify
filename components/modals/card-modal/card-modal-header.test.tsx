@@ -1,12 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/api/card";
-import {
-  cardWithListTitleFactory,
-  rewindCardWithListTitleFactory,
-} from "@/lib/testing/factories/card";
+import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
 const updateCard = vi.hoisted(() => vi.fn());
@@ -27,10 +24,6 @@ vi.mock("next/navigation", () => ({
 import { CardModalHeader } from "./card-modal-header";
 
 describe("CardModalHeader", () => {
-  beforeEach(() => {
-    rewindCardWithListTitleFactory();
-  });
-
   test("submits a changed title to updateCard", async () => {
     const card = cardWithListTitleFactory.build();
     const updatedCard = { ...card, title: "Renamed" };

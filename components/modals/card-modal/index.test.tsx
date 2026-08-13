@@ -1,14 +1,8 @@
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-  cardWithListTitleFactory,
-  rewindCardWithListTitleFactory,
-} from "@/lib/testing/factories/card";
-import {
-  auditLogFactory,
-  rewindAuditLogFactory,
-} from "@/lib/testing/factories/audit-log";
+import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
+import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import {
   cardAuditLogsOk,
   cardAuditLogsPending,
@@ -69,8 +63,6 @@ import { CardModal } from "./index";
 
 describe("CardModal", () => {
   beforeEach(() => {
-    rewindCardWithListTitleFactory();
-    rewindAuditLogFactory();
     useCardModalStore.getState().close();
   });
 
