@@ -5,7 +5,7 @@
  * MSW handlers for card detail + card audit-log routes (mirrors `app/api/cards/...`).
  */
 
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 
 import { type AuditLog } from "@/app/generated/prisma/client";
 import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
@@ -32,10 +32,16 @@ export const cardAuditLogsUnauthorized = () =>
     () => new HttpResponse("Unauthorized", { status: 401 }),
   );
 
-/** Never resolves — keeps the Query in a pending state. */
+/** Hang forever — keeps the Query pending. See docs/testing.md. */
 export const cardDetailPending = () =>
-  http.get(cardDetailPath, () => new Promise<Response>(() => {}));
+  http.get(cardDetailPath, async () => {
+    await delay("infinite");
+    return HttpResponse.json(null);
+  });
 
-/** Never resolves — keeps the card audit-logs Query in a pending state. */
+/** Hang forever — keeps the card audit-logs Query pending. See docs/testing.md. */
 export const cardAuditLogsPending = () =>
-  http.get(cardAuditLogsPath, () => new Promise<Response>(() => {}));
+  http.get(cardAuditLogsPath, async () => {
+    await delay("infinite");
+    return HttpResponse.json([]);
+  });

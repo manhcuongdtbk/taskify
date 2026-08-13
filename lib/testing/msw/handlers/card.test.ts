@@ -4,6 +4,7 @@ import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 
 import { server } from "../server";
+import { stillPending } from "./helpers/still-pending";
 import {
   cardAuditLogsOk,
   cardAuditLogsPending,
@@ -73,17 +74,7 @@ describe("card MSW handlers", () => {
     const detail = fetch(`/api/cards/${card.id}`);
     const cardAuditLogsResponse = fetch(`/api/cards/${card.id}/audit-logs`);
 
-    await expect(
-      Promise.race([
-        detail.then(() => "settled"),
-        new Promise((resolve) => setTimeout(() => resolve("pending"), 50)),
-      ]),
-    ).resolves.toBe("pending");
-    await expect(
-      Promise.race([
-        cardAuditLogsResponse.then(() => "settled"),
-        new Promise((resolve) => setTimeout(() => resolve("pending"), 50)),
-      ]),
-    ).resolves.toBe("pending");
+    await expect(stillPending(detail)).resolves.toBe("pending");
+    await expect(stillPending(cardAuditLogsResponse)).resolves.toBe("pending");
   });
 });
