@@ -1,7 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { parseISO } from "date-fns";
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+
+import {
+  listWithCardsOrderedByOrderAscFactory,
+  rewindListWithCardsOrderedByOrderAscFactory,
+} from "@/lib/testing/factories/list";
 
 const updateList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -20,38 +24,33 @@ vi.mock("./list-options", () => ({
 
 import { ListHeader } from "./list-header";
 
-const instant = parseISO("2026-01-01T00:00:00.000Z");
-
-const list = {
-  id: "list_1",
-  title: "Todo",
-  order: 0,
-  boardId: "board_1",
-  createdAt: instant,
-  updatedAt: instant,
-  cards: [],
-};
+const listColumn = () => listWithCardsOrderedByOrderAscFactory.build();
 
 describe("ListHeader", () => {
+  beforeEach(() => {
+    rewindListWithCardsOrderedByOrderAscFactory();
+  });
+
   test("submits a changed title to updateList", async () => {
+    const list = listColumn();
     updateList.mockResolvedValue({
-      data: { id: "list_1", title: "Done" },
+      data: { id: list.id, title: "Done" },
     });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
-    const input = screen.getByDisplayValue("Todo");
+    await user.click(screen.getByText(list.title));
+    const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
     await user.type(input, "Done");
     await user.tab();
 
     await waitFor(() => {
       expect(updateList).toHaveBeenCalledExactlyOnceWith({
-        id: "list_1",
+        id: list.id,
         title: "Done",
-        boardId: "board_1",
+        boardId: list.boardId,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
@@ -61,27 +60,29 @@ describe("ListHeader", () => {
   });
 
   test("does not execute when the title is unchanged", async () => {
+    const list = listColumn();
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
+    await user.click(screen.getByText(list.title));
     await user.tab();
 
     await waitFor(() => {
-      expect(screen.queryByDisplayValue("Todo")).not.toBeInTheDocument();
+      expect(screen.queryByDisplayValue(list.title)).not.toBeInTheDocument();
     });
     expect(updateList).not.toHaveBeenCalled();
   });
 
   test("toasts when update fails", async () => {
+    const list = listColumn();
     updateList.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
-    const input = screen.getByDisplayValue("Todo");
+    await user.click(screen.getByText(list.title));
+    const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
     await user.type(input, "Done");
     await user.tab();
@@ -95,24 +96,25 @@ describe("ListHeader", () => {
   });
 
   test("submits on Escape while editing", async () => {
+    const list = listColumn();
     updateList.mockResolvedValue({
-      data: { id: "list_1", title: "Done" },
+      data: { id: list.id, title: "Done" },
     });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
-    const input = screen.getByDisplayValue("Todo");
+    await user.click(screen.getByText(list.title));
+    const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
     await user.type(input, "Done");
     await user.keyboard("{Escape}");
 
     await waitFor(() => {
       expect(updateList).toHaveBeenCalledExactlyOnceWith({
-        id: "list_1",
+        id: list.id,
         title: "Done",
-        boardId: "board_1",
+        boardId: list.boardId,
       });
     });
   });

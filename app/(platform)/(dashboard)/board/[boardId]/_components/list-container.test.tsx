@@ -4,11 +4,12 @@ import {
   type DropResult,
   type ResponderProvided,
 } from "@hello-pangea/dnd";
-import { parseISO } from "date-fns";
 import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/list";
+import { cardFactory } from "@/lib/testing/factories/card";
+import { listWithCardsOrderedByOrderAscFactory } from "@/lib/testing/factories/list";
 
 const onDragEndRef = vi.hoisted(() => ({
   current: null as
@@ -82,7 +83,6 @@ vi.mock("@/components/ui/toast", () => ({
 import { ListContainer } from "./list-container";
 
 const boardId = "board_1";
-const instant = parseISO("2026-01-01T00:00:00.000Z");
 
 function makeCard(
   id: string,
@@ -90,15 +90,7 @@ function makeCard(
   order: number,
   title = id,
 ): ListWithCardsOrderedByOrderAsc["cards"][number] {
-  return {
-    id,
-    title,
-    order,
-    description: null,
-    listId,
-    createdAt: instant,
-    updatedAt: instant,
-  };
+  return cardFactory.build({ id, title, order, listId });
 }
 
 function makeList(
@@ -106,15 +98,10 @@ function makeList(
   order: number,
   cards: ListWithCardsOrderedByOrderAsc["cards"] = [],
 ): ListWithCardsOrderedByOrderAsc {
-  return {
-    id,
-    title: id,
-    order,
-    boardId,
-    createdAt: instant,
-    updatedAt: instant,
-    cards,
-  };
+  return listWithCardsOrderedByOrderAscFactory.build(
+    { id, title: id, order, boardId },
+    { associations: { cards } },
+  );
 }
 
 function dropResult(

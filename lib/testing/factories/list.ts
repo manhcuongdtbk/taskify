@@ -7,6 +7,7 @@
  *   (board column shape; cards array order is a query contract)
  *
  * Do not put Card factories here — use `./card`. Pass cards via associations.
+ * Board row defaults live in `./board`.
  */
 
 import { constructNow } from "date-fns";
@@ -15,15 +16,17 @@ import { Factory } from "fishery";
 import { type List } from "@/app/generated/prisma/client";
 import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/list";
 
-export const listFactory = Factory.define<List>(({ sequence }) => {
+import { boardFactory, rewindBoardFactory } from "./board";
+
+export const listFactory = Factory.define<List>(({ sequence, params }) => {
   const instant = constructNow(undefined);
 
   return {
     id: `list_${sequence}`,
     title: "Todo",
     order: 0,
-    // Placeholder FK — override when pairing with a real board.
-    boardId: `board_${sequence}`,
+    // Prefer a real Board id; callers may override boardId.
+    boardId: params.boardId ?? boardFactory.build().id,
     createdAt: instant,
     updatedAt: instant,
   };
@@ -49,6 +52,7 @@ export const listWithCardsOrderedByOrderAscFactory =
   );
 
 export const rewindListFactory = () => {
+  rewindBoardFactory();
   listFactory.rewindSequence();
 };
 

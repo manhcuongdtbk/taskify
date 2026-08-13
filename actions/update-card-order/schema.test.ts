@@ -1,6 +1,6 @@
-import { parseISO } from "date-fns";
 import { describe, expect, test } from "vitest";
 
+import { cardFactory } from "@/lib/testing/factories/card";
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
 import {
   invalidTypeArray,
@@ -11,26 +11,27 @@ import {
 
 import { UpdateCardOrderSchema } from "./schema";
 
-const cardItem = {
-  id: "card_1",
-  title: "Ship it",
-  order: 0,
-  listId: "list_1",
-  createdAt: parseISO("2024-01-01T00:00:00.000Z"),
-  updatedAt: parseISO("2024-01-02T00:00:00.000Z"),
-};
-
 describe("UpdateCardOrderSchema", () => {
   test("valid: accepts a reorder payload", () => {
+    const card = cardFactory.build({ title: "Ship it", order: 0 });
+    const item = {
+      id: card.id,
+      title: card.title,
+      order: card.order,
+      listId: card.listId,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+    };
+
     const result = UpdateCardOrderSchema.safeParse({
-      items: [cardItem],
+      items: [item],
       boardId: "board_1",
     });
 
     expect(result).toStrictEqual({
       success: true,
       data: {
-        items: [cardItem],
+        items: [item],
         boardId: "board_1",
       },
     });
