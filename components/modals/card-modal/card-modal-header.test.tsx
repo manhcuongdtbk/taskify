@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/api/card";
+import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
 const updateCard = vi.hoisted(() => vi.fn());
@@ -22,73 +23,58 @@ vi.mock("next/navigation", () => ({
 
 import { CardModalHeader } from "./card-modal-header";
 
-const card = {
-  id: "card_1",
-  title: "Ship P2",
-  description: null,
-  order: 0,
-  listId: "list_1",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
-  list: {
-    id: "list_1",
-    title: "Todo",
-    order: 0,
-    boardId: "board_1",
-    createdAt: new Date("2026-01-01"),
-    updatedAt: new Date("2026-01-01"),
-  },
-};
-
 describe("CardModalHeader", () => {
   test("submits a changed title to updateCard", async () => {
-    updateCard.mockResolvedValue({
-      data: { id: "card_1", title: "Renamed" },
-    });
+    const card = cardWithListTitleFactory.build();
+    const updatedCard = { ...card, title: "Renamed" };
+    updateCard.mockResolvedValue({ data: updatedCard });
     const user = userEvent.setup();
     const { invalidateQueries } = renderWithQuery(
       <CardModalHeader data={card} />,
     );
 
-    const input = screen.getByDisplayValue("Ship P2");
+    const input = screen.getByDisplayValue(card.title);
     await user.clear(input);
-    await user.type(input, "Renamed");
+    await user.type(input, updatedCard.title);
     await user.tab();
 
     await waitFor(() => {
       expect(updateCard).toHaveBeenCalledExactlyOnceWith({
-        title: "Renamed",
+        title: updatedCard.title,
         boardId: "board_1",
-        id: "card_1",
+        id: card.id,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: "Renamed to Renamed",
+      title: `Renamed to ${updatedCard.title}`,
     });
     expect(invalidateQueries).toHaveBeenCalledExactlyOnceWith({
-      queryKey: cardQueries.byId("card_1"),
+      queryKey: cardQueries.byId(card.id),
     });
   });
 
   test("does not execute when the title is unchanged", async () => {
+    const card = cardWithListTitleFactory.build();
     const user = userEvent.setup();
     renderWithQuery(<CardModalHeader data={card} />);
 
-    await user.click(screen.getByDisplayValue("Ship P2"));
+    await user.click(screen.getByDisplayValue(card.title));
     await user.tab();
 
     expect(updateCard).not.toHaveBeenCalled();
   });
 
   test("toasts when update fails", async () => {
+    const card = cardWithListTitleFactory.build();
+    const updatedCard = { ...card, title: "Renamed" };
     updateCard.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
     renderWithQuery(<CardModalHeader data={card} />);
 
-    const input = screen.getByDisplayValue("Ship P2");
+    const input = screen.getByDisplayValue(card.title);
     await user.clear(input);
-    await user.type(input, "Renamed");
+    await user.type(input, updatedCard.title);
     await user.tab();
 
     await waitFor(() => {
@@ -109,8 +95,9 @@ describe("CardModalHeader", () => {
   });
 
   test("shows the list title", () => {
+    const card = cardWithListTitleFactory.build();
     renderWithQuery(<CardModalHeader data={card} />);
 
-    expect(screen.getByText("Todo")).toBeInTheDocument();
+    expect(screen.getByText(card.list.title)).toBeInTheDocument();
   });
 });

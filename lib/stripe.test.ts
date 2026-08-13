@@ -1,3 +1,4 @@
+import { parseISO } from "date-fns";
 import { describe, expect, test, vi } from "vitest";
 import { dinero } from "dinero.js";
 import { EUR, USD } from "dinero.js/currencies";
@@ -19,7 +20,7 @@ import {
 describe("stripeTimestampToDate", () => {
   test("converts Unix seconds to a Date", () => {
     expect(stripeTimestampToDate(1_700_000_000)).toStrictEqual(
-      new Date("2023-11-14T22:13:20.000Z"),
+      parseISO("2023-11-14T22:13:20.000Z"),
     );
   });
 });

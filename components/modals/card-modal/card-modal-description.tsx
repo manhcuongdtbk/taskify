@@ -2,7 +2,7 @@
 
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type CardWithList } from "@/types";
+import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlignLeft } from "lucide-react";
 import { type ComponentRef, type RefObject, useRef, useState } from "react";
@@ -20,7 +20,7 @@ import { formDataString } from "@/lib/form-data";
 const heading = "Description";
 
 interface CardModalDescriptionProps {
-  data: CardWithList;
+  data: CardWithListTitle;
 }
 
 export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {

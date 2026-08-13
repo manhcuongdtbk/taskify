@@ -245,6 +245,50 @@ describe("FormPicker", () => {
     ).toBeInTheDocument();
   });
 
+  test("falls back to default images when Unsplash returns an error payload", async () => {
+    unsplashGet.mockResolvedValue({ data: null, error: "rate limited" });
+    useFormStatusMock.mockReturnValue({ pending: false });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(
+      <form>
+        <FormPicker onSelect={vi.fn()} />
+      </form>,
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: firstTileName,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  test("shows a loading status before Unsplash settles", async () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+    let resolveImages!: (value: UnsplashGetMockResult) => void;
+    const pending = new Promise<UnsplashGetMockResult>((resolve) => {
+      resolveImages = resolve;
+    });
+    unsplashGet.mockImplementation(() => pending);
+
+    render(
+      <form>
+        <FormPicker onSelect={vi.fn()} />
+      </form>,
+    );
+
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    resolveImages(unsplashGetNetworkError);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(
+      await screen.findByRole("button", {
+        name: firstTileName,
+      }),
+    ).toBeInTheDocument();
+  });
+
   test("ignores a stale Unsplash response after the effect re-runs", async () => {
     useFormStatusMock.mockReturnValue({ pending: false });
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -289,6 +333,46 @@ describe("FormPicker", () => {
       ).not.toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "Fresh photo" }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  test("ignores a stale Unsplash rejection after the effect re-runs", async () => {
+    useFormStatusMock.mockReturnValue({ pending: false });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const fresh = {
+      ...firstImage,
+      id: "fresh-after-reject",
+      description: "Fresh after reject",
+    };
+
+    let rejectStale!: (reason: unknown) => void;
+    const stalePromise = new Promise<UnsplashGetMockResult>((_, reject) => {
+      rejectStale = reject;
+    });
+
+    unsplashGet
+      .mockImplementationOnce(() => stalePromise)
+      .mockImplementationOnce(async () => ({ data: [fresh], error: null }));
+
+    render(
+      <StrictMode>
+        <form>
+          <FormPicker onSelect={vi.fn()} />
+        </form>
+      </StrictMode>,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Fresh after reject" }),
+    ).toBeInTheDocument();
+
+    rejectStale(new Error("stale network"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Fresh after reject" }),
       ).toBeInTheDocument();
     });
   });

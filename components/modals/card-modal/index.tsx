@@ -18,7 +18,7 @@ export const CardModal = () => {
   const handleClose = useCardModalStore((state) => state.close);
 
   const { data: cardData } = useQuery(cardQueries.detail(id));
-  const { data: auditLogsData } = useQuery(cardQueries.logs(id));
+  const { data: cardAuditLogsData } = useQuery(cardQueries.auditLogs(id));
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -36,10 +36,10 @@ export const CardModal = () => {
               ) : (
                 <CardModalDescription data={cardData} />
               )}
-              {!auditLogsData ? (
+              {!cardAuditLogsData ? (
                 <CardModalActivity.Skeleton />
               ) : (
-                <CardModalActivity items={auditLogsData} />
+                <CardModalActivity items={cardAuditLogsData} />
               )}
             </div>
           </div>

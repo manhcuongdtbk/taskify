@@ -2,6 +2,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 
+import { listWithCardsOrderedByOrderAscFactory } from "@/lib/testing/factories/list";
+
 const updateList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 
@@ -19,68 +21,61 @@ vi.mock("./list-options", () => ({
 
 import { ListHeader } from "./list-header";
 
-const list = {
-  id: "list_1",
-  title: "Todo",
-  order: 0,
-  boardId: "board_1",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
-  cards: [],
-};
-
 describe("ListHeader", () => {
   test("submits a changed title to updateList", async () => {
-    updateList.mockResolvedValue({
-      data: { id: "list_1", title: "Done" },
-    });
+    const list = listWithCardsOrderedByOrderAscFactory.build();
+    const updatedList = { ...list, title: "Done" };
+    updateList.mockResolvedValue({ data: updatedList });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
-    const input = screen.getByDisplayValue("Todo");
+    await user.click(screen.getByText(list.title));
+    const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
-    await user.type(input, "Done");
+    await user.type(input, updatedList.title);
     await user.tab();
 
     await waitFor(() => {
       expect(updateList).toHaveBeenCalledExactlyOnceWith({
-        id: "list_1",
-        title: "Done",
-        boardId: "board_1",
+        id: list.id,
+        title: updatedList.title,
+        boardId: list.boardId,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'Renamed to "Done"',
+      title: `Renamed to "${updatedList.title}"`,
     });
   });
 
   test("does not execute when the title is unchanged", async () => {
+    const list = listWithCardsOrderedByOrderAscFactory.build();
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
+    await user.click(screen.getByText(list.title));
     await user.tab();
 
     await waitFor(() => {
-      expect(screen.queryByDisplayValue("Todo")).not.toBeInTheDocument();
+      expect(screen.queryByDisplayValue(list.title)).not.toBeInTheDocument();
     });
     expect(updateList).not.toHaveBeenCalled();
   });
 
   test("toasts when update fails", async () => {
+    const list = listWithCardsOrderedByOrderAscFactory.build();
+    const updatedList = { ...list, title: "Done" };
     updateList.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
-    const input = screen.getByDisplayValue("Todo");
+    await user.click(screen.getByText(list.title));
+    const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
-    await user.type(input, "Done");
+    await user.type(input, updatedList.title);
     await user.tab();
 
     await waitFor(() => {
@@ -92,24 +87,24 @@ describe("ListHeader", () => {
   });
 
   test("submits on Escape while editing", async () => {
-    updateList.mockResolvedValue({
-      data: { id: "list_1", title: "Done" },
-    });
+    const list = listWithCardsOrderedByOrderAscFactory.build();
+    const updatedList = { ...list, title: "Done" };
+    updateList.mockResolvedValue({ data: updatedList });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByText("Todo"));
-    const input = screen.getByDisplayValue("Todo");
+    await user.click(screen.getByText(list.title));
+    const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
-    await user.type(input, "Done");
+    await user.type(input, updatedList.title);
     await user.keyboard("{Escape}");
 
     await waitFor(() => {
       expect(updateList).toHaveBeenCalledExactlyOnceWith({
-        id: "list_1",
-        title: "Done",
-        boardId: "board_1",
+        id: list.id,
+        title: updatedList.title,
+        boardId: list.boardId,
       });
     });
   });

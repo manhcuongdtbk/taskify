@@ -7,7 +7,7 @@ This repo is one place to learn **the Next.js App Router way** (plus how we wire
 | **Owner / SoT** | This file — App Router patterns we keep, framework TODOs, official-guide index (not a second data/auth map)         |
 | **Open when**   | Choosing Next conventions (RSC vs client, Actions, `proxy.ts`, segment files, Link/Image) or closing a Next.js TODO |
 
-Prefer official Next.js docs for the version in `package.json`; for agents, also check `node_modules/next/dist/docs/01-app/` (see `AGENTS.md`). Fetch/mutate map: [`data.md`](./data.md). Index: [`README.md`](./README.md).
+Prefer official Next.js docs for the version in `package.json`; for agents, also check `node_modules/next/dist/docs/01-app/` (see `AGENTS.md`). Match-installed row: [`conventions.md`](./conventions.md#match-installed-official-docs). This file is **our** App Router map and TODOs — not a paste of Next’s production checklist. Fetch/mutate map: [`data.md`](./data.md). Index: [`README.md`](./README.md).
 
 **Page shape:** Already following → TODO → Out of scope → deep detail (guides table).
 

@@ -265,8 +265,17 @@ const noForwardRefImport = {
   ],
 };
 
-/** Same as `noForwardRefImport`, minus the test-only ban — for `lib/testing/**` itself. */
-const noForwardRefImportAllowTestOnly = {
+/**
+ * `no-restricted-imports` for modules that **may** import `lib/testing/**`.
+ *
+ * Same bans as `noForwardRefImport` (forwardRef, Lodash, Zustand-in-the-wrong-place)
+ * but **omits** `testOnlyImportPatterns`. Needed because flat config replaces the whole
+ * `no-restricted-imports` rule — you cannot “turn off” only the lib/testing patterns.
+ *
+ * Use for: `lib/testing/**` (siblings) and `vitest.setup.ts` (MSW lifecycle import).
+ * Not about React refs — forwardRef stays banned here; the point is allowing test helpers.
+ */
+const noRestrictedImportsAllowLibTesting = {
   "no-restricted-imports": [
     "error",
     {
@@ -535,6 +544,19 @@ const nodeEnvViaLibEnvRestrictions = [
 ];
 
 /**
+ * Argument-less `new Date()` → date-fns `constructNow(undefined)` (or pass a
+ * reference date for that constructor). `new Date(value)` and `Date.now()` stay.
+ * See docs/conventions.md.
+ */
+const constructNowRestrictions = [
+  {
+    selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+    message:
+      "Use constructNow(undefined) from date-fns instead of new Date(). Pass a Date/TZDate when you need that constructor’s now. new Date(value) is fine for parse/fixed instants; Date.now() for epoch ms. See docs/conventions.md.",
+  },
+];
+
+/**
  * SkeletonStatus + section/item compounds — docs/conventions.md
  * (section vs item skeletons).
  * - Hand-rolled `aria-label="Loading …"` → use SkeletonStatus
@@ -542,6 +564,31 @@ const nodeEnvViaLibEnvRestrictions = [
  * - `Foo.SkeletonItem` must not wrap SkeletonStatus (row placeholder)
  * - `<SkeletonStatus>` only inside a `Foo.Skeleton =` assignment
  */
+/**
+ * Fishery: call `*Factory.build` / `create` / `buildList` / `createList` inside
+ * `test` (or a helper fn), not at module / describe / beforeEach scope — docs/testing.md.
+ */
+const fisheryFactoryCall =
+  "CallExpression[callee.object.name=/Factory$/][callee.property.name=/^(build|create|buildList|createList)$/]";
+
+const fisheryFactoryBuildRestrictions = [
+  {
+    selector: `Program > VariableDeclaration > VariableDeclarator > ${fisheryFactoryCall}`,
+    message:
+      "Do not call *Factory.build/create at module scope — build inside each test (or a helper). See docs/testing.md (Fishery).",
+  },
+  {
+    selector: `CallExpression[callee.name='describe'] > :matches(ArrowFunctionExpression, FunctionExpression) > BlockStatement > VariableDeclaration > VariableDeclarator > ${fisheryFactoryCall}`,
+    message:
+      "Do not share a *Factory.build/create across tests via describe scope — build inside each test. See docs/testing.md (Fishery).",
+  },
+  {
+    selector: `CallExpression[callee.name=/^(beforeEach|beforeAll)$/] ${fisheryFactoryCall}`,
+    message:
+      "Do not build Fishery objects in beforeEach/beforeAll (shared mutable setup). Build inside each test; rewindSequence is OK. See docs/testing.md (Fishery).",
+  },
+];
+
 const skeletonStatusLabelMessage =
   "Use <SkeletonStatus heading={…}> from @/components/skeleton-status for loading-region labels (share `heading` with the section title when one exists). See docs/conventions.md.";
 
@@ -616,6 +663,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
       ],
     },
@@ -633,6 +681,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
@@ -651,6 +700,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
@@ -677,6 +727,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -723,6 +774,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
@@ -741,11 +793,19 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Test-only helpers: may import each other; app code may not import them — docs/testing.md
+  // Test-only helpers: may import each other; app code may not — docs/testing.md
   {
     files: ["lib/testing/**/*.{ts,tsx}"],
     rules: {
-      ...noForwardRefImportAllowTestOnly,
+      ...noRestrictedImportsAllowLibTesting,
+    },
+  },
+
+  // Setup is not `*.test.*`, but must import MSW from lib/testing — same allowlist as above.
+  {
+    files: ["vitest.setup.ts"],
+    rules: {
+      ...noRestrictedImportsAllowLibTesting,
     },
   },
 
@@ -761,6 +821,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
@@ -778,6 +839,7 @@ const eslintConfig = defineConfig([
         ...eventHandlerNamingRestrictions,
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -822,6 +884,7 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -916,6 +979,54 @@ const eslintConfig = defineConfig([
           ],
           patterns: [...noLodashImportPatterns, ...noZustandImportPatterns],
         },
+      ],
+    },
+  },
+
+  // Fishery build-site hygiene — docs/testing.md (Fishery practices)
+  {
+    files: ["**/*.test.{ts,tsx}"],
+    ignores: ["e2e/**"],
+    rules: {
+      // Re-include prior no-restricted-syntax entries — flat config replaces, does not merge.
+      "no-restricted-syntax": [
+        "error",
+        ...fisheryFactoryBuildRestrictions,
+        ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
+        ...skeletonStatusLabelRestrictions,
+        routeCastOnlyInPathsRestriction,
+        ...nonNextExportStyleRestrictions,
+      ],
+    },
+  },
+
+  // Component suites: same as above plus the app-UI entries from the components block.
+  {
+    files: [
+      "components/**/*.test.{ts,tsx}",
+      "app/**/_components/**/*.test.{ts,tsx}",
+    ],
+    ignores: ["components/ui/**", "e2e/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...fisheryFactoryBuildRestrictions,
+        ...genericComponentRestrictions,
+        ...linkVsAnchorRestrictions,
+        ...eventHandlerNamingRestrictions,
+        ...catchReasonNamingRestrictions,
+        ...zustandSelectorRequiredRestrictions,
+        ...nodeEnvViaLibEnvRestrictions,
+        ...constructNowRestrictions,
+        ...skeletonStatusLabelRestrictions,
+        routeCastOnlyInPathsRestriction,
+        ...nonNextExportStyleRestrictions,
+        ...appUiNoExportedTypeRestrictions,
       ],
     },
   },

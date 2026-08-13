@@ -10,12 +10,20 @@ Choose a tool carefully for a given purpose. Once adopted, **do not add another 
 
 ### Match installed official docs (hard rule)
 
-**Do not trust training data or random blog posts for APIs.** For every dependency you touch, use official docs that match the **installed version** in `package.json` / `node_modules/<pkg>/package.json`. Procedure + per-package how-to: [`docs/conventions.md`](docs/conventions.md#match-installed-official-docs). Repo concern docs (`docs/*.md`) are **our wiring** — not a substitute for that library’s versioned docs.
+**Do not trust training data or random blog posts for APIs.** For every dependency you touch, use official docs that match the **installed version** in `package.json` / `node_modules/<pkg>/package.json`. Procedure + per-package how-to: [`docs/conventions.md`](docs/conventions.md#match-installed-official-docs). Repo concern docs (`docs/*.md`) are **our wiring** — not a substitute for that library’s versioned docs. **Do not** dump every library’s “best practices” into this file — put overrides in the concern doc; add a bullet here only for **high-drift** defaults ([Official guidance vs our wiring](docs/conventions.md#official-guidance-vs-our-wiring)).
 
 ### pnpm store (hard rule)
 
 Use pnpm’s **default global** store. Never create or commit a project-local `.pnpm-store/`. For `pnpm add` / `install` / `update` / `remove`, run the shell **outside** the Cursor sandbox so the global store is writable — details: [`docs/conventions.md`](docs/conventions.md) (pnpm store / agents) · `.cursor/rules/pnpm.mdc`.
 <!-- END:project-docs -->
+
+<!-- BEGIN:prisma -->
+
+# This is NOT the Prisma typing you know from blogs
+
+Training data often hand-writes `Card & { list: List }`. **Don’t.** Official pattern (verify for installed major): `satisfies Prisma.*DefaultArgs` + `*GetPayload`. **SoT for our wiring:** [`docs/prisma.md`](docs/prisma.md) · shared shapes in [`lib/prisma/query-options/<model>.ts`](lib/prisma/query-options/card.ts) (e.g. `card.ts`, `list.ts`) — shapes only, not `find*`/`create*`. Match installed Prisma — [`conventions.md` Match installed table](docs/conventions.md#match-installed-official-docs) (Prisma row). Cursor rule: `.cursor/rules/prisma.mdc`.
+
+<!-- END:prisma -->
 
 <!-- BEGIN:nextjs-agent-rules -->
 
@@ -39,6 +47,8 @@ APIs and defaults may differ from training data (Vitest 3 vs 4). Match the insta
 - **File suffixes / layout:** `*.test.*` = Vitest colocated (never `__tests__/`, `tests/`, or root `test/`); **match the source extension** (`foo.ts` → `foo.test.ts`, `foo.tsx` → `foo.test.tsx` — `.tsx` only when the suite has JSX); `e2e/*.spec.*` = Playwright only — never mix. See [`docs/testing.md`](docs/testing.md).
 - **Terms / naming:** use Vitest’s **test name** (not “title”); follow naming guidance in [`docs/testing.md`](docs/testing.md).
 - **Component env:** default **jsdom** + Testing Library — **not** Vitest Browser Mode unless [`testing.md` triggers](docs/testing.md#trigger-checklist-for-switching-the-component-default) say so (Vitest’s component guide prefers Browser Mode; our wiring wins).
+- **HTTP mocks:** Query/`fetcher` UI → **MSW** via [`lib/testing/msw/`](lib/testing/msw/) (lifecycle in `vitest.setup.ts`). Match installed `msw` — [`conventions.md` Match installed table](docs/conventions.md#match-installed-official-docs) (MSW row). **Our wiring** (no top-level `mocks/`, `server.use`, assert UI not requests, Unsplash stays SDK mock for now): [`docs/testing.md` → MSW in this repo](docs/testing.md#msw-in-this-repo). Don’t invent a parallel fetch-mock stack.
+- **Entity test data:** repeating entity / payload objects → **Fishery** under [`lib/testing/factories/`](lib/testing/factories/) — **one file per entity** (`list.ts`, `card.ts`, `audit-log.ts`). Match installed `fishery` — [`conventions.md` Match installed table](docs/conventions.md#match-installed-official-docs). **Our wiring:** [`testing.md` → Fishery practices](docs/testing.md#fishery-practices) — default typed fixtures (MSW/UI/`GetPayload`; not an ORM layer). **prisma-fabbrica** only When needed for real-DB Prisma suites — not a Fishery replacement ([decision rule](docs/testing.md#fishery-vs-prisma-fabbrica-do-not-replace-optional-later)). Never nest another entity’s factory in a sibling file; `sequence` ids; build **inside each test** (ESLint); Fishery `associations` when the payload field is the related rows; assert built fields; don’t hand-roll `make*` or confuse with Vitest `test.extend` fixtures.
 - **Bug fixes:** for Vitest-owned code, write a **failing** regression test first, then fix the implementation — don’t weaken the test to make it pass. Details: [`docs/testing.md`](docs/testing.md) · [Vitest: Fixing Bugs with Tests](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests).
 - **Expect order:** after the act, `expect(…)` must follow **execution order** (calls/side effects → result). Hard rule: [`docs/testing.md`](docs/testing.md).
 - **Mocks / files / scope / Storybook:** follow [`docs/testing.md`](docs/testing.md) — don’t invent Jest, Cypress, or Storybook-as-CI-test-runner.

@@ -1,13 +1,19 @@
 import { type AuditLog } from "@/app/generated/prisma/client";
-import { generateLogMessage } from "@/lib/generate-log-message";
+import { generateAuditLogMessage } from "@/lib/generate-audit-log-message";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 interface ActivityItemProps {
   data: AuditLog;
 }
 
 export const ActivityItem = ({ data }: ActivityItemProps) => {
+  // Query JSON leaves DateTime as ISO strings; Prisma (RSC) gives Date.
+  const createdAt =
+    typeof data.createdAt === "string"
+      ? parseISO(data.createdAt)
+      : data.createdAt;
+
   return (
     <li className="flex items-center gap-x-2">
       <Avatar className="h-8 w-8">
@@ -18,10 +24,10 @@ export const ActivityItem = ({ data }: ActivityItemProps) => {
           <span className="font-semibold text-neutral-700 lowercase">
             {data.userName}
           </span>{" "}
-          {generateLogMessage(data)}
+          {generateAuditLogMessage(data)}
         </p>
         <p className="text-xs text-muted-foreground">
-          {format(new Date(data.createdAt), "MMM d, yyyy 'at' h:mm a")}
+          {format(createdAt, "MMM d, yyyy 'at' h:mm a")}
         </p>
       </div>
     </li>

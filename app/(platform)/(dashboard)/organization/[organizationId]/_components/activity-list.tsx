@@ -1,7 +1,7 @@
 import { ActivityItem } from "@/components/activity-item";
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { paths } from "@/lib/paths";
@@ -27,8 +27,8 @@ export const ActivityList = async () => {
       <p className="hidden text-center text-xs text-muted-foreground last:block">
         No activity found inside this organization
       </p>
-      {auditLogs.map((log) => (
-        <ActivityItem key={log.id} data={log} />
+      {auditLogs.map((auditLog) => (
+        <ActivityItem key={auditLog.id} data={auditLog} />
       ))}
     </ol>
   );

@@ -1,8 +1,9 @@
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ListContainer } from "./_components/list-container";
 import { paths } from "@/lib/paths";
+import { listWithCardsOrderedByOrderAscArgs } from "@/lib/prisma/query-options/list";
 
 export default async function BoardIdPage({
   params,
@@ -22,13 +23,7 @@ export default async function BoardIdPage({
         orgId,
       },
     },
-    include: {
-      cards: {
-        orderBy: {
-          order: "asc",
-        },
-      },
-    },
+    ...listWithCardsOrderedByOrderAscArgs,
     orderBy: {
       order: "asc",
     },

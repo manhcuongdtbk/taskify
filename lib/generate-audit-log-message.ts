@@ -1,8 +1,8 @@
 // TODO: fix all prisma imports
 import { ACTION, type AuditLog } from "@/app/generated/prisma/browser";
 
-export const generateLogMessage = (log: AuditLog) => {
-  const { action, entityTitle, entityType } = log;
+export const generateAuditLogMessage = (auditLog: AuditLog) => {
+  const { action, entityTitle, entityType } = auditLog;
 
   switch (action) {
     case ACTION.CREATE:

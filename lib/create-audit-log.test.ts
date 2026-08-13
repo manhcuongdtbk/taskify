@@ -9,10 +9,10 @@ import {
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { createAuditLog } from "./create-audit-log";
 
-vi.mock("@/lib/prisma", () => ({
+vi.mock("@/lib/prisma/client", () => ({
   default: { auditLog: { create: vi.fn() } },
 }));
 

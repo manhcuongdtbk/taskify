@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 
+import { listFactory } from "@/lib/testing/factories/list";
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
 import {
   invalidTypeArray,
@@ -10,26 +11,27 @@ import {
 
 import { UpdateListOrderSchema } from "./schema";
 
-const listItem = {
-  id: "list_1",
-  title: "Todo",
-  order: 0,
-  createdAt: new Date("2024-01-01T00:00:00.000Z"),
-  updatedAt: new Date("2024-01-02T00:00:00.000Z"),
-};
-
 describe("UpdateListOrderSchema", () => {
   test("valid: accepts a reorder payload", () => {
+    const list = listFactory.build({ title: "Todo", order: 0 });
+    const item = {
+      id: list.id,
+      title: list.title,
+      order: list.order,
+      createdAt: list.createdAt,
+      updatedAt: list.updatedAt,
+    };
+
     const result = UpdateListOrderSchema.safeParse({
-      items: [listItem],
-      boardId: "board_1",
+      items: [item],
+      boardId: list.boardId,
     });
 
     expect(result).toStrictEqual({
       success: true,
       data: {
-        items: [listItem],
-        boardId: "board_1",
+        items: [item],
+        boardId: list.boardId,
       },
     });
   });

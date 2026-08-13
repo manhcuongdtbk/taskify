@@ -44,6 +44,21 @@ These are **domain objects in the app's UI** — the things users interact with 
 
 These live _inside_ features. "Board canvas" is a feature; "board" is the object. "Card detail" is a feature; "card" is the object.
 
+## Audit log
+
+Prisma `AuditLog` records an action on a **board**, **list**, or **card**. Do **not** call these **logs** — that collides with `console.log`, server logs, and MSW request logs.
+
+Name the **entity** when the row is scoped:
+
+| Phrase              | When                                                                      |
+| ------------------- | ------------------------------------------------------------------------- |
+| **Card audit log**  | `entityType: CARD` (card modal activity, `/api/cards/:cardId/audit-logs`) |
+| **List audit log**  | `entityType: LIST`                                                        |
+| **Board audit log** | `entityType: BOARD`                                                       |
+| **Audit log**       | Mixed/unknown entity, or the Prisma model itself                          |
+
+Identifiers follow the same split: `cardAuditLog` / `cardAuditLogs` / `cardQueries.auditLogs`, not `log` / `logs`. Org-wide activity (mixed entities) stays `auditLog` / `auditLogs`.
+
 ## Framework (two meanings)
 
 | Context                                            | "Framework" means                                                  | Examples                            |
@@ -183,7 +198,7 @@ export const cardQueries = {
   detail: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "detail"] as const,
-      queryFn: () => fetcher<CardWithList | null>(`/api/cards/${id}`), // | null until route returns 404 — docs/data.md
+      queryFn: () => fetcher<CardWithListTitle | null>(`/api/cards/${id}`), // | null until route returns 404 — docs/data.md
       enabled: !!id,
     }),
 };
@@ -193,12 +208,12 @@ useQuery(cardQueries.detail(id));
 
 **Rule of thumb:** UML with `Creator` / `ConcreteProduct` → GoF. `cardQueries.detail(id)` or `vi.mock("…", () => ({ … }))` → **colloquial** factory. Saying it “builds” a value in ordinary English is **not** the [Builder](#builder) pattern.
 
-| We say                       | What it is                                                           | Where                                                                            |
-| ---------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **Resource / Query factory** | `cardQueries`-style module: `queryKey` + `queryOptions`              | [`lib/api/card.ts`](../lib/api/card.ts) · why/layout: [`data.md`](./data.md)     |
-| **Store factory**            | [`createStore`](../lib/create-store.ts) — sole Zustand import        | [`client-ui-state.md`](./client-ui-state.md)                                     |
-| **`vi.mock` factory**        | Callback that supplies mocked exports                                | [`testing.md`](./testing.md) · [vi.mock](https://vitest.dev/api/vi.html#vi-mock) |
-| **`factories/` (folder)**    | Optional **test data builders** (fixtures) — see [Builder](#builder) | [`project-structure.md`](./project-structure.md)                                 |
+| We say                       | What it is                                                                                                                    | Where                                                                            |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Resource / Query factory** | `cardQueries`-style module: `queryKey` + `queryOptions`                                                                       | [`lib/api/card.ts`](../lib/api/card.ts) · why/layout: [`data.md`](./data.md)     |
+| **Store factory**            | [`createStore`](../lib/create-store.ts) — sole Zustand import                                                                 | [`client-ui-state.md`](./client-ui-state.md)                                     |
+| **`vi.mock` factory**        | Callback that supplies mocked exports                                                                                         | [`testing.md`](./testing.md) · [vi.mock](https://vitest.dev/api/vi.html#vi-mock) |
+| **`factories/` (folder)**    | Optional top-level for **test data factories** — prefer [`lib/testing/factories/`](../lib/testing/factories/) + Fishery first | [`project-structure.md`](./project-structure.md) · [`testing.md`](./testing.md)  |
 
 Official Query helper is [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options) (no glossary “factory”). Community “query key factory” usually means key helpers only; our resource factories add `queryFn` too — details: [`data.md`](./data.md).
 
@@ -230,14 +245,14 @@ Vendor fluent APIs (Prisma `findMany` chains, Zod `.trim().min(3)`) are **shaped
 | **Factory** | **Which** thing / one-shot correct config         | `cardQueries.detail(id)`, `createStore(…)` |
 | **Builder** | **How** to assemble many optional / ordered parts | Fluent chains, rich test fixtures          |
 
-In **this repo’s docs**, prefer **factory** for `lib/api/*`, `createStore`, `vi.mock` factories; **builder** for fluent/stepwise assembly, “path builder” prose, and `factories/` fixture helpers. If someone says “builder” but means `cardQueries`, they mean [Factory](#factory).
+In **this repo’s docs**, prefer **factory** for `lib/api/*`, `createStore`, `vi.mock` factories, and **Fishery** test data factories under `lib/testing/factories/`; **builder** for fluent/stepwise assembly and “path builder” prose. If someone says “builder” but means `cardQueries`, they mean [Factory](#factory). Don’t call Fishery factories “fixtures” — Vitest/Playwright fixtures mean `test.extend` lifecycle.
 
-| We say                                | What it is                       | GoF Builder?                                        |
-| ------------------------------------- | -------------------------------- | --------------------------------------------------- |
-| **Path builders / `paths.*`**         | Functions returning typed routes | No — colloquial                                     |
-| **Test data builders** (`factories/`) | Fixture helpers                  | Sometimes fluent; often `makeCard({ … })`           |
-| **Prisma / Zod chains**               | Library fluent APIs              | Vendor ≈ builder; we consume                        |
-| Homegrown `FooBuilder` classes        | —                                | **Avoid** unless domain needs stepwise construction |
+| We say                                             | What it is                          | GoF Builder?                                        |
+| -------------------------------------------------- | ----------------------------------- | --------------------------------------------------- |
+| **Path builders / `paths.*`**                      | Functions returning typed routes    | No — colloquial                                     |
+| **Test data factories** (`lib/testing/factories/`) | Fishery `Factory.define` / `.build` | Not Vitest fixtures; not Query factories            |
+| **Prisma / Zod chains**                            | Library fluent APIs                 | Vendor ≈ builder; we consume                        |
+| Homegrown `FooBuilder` classes                     | —                                   | **Avoid** unless domain needs stepwise construction |
 
 ## Match installed official docs
 

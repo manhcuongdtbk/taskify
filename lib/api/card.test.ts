@@ -56,31 +56,33 @@ describe("cardQueries", () => {
     expect(body).toBeNull();
   });
 
-  test("logs builds key and enables when id is set", () => {
-    const options = cardQueries.logs("card_1");
+  test("auditLogs builds key and enables when id is set", () => {
+    const options = cardQueries.auditLogs("card_1");
 
-    expect(options.queryKey).toStrictEqual(["card", "card_1", "logs"]);
+    expect(options.queryKey).toStrictEqual(["card", "card_1", "auditLogs"]);
     expect(options.enabled).toBe(true);
   });
 
-  test("logs disables when id is missing", () => {
-    expect(cardQueries.logs(undefined).enabled).toBe(false);
+  test("auditLogs disables when id is missing", () => {
+    expect(cardQueries.auditLogs(undefined).enabled).toBe(false);
   });
 
-  test("logs queryFn fetches audit logs by card id", async () => {
-    const logs = [{ id: "log_1", action: "CREATE" }];
+  test("auditLogs queryFn fetches card audit logs by card id", async () => {
+    const cardAuditLogs = [{ id: "auditLog_1", action: "CREATE" }];
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: vi.fn().mockResolvedValue(logs),
+      json: vi.fn().mockResolvedValue(cardAuditLogs),
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const { queryFn } = cardQueries.logs("card_1");
+    const { queryFn } = cardQueries.auditLogs("card_1");
     // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
     const body = await (queryFn as () => Promise<unknown>)();
 
-    expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1/logs");
-    expect(body).toStrictEqual(logs);
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      "/api/cards/card_1/audit-logs",
+    );
+    expect(body).toStrictEqual(cardAuditLogs);
   });
 
   // partialMatchKey is what invalidateQueries uses — assert our key shapes
@@ -88,20 +90,21 @@ describe("cardQueries", () => {
   describe("key scoping", () => {
     const scope = cardQueries.byId("card_1");
     const detail = cardQueries.detail("card_1").queryKey;
-    const logs = cardQueries.logs("card_1").queryKey;
+    const auditLogs = cardQueries.auditLogs("card_1").queryKey;
     const otherDetail = cardQueries.detail("card_2").queryKey;
 
     test("byId is a prefix of every leaf for that card and no other card", () => {
       expect(partialMatchKey(detail, scope)).toBe(true);
-      expect(partialMatchKey(logs, scope)).toBe(true);
+      expect(partialMatchKey(auditLogs, scope)).toBe(true);
       expect(partialMatchKey(otherDetail, scope)).toBe(false);
     });
 
     test("a leaf key is never a prefix of a sibling leaf", () => {
       // Regression: detail used to be ["card", id], which also matched
-      // ["card", id, "logs"] — so invalidating both refetched logs twice.
-      expect(partialMatchKey(logs, detail)).toBe(false);
-      expect(partialMatchKey(detail, logs)).toBe(false);
+      // ["card", id, "auditLogs"] — so invalidating both refetched card
+      // audit logs twice.
+      expect(partialMatchKey(auditLogs, detail)).toBe(false);
+      expect(partialMatchKey(detail, auditLogs)).toBe(false);
     });
   });
 });

@@ -2,6 +2,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 
+import { listFactory } from "@/lib/testing/factories/list";
+
 const copyList = vi.hoisted(() => vi.fn());
 const deleteList = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
@@ -20,19 +22,11 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { ListOptions } from "./list-options";
 
-const list = {
-  id: "list_1",
-  title: "Todo",
-  order: 0,
-  boardId: "board_1",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
-};
-
 describe("ListOptions", () => {
   test("copies the list with id and boardId", async () => {
+    const list = listFactory.build();
     copyList.mockResolvedValue({
-      data: { id: "list_2", title: "Todo" },
+      data: { id: "list_2", title: list.title },
     });
     const user = userEvent.setup();
 
@@ -45,19 +39,20 @@ describe("ListOptions", () => {
 
     await waitFor(() => {
       expect(copyList).toHaveBeenCalledExactlyOnceWith({
-        id: "list_1",
-        boardId: "board_1",
+        id: list.id,
+        boardId: list.boardId,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'List "Todo" copied',
+      title: `List "${list.title}" copied`,
     });
   });
 
   test("deletes the list with id and boardId", async () => {
+    const list = listFactory.build();
     deleteList.mockResolvedValue({
-      data: { id: "list_1", title: "Todo" },
+      data: { id: list.id, title: list.title },
     });
     const user = userEvent.setup();
 
@@ -70,17 +65,18 @@ describe("ListOptions", () => {
 
     await waitFor(() => {
       expect(deleteList).toHaveBeenCalledExactlyOnceWith({
-        id: "list_1",
-        boardId: "board_1",
+        id: list.id,
+        boardId: list.boardId,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'List "Todo" deleted',
+      title: `List "${list.title}" deleted`,
     });
   });
 
   test("calls onAddCard when Add card is clicked", async () => {
+    const list = listFactory.build();
     const onAddCard = vi.fn();
     const user = userEvent.setup();
 
@@ -95,6 +91,7 @@ describe("ListOptions", () => {
   });
 
   test("toasts when copy fails", async () => {
+    const list = listFactory.build();
     copyList.mockResolvedValue({ serverError: "Copy failed" });
     const user = userEvent.setup();
 
@@ -114,6 +111,7 @@ describe("ListOptions", () => {
   });
 
   test("toasts when delete fails", async () => {
+    const list = listFactory.build();
     deleteList.mockResolvedValue({ serverError: "Delete failed" });
     const user = userEvent.setup();
 

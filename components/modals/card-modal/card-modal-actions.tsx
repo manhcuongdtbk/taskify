@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type CardWithList } from "@/types";
+import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 import { Copy, Trash } from "lucide-react";
 import { useAction } from "@/hooks/use-action";
 import { copyCard } from "@/actions/copy-card";
@@ -15,7 +15,7 @@ import { toast } from "@/components/ui/toast";
 const heading = "Actions";
 
 interface CardModalActionsProps {
-  data: CardWithList;
+  data: CardWithListTitle;
 }
 
 export const CardModalActions = ({ data }: CardModalActionsProps) => {

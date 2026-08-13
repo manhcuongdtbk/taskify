@@ -1,11 +1,11 @@
 import { ENTITY_TYPE } from "@/app/generated/prisma/client";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: RouteContext<"/api/cards/[cardId]/logs">,
+  { params }: RouteContext<"/api/cards/[cardId]/audit-logs">,
 ) {
   try {
     const { orgId, userId } = await auth();
@@ -16,7 +16,7 @@ export async function GET(
 
     const { cardId } = await params;
 
-    const auditLogs = await prisma.auditLog.findMany({
+    const cardAuditLogs = await prisma.auditLog.findMany({
       where: {
         orgId,
         entityId: cardId,
@@ -28,7 +28,7 @@ export async function GET(
       take: 3,
     });
 
-    return NextResponse.json(auditLogs);
+    return NextResponse.json(cardAuditLogs);
   } catch {
     return new NextResponse("Internal Server Error", { status: 500 });
   }

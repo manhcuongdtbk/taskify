@@ -1,6 +1,6 @@
 ---
 name: Vitest test backlog
-overview: "P0 (PR #5) + P1 (PR #7) + P2 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P3–P4."
+overview: "P0 (PR #5) + P1 (PR #7) + P2 (PR #8) + P3 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P4."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
@@ -45,10 +45,13 @@ todos:
     content: "card-modal-description: colocated test covering submit → execute args, then replace formData.get as string with formDataString"
     status: completed
   - id: p3-msw-reorder
-    content: "TODO later — P3: Add MSW; card-modal components using cardQueries; form-picker Unsplash fetch mock; list-container DropResult/reorder; 100% colocated peers; raise overall coverage vs P2 ledger"
-    status: pending
+    content: "P3: Add MSW; CardModal Query+HTTP shell; FormPicker Unsplash SDK-seam gaps; list-container DropResult/reorder; 100% colocated peers; raise overall coverage vs P2 ledger"
+    status: completed
   - id: p4-polish
     content: "TODO later — P4: Broader role/a11y asserts; thin leftovers; raise overall coverage vs P3; then coverage.include/CI thresholds; confirm no remaining formData.get as string in app UI"
+    status: pending
+  - id: list-container-handle-drag-end
+    content: "Follow-up: simplify list-container handleDragEnd (dispatcher, clone-before-mutate, drop narrating comments). Keep DropResult suite green. P3 only DRY rearrange/updateOrder."
     status: pending
 isProject: false
 ---
@@ -59,17 +62,17 @@ Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`]
 
 **Conventions:** colocated `*.test.ts(x)` next to source; `import { describe, expect, test, vi } from "vitest"`; `vi.*` only; `test.for` for table-driven cases; no real network/DB.
 
-**Per-P plans (until this backlog is finished):** each priority keeps its own execution plan under `.cursor/plans/` so the next P can look back at approach and doubles. P0 was compressed into this backlog only (no separate plan file). P1+: keep the phase plan committed — P1 is [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md); P2 is [`vitest_p2_components_85befd87.plan.md`](vitest_p2_components_85befd87.plan.md).
+**Per-P plans (until this backlog is finished):** each priority keeps its own execution plan under `.cursor/plans/` so the next P can look back at approach and doubles. P0 was compressed into this backlog only (no separate plan file). P1+: keep the phase plan committed — P1 is [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md); P2 is [`vitest_p2_components_85befd87.plan.md`](vitest_p2_components_85befd87.plan.md); P3 is [`vitest_p3_msw_reorder.plan.md`](vitest_p3_msw_reorder.plan.md).
 
 ## Freeze & coverage ratchet (until this backlog is done)
 
 SoT detail: [`docs/testing.md`](../../docs/testing.md) (**Vitest backlog freeze & coverage ratchet**).
 
-| Rule                     | Meaning                                                                                                                                                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No new features**      | No new product capability until P3–P4 are finished. Tests, docs/plans, TDD-forced fixes, backlog-listed cleanups, and **store/Query hygiene** paired with colocated suites ([`docs/testing.md`](../../docs/testing.md)) only. |
-| **New test → 100% peer** | Each new/expanded `*.test.*` must drive its colocated source peer(s) to **100%** stmts / branch / funcs / lines (`pnpm test:coverage:paths …`).                                                                               |
-| **End of P → overall ↑** | Closing a P requires `pnpm test:coverage` **All files** statements **strictly above** the previous closed P in the ledger (other metrics must not regress). Do not shrink `coverage.include` to fake the rise.                |
+| Rule                     | Meaning                                                                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No new features**      | No new product capability until P4 is finished. Tests, docs/plans, TDD-forced fixes, backlog-listed cleanups, and **store/Query hygiene** paired with colocated suites ([`docs/testing.md`](../../docs/testing.md)) only. |
+| **New test → 100% peer** | Each new/expanded `*.test.*` must drive its colocated source peer(s) to **100%** stmts / branch / funcs / lines (`pnpm test:coverage:paths …`).                                                                           |
+| **End of P → overall ↑** | Closing a P requires `pnpm test:coverage` **All files** statements **strictly above** the previous closed P in the ledger (other metrics must not regress). Do not shrink `coverage.include` to fake the rise.            |
 
 ### Coverage ledger
 
@@ -80,7 +83,7 @@ Record from `pnpm test:coverage` summary **after each P is merged** (same `vites
 | P0       |            |         |          |         |         | Not captured at merge; P1 is the ratchet baseline for P2                                              |
 | P1       | 2026-08-07 | 27.27   | 23.07    | 37.00   | 27.06   | After [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7) merge — `pnpm test:coverage` All files |
 | P2       | 2026-08-10 | 64.12   | 49.63    | 84.49   | 63.87   | After [PR #8](https://github.com/manhcuongdtbk/taskify/pull/8) merge — `pnpm test:coverage` All files |
-| P3       |            |         |          |         |         | Must beat P2                                                                                          |
+| P3       |            |         |          |         |         | Must beat P2 — record after merge                                                                     |
 | P4       |            |         |          |         |         | Must beat P3; then formal thresholds / include polish                                                 |
 
 ---
@@ -137,11 +140,31 @@ Shipped on `test/vitest-p2-components` → [PR #8](https://github.com/manhcuongd
 
 ---
 
+## P3 — Done: MSW + CardModal Query shell + reorder
+
+Shipped on `test/vitest-p3-msw-reorder`. Execution plan: [`vitest_p3_msw_reorder.plan.md`](vitest_p3_msw_reorder.plan.md). Highlights:
+
+- First MSW harness under [`lib/testing/msw/`](../../lib/testing/msw/) (`handlers/` by resource, not top-level `mocks/`); `pendingForever` / `stillPending`; lifecycle in [`vitest.setup.ts`](../../vitest.setup.ts) (`listen` / `resetHandlers` / `close`, `onUnhandledRequest: "error"`)
+- [`CardModal`](../../components/modals/card-modal/index.tsx) shell suite with MSW `/api/cards/:id` + `/audit-logs`; stubbed children; skeleton vs loaded gates (incl. 200-null + unauthorized)
+- FormPicker keeps `vi.mock("@/lib/unsplash")` SDK seam (not BFF HTTP); loading status + error-payload + stale-reject coverage
+- [`list-container`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) synthetic `DropResult` via mocked `@hello-pangea/dnd` (no pointer DnD); `rearrange` + `updateOrder`; `lists` state; empty/missing card array no-ops
+- Fishery typed fixtures under [`lib/testing/factories/`](../../lib/testing/factories/) (`board`, `list`, `card`, `audit-log`); copy association cards before stamping `listId`; vs prisma-fabbrica in [`docs/testing.md`](../../docs/testing.md)
+- Prisma `query-options` + `*GetPayload` under [`lib/prisma/`](../../lib/prisma/) (not handwritten `Card & { list }`)
+- date-fns `constructNow` for shared current instants (no parallel datetime libs)
+- Audit-log vocabulary (`generateAuditLogMessage`; API `.../audit-logs`) — [`docs/vocabulary.md`](../../docs/vocabulary.md)
+- ESLint flat `no-restricted-syntax` **replaces** (Fishery `*.test.*` block had dropped the other test-file bans — [`docs/testing.md`](../../docs/testing.md))
+
+Local pre-merge All-files (not ledger until merge): stmts **68.4%** / branch **56.75%** / funcs **88.01%** / lines **67.66%** (beats P2).
+
+---
+
 ## TODO later
 
-### P3 — Component + HTTP (MSW) + reorder
+### Follow-up — `list-container` `handleDragEnd`
 
-- Add MSW; **card-modal components** that consume existing [`cardQueries`](../../lib/api/card.ts) (factories already unit-tested in P1 — do not reinvent Query wiring); form-picker **network** Unsplash mock (happy/error paths beyond `defaultImages`); list-container `DropResult` logic (no pointer DnD)
+Simplify [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) `handleDragEnd` for readability (dispatcher for list vs card, clone-before-mutate so we don’t write into live state, drop narrating comments). Keep the colocated DropResult suite green. **P3 only DRY `rearrange` / `updateOrder`** — do not fold this into the P3 PR.
+
+Also reconsider **`ListContainer` vs `ListsContainer`**: it holds many lists, but siblings stay `List*` as the feature prefix (`ListItem`, `ListForm`, `ListWrapper`). Inline TODO on the export.
 
 ### P4 — Polish
 
