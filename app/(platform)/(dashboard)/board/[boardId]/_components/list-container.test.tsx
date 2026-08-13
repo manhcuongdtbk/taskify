@@ -1,9 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import {
-  type DroppableProvided,
-  type DropResult,
-  type ResponderProvided,
-} from "@hello-pangea/dnd";
+import { type DroppableProvided, type DropResult } from "@hello-pangea/dnd";
 import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
@@ -11,10 +7,14 @@ import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/
 import { cardFactory } from "@/lib/testing/factories/card";
 import { listWithCardsOrderedByOrderAscFactory } from "@/lib/testing/factories/list";
 
-const onDragEndRef = vi.hoisted(() => ({
-  current: null as
-    ((result: DropResult, provided: ResponderProvided) => void) | null,
-}));
+type OnDragEnd = (result: DropResult) => void;
+
+const onDragEndRef = vi.hoisted(() => {
+  const current: OnDragEnd = () => {
+    throw new Error("DragDropContext onDragEnd was not registered");
+  };
+  return { current };
+});
 
 const updateListOrder = vi.hoisted(() => vi.fn());
 const updateCardOrder = vi.hoisted(() => vi.fn());
@@ -25,7 +25,7 @@ vi.mock("@hello-pangea/dnd", () => ({
     onDragEnd,
     children,
   }: {
-    onDragEnd: (result: DropResult, provided: ResponderProvided) => void;
+    onDragEnd: OnDragEnd;
     children: ReactNode;
   }) => {
     onDragEndRef.current = onDragEnd;
@@ -51,7 +51,7 @@ vi.mock("./list-item", () => ({
     data,
     index,
   }: {
-    data: { id: string; title: string; order: number };
+    data: ListWithCardsOrderedByOrderAsc;
     index: number;
   }) => (
     <li
@@ -60,6 +60,14 @@ vi.mock("./list-item", () => ({
       data-index={String(index)}
     >
       {data.title}
+      {data.cards?.map((card) => (
+        <span
+          key={card.id}
+          data-testid={`card-${card.id}`}
+          data-order={String(card.order)}
+          data-list-id={card.listId}
+        />
+      ))}
     </li>
   ),
 }));
@@ -97,8 +105,7 @@ function dropResult(
 }
 
 function fireDragEnd(result: DropResult) {
-  expect(onDragEndRef.current).not.toBeNull();
-  onDragEndRef.current?.(result, {} as ResponderProvided);
+  onDragEndRef.current(result);
 }
 
 /**
@@ -144,15 +151,13 @@ describe("ListContainer", () => {
   });
 
   test("syncs ordered lists when props data changes", () => {
-    const initial = [
-      listWithCardsOrderedByOrderAscFactory.build({
-        id: "list_a",
-        order: 0,
-        boardId,
-      }),
-    ];
+    const listA = listWithCardsOrderedByOrderAscFactory.build({
+      id: "list_a",
+      order: 0,
+      boardId,
+    });
     const { rerender } = render(
-      <ListContainer boardId={boardId} data={initial} />,
+      <ListContainer boardId={boardId} data={[listA]} />,
     );
 
     expect(screen.getByTestId("list-list_a")).toBeInTheDocument();
@@ -161,11 +166,7 @@ describe("ListContainer", () => {
       <ListContainer
         boardId={boardId}
         data={[
-          listWithCardsOrderedByOrderAscFactory.build({
-            id: "list_a",
-            order: 0,
-            boardId,
-          }),
+          listA,
           listWithCardsOrderedByOrderAscFactory.build({
             id: "list_b",
             order: 1,
@@ -175,6 +176,7 @@ describe("ListContainer", () => {
       />,
     );
 
+    expect(screen.getByTestId("list-list_a")).toBeInTheDocument();
     expect(screen.getByTestId("list-list_b")).toBeInTheDocument();
   });
 
@@ -209,7 +211,43 @@ describe("ListContainer", () => {
     expect(updateCardOrder).not.toHaveBeenCalled();
   });
 
-  test("does nothing when dropped in the same position", () => {
+  test.for([
+    {
+      type: "list",
+      source: { droppableId: "lists", index: 1 },
+      destination: { droppableId: "lists", index: 1 },
+    },
+    {
+      type: "card",
+      source: { droppableId: "list_a", index: 0 },
+      destination: { droppableId: "list_a", index: 0 },
+    },
+  ])("does nothing when a $type is dropped in the same position", (partial) => {
+    render(
+      <ListContainer
+        boardId={boardId}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_a",
+            order: 0,
+            boardId,
+          }),
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_b",
+            order: 1,
+            boardId,
+          }),
+        ]}
+      />,
+    );
+
+    fireDragEnd(dropResult(partial));
+
+    expect(updateListOrder).not.toHaveBeenCalled();
+    expect(updateCardOrder).not.toHaveBeenCalled();
+  });
+
+  test("does nothing when the drag type is neither list nor card", () => {
     render(
       <ListContainer
         boardId={boardId}
@@ -230,16 +268,17 @@ describe("ListContainer", () => {
 
     fireDragEnd(
       dropResult({
-        type: "list",
-        source: { droppableId: "lists", index: 1 },
+        type: "column",
+        source: { droppableId: "lists", index: 0 },
         destination: { droppableId: "lists", index: 1 },
       }),
     );
 
     expect(updateListOrder).not.toHaveBeenCalled();
+    expect(updateCardOrder).not.toHaveBeenCalled();
   });
 
-  test("reorders lists and executes updateListOrder", async () => {
+  test("reorders lists", async () => {
     updateListOrder.mockResolvedValue({
       data: [{ id: "list_b" }, { id: "list_a" }],
     });
@@ -374,7 +413,7 @@ describe("ListContainer", () => {
     });
   });
 
-  test("moves a card across lists and executes with destination cards", async () => {
+  test("moves a card across lists", async () => {
     updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
     const source = listWithCardsOrderedByOrderAscFactory.build(
       { id: "list_a", order: 0, boardId },
@@ -416,9 +455,13 @@ describe("ListContainer", () => {
         ],
       });
     });
+    expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
+      type: "success",
+      title: "Card reordered",
+    });
   });
 
-  test("initializes missing card arrays when moving across lists", async () => {
+  test("moves a card onto a destination list with a missing cards array", async () => {
     updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
     const source = listWithCardsOrderedByOrderAscFactory.build(
       { id: "list_a", order: 0, boardId },
@@ -460,7 +503,7 @@ describe("ListContainer", () => {
     });
   });
 
-  test("initializes a missing source cards array and no-ops when empty", () => {
+  test("does nothing when the source list has no cards", () => {
     const source = listWithMissingCards(
       listWithCardsOrderedByOrderAscFactory.build({
         id: "list_a",
@@ -482,15 +525,15 @@ describe("ListContainer", () => {
     expect(updateCardOrder).not.toHaveBeenCalled();
   });
 
-  test("reindexes remaining source cards after a cross-list move", async () => {
+  test("moves a card onto an empty list and reindexes remaining source cards", async () => {
     updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
     const source = listWithCardsOrderedByOrderAscFactory.build(
       { id: "list_a", order: 0, boardId },
       {
         associations: {
           cards: [
-            cardFactory.build({ id: "card_a", order: 0 }),
-            cardFactory.build({ id: "card_b", order: 1 }),
+            cardFactory.build({ id: "card_a", listId: "list_a", order: 0 }),
+            cardFactory.build({ id: "card_b", listId: "list_a", order: 1 }),
           ],
         },
       },
@@ -511,6 +554,20 @@ describe("ListContainer", () => {
       }),
     );
 
+    await waitFor(() => {
+      expect(screen.getByTestId("card-card_a")).toHaveAttribute(
+        "data-list-id",
+        "list_b",
+      );
+    });
+    expect(screen.getByTestId("card-card_b")).toHaveAttribute(
+      "data-list-id",
+      "list_a",
+    );
+    expect(screen.getByTestId("card-card_b")).toHaveAttribute(
+      "data-order",
+      "0",
+    );
     await waitFor(() => {
       expect(updateCardOrder).toHaveBeenCalledExactlyOnceWith({
         boardId,
@@ -555,33 +612,47 @@ describe("ListContainer", () => {
     expect(updateCardOrder).not.toHaveBeenCalled();
   });
 
-  test("does nothing when the source or destination list is missing", () => {
-    render(
-      <ListContainer
-        boardId={boardId}
-        data={[
-          listWithCardsOrderedByOrderAscFactory.build(
-            { id: "list_a", order: 0, boardId },
-            {
-              associations: {
-                cards: [cardFactory.build({ id: "card_a", order: 0 })],
+  test.for([
+    {
+      missing: "destination",
+      source: { droppableId: "list_a", index: 0 },
+      destination: { droppableId: "missing", index: 0 },
+    },
+    {
+      missing: "source",
+      source: { droppableId: "missing", index: 0 },
+      destination: { droppableId: "list_a", index: 0 },
+    },
+  ])(
+    "does nothing when the $missing list is missing",
+    ({ source, destination }) => {
+      render(
+        <ListContainer
+          boardId={boardId}
+          data={[
+            listWithCardsOrderedByOrderAscFactory.build(
+              { id: "list_a", order: 0, boardId },
+              {
+                associations: {
+                  cards: [cardFactory.build({ id: "card_a", order: 0 })],
+                },
               },
-            },
-          ),
-        ]}
-      />,
-    );
+            ),
+          ]}
+        />,
+      );
 
-    fireDragEnd(
-      dropResult({
-        type: "card",
-        source: { droppableId: "list_a", index: 0 },
-        destination: { droppableId: "missing", index: 0 },
-      }),
-    );
+      fireDragEnd(
+        dropResult({
+          type: "card",
+          source,
+          destination,
+        }),
+      );
 
-    expect(updateCardOrder).not.toHaveBeenCalled();
-  });
+      expect(updateCardOrder).not.toHaveBeenCalled();
+    },
+  );
 
   test("toasts when card reorder fails", async () => {
     updateCardOrder.mockResolvedValue({ serverError: "Card order failed" });
