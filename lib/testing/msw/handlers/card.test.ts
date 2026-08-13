@@ -6,21 +6,14 @@ import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { server } from "../server";
 import {
   cardAuditLogsOk,
-  cardAuditLogsPath,
   cardAuditLogsPending,
   cardAuditLogsUnauthorized,
   cardDetailOk,
-  cardDetailPath,
   cardDetailPending,
   cardDetailUnauthorized,
 } from "./card";
 
 describe("card MSW handlers", () => {
-  test("exports path constants used by cardQueries", () => {
-    expect(cardDetailPath).toBe("/api/cards/:cardId");
-    expect(cardAuditLogsPath).toBe("/api/cards/:cardId/audit-logs");
-  });
-
   test("serves card detail and card audit logs JSON", async () => {
     const card = cardWithListTitleFactory.build();
     const cardAuditLog = auditLogFactory.build({}, { transient: { card } });

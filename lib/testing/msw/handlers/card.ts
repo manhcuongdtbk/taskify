@@ -11,8 +11,8 @@ import { type AuditLog } from "@/app/generated/prisma/client";
 import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 /** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/api/card.ts`. */
-export const cardDetailPath = "/api/cards/:cardId" as const;
-export const cardAuditLogsPath = "/api/cards/:cardId/audit-logs" as const;
+const cardDetailPath = "/api/cards/:cardId" as const;
+const cardAuditLogsPath = "/api/cards/:cardId/audit-logs" as const;
 
 export const cardDetailOk = (card: CardWithListTitle | null) =>
   http.get(cardDetailPath, () => HttpResponse.json(card));
