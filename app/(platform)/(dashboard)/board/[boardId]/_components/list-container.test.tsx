@@ -13,7 +13,7 @@ import { listWithCardsOrderedByOrderAscFactory } from "@/lib/testing/factories/l
 
 const onDragEndRef = vi.hoisted(() => ({
   current: null as
-    null | ((result: DropResult, provided: ResponderProvided) => void),
+    ((result: DropResult, provided: ResponderProvided) => void) | null,
 }));
 
 const updateListOrder = vi.hoisted(() => vi.fn());
@@ -84,26 +84,6 @@ import { ListContainer } from "./list-container";
 
 const boardId = "board_1";
 
-function makeCard(
-  id: string,
-  listId: string,
-  order: number,
-  title = id,
-): ListWithCardsOrderedByOrderAsc["cards"][number] {
-  return cardFactory.build({ id, title, order, listId });
-}
-
-function makeList(
-  id: string,
-  order: number,
-  cards: ListWithCardsOrderedByOrderAsc["cards"] = [],
-): ListWithCardsOrderedByOrderAsc {
-  return listWithCardsOrderedByOrderAscFactory.build(
-    { id, title: id, order, boardId },
-    { associations: { cards } },
-  );
-}
-
 function dropResult(
   partial: Pick<DropResult, "type" | "source" | "destination">,
 ): DropResult {
@@ -123,7 +103,18 @@ function fireDragEnd(result: DropResult) {
 
 describe("ListContainer", () => {
   test("renders lists from props", () => {
-    const data = [makeList("list_a", 0), makeList("list_b", 1)];
+    const data = [
+      listWithCardsOrderedByOrderAscFactory.build({
+        id: "list_a",
+        order: 0,
+        boardId,
+      }),
+      listWithCardsOrderedByOrderAscFactory.build({
+        id: "list_b",
+        order: 1,
+        boardId,
+      }),
+    ];
 
     render(<ListContainer boardId={boardId} data={data} />);
 
@@ -139,7 +130,13 @@ describe("ListContainer", () => {
   });
 
   test("syncs ordered lists when props data changes", () => {
-    const initial = [makeList("list_a", 0)];
+    const initial = [
+      listWithCardsOrderedByOrderAscFactory.build({
+        id: "list_a",
+        order: 0,
+        boardId,
+      }),
+    ];
     const { rerender } = render(
       <ListContainer boardId={boardId} data={initial} />,
     );
@@ -149,7 +146,18 @@ describe("ListContainer", () => {
     rerender(
       <ListContainer
         boardId={boardId}
-        data={[makeList("list_a", 0), makeList("list_b", 1)]}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_a",
+            order: 0,
+            boardId,
+          }),
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_b",
+            order: 1,
+            boardId,
+          }),
+        ]}
       />,
     );
 
@@ -160,7 +168,18 @@ describe("ListContainer", () => {
     render(
       <ListContainer
         boardId={boardId}
-        data={[makeList("list_a", 0), makeList("list_b", 1)]}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_a",
+            order: 0,
+            boardId,
+          }),
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_b",
+            order: 1,
+            boardId,
+          }),
+        ]}
       />,
     );
 
@@ -180,7 +199,18 @@ describe("ListContainer", () => {
     render(
       <ListContainer
         boardId={boardId}
-        data={[makeList("list_a", 0), makeList("list_b", 1)]}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_a",
+            order: 0,
+            boardId,
+          }),
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_b",
+            order: 1,
+            boardId,
+          }),
+        ]}
       />,
     );
 
@@ -203,7 +233,18 @@ describe("ListContainer", () => {
     render(
       <ListContainer
         boardId={boardId}
-        data={[makeList("list_a", 0), makeList("list_b", 1)]}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_a",
+            order: 0,
+            boardId,
+          }),
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_b",
+            order: 1,
+            boardId,
+          }),
+        ]}
       />,
     );
 
@@ -247,7 +288,18 @@ describe("ListContainer", () => {
     render(
       <ListContainer
         boardId={boardId}
-        data={[makeList("list_a", 0), makeList("list_b", 1)]}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_a",
+            order: 0,
+            boardId,
+          }),
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_b",
+            order: 1,
+            boardId,
+          }),
+        ]}
       />,
     );
 
@@ -271,10 +323,17 @@ describe("ListContainer", () => {
     updateCardOrder.mockResolvedValue({
       data: [{ id: "card_b" }, { id: "card_a" }],
     });
-    const list = makeList("list_a", 0, [
-      makeCard("card_a", "list_a", 0),
-      makeCard("card_b", "list_a", 1),
-    ]);
+    const list = listWithCardsOrderedByOrderAscFactory.build(
+      { id: "list_a", order: 0, boardId },
+      {
+        associations: {
+          cards: [
+            cardFactory.build({ id: "card_a", order: 0 }),
+            cardFactory.build({ id: "card_b", order: 1 }),
+          ],
+        },
+      },
+    );
 
     render(<ListContainer boardId={boardId} data={[list]} />);
 
@@ -303,10 +362,22 @@ describe("ListContainer", () => {
 
   test("moves a card across lists and executes with destination cards", async () => {
     updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
-    const source = makeList("list_a", 0, [makeCard("card_a", "list_a", 0)]);
-    const destination = makeList("list_b", 1, [
-      makeCard("card_b", "list_b", 0),
-    ]);
+    const source = listWithCardsOrderedByOrderAscFactory.build(
+      { id: "list_a", order: 0, boardId },
+      {
+        associations: {
+          cards: [cardFactory.build({ id: "card_a", order: 0 })],
+        },
+      },
+    );
+    const destination = listWithCardsOrderedByOrderAscFactory.build(
+      { id: "list_b", order: 1, boardId },
+      {
+        associations: {
+          cards: [cardFactory.build({ id: "card_b", order: 0 })],
+        },
+      },
+    );
 
     render(<ListContainer boardId={boardId} data={[source, destination]} />);
 
@@ -335,9 +406,20 @@ describe("ListContainer", () => {
 
   test("initializes missing card arrays when moving across lists", async () => {
     updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
-    const source = makeList("list_a", 0, [makeCard("card_a", "list_a", 0)]);
+    const source = listWithCardsOrderedByOrderAscFactory.build(
+      { id: "list_a", order: 0, boardId },
+      {
+        associations: {
+          cards: [cardFactory.build({ id: "card_a", order: 0 })],
+        },
+      },
+    );
     const destination = {
-      ...makeList("list_b", 1),
+      ...listWithCardsOrderedByOrderAscFactory.build({
+        id: "list_b",
+        order: 1,
+        boardId,
+      }),
       cards: undefined as unknown as ListWithCardsOrderedByOrderAsc["cards"],
     };
 
@@ -367,7 +449,11 @@ describe("ListContainer", () => {
 
   test("initializes a missing source cards array and no-ops when empty", () => {
     const source = {
-      ...makeList("list_a", 0),
+      ...listWithCardsOrderedByOrderAscFactory.build({
+        id: "list_a",
+        order: 0,
+        boardId,
+      }),
       cards: undefined as unknown as ListWithCardsOrderedByOrderAsc["cards"],
     };
 
@@ -386,11 +472,22 @@ describe("ListContainer", () => {
 
   test("reindexes remaining source cards after a cross-list move", async () => {
     updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
-    const source = makeList("list_a", 0, [
-      makeCard("card_a", "list_a", 0),
-      makeCard("card_b", "list_a", 1),
-    ]);
-    const destination = makeList("list_b", 1, []);
+    const source = listWithCardsOrderedByOrderAscFactory.build(
+      { id: "list_a", order: 0, boardId },
+      {
+        associations: {
+          cards: [
+            cardFactory.build({ id: "card_a", order: 0 }),
+            cardFactory.build({ id: "card_b", order: 1 }),
+          ],
+        },
+      },
+    );
+    const destination = listWithCardsOrderedByOrderAscFactory.build({
+      id: "list_b",
+      order: 1,
+      boardId,
+    });
 
     render(<ListContainer boardId={boardId} data={[source, destination]} />);
 
@@ -420,7 +517,18 @@ describe("ListContainer", () => {
     render(
       <ListContainer
         boardId={boardId}
-        data={[makeList("list_a", 0, []), makeList("list_b", 1, [])]}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_a",
+            order: 0,
+            boardId,
+          }),
+          listWithCardsOrderedByOrderAscFactory.build({
+            id: "list_b",
+            order: 1,
+            boardId,
+          }),
+        ]}
       />,
     );
 
@@ -439,7 +547,16 @@ describe("ListContainer", () => {
     render(
       <ListContainer
         boardId={boardId}
-        data={[makeList("list_a", 0, [makeCard("card_a", "list_a", 0)])]}
+        data={[
+          listWithCardsOrderedByOrderAscFactory.build(
+            { id: "list_a", order: 0, boardId },
+            {
+              associations: {
+                cards: [cardFactory.build({ id: "card_a", order: 0 })],
+              },
+            },
+          ),
+        ]}
       />,
     );
 
@@ -456,10 +573,17 @@ describe("ListContainer", () => {
 
   test("toasts when card reorder fails", async () => {
     updateCardOrder.mockResolvedValue({ serverError: "Card order failed" });
-    const list = makeList("list_a", 0, [
-      makeCard("card_a", "list_a", 0),
-      makeCard("card_b", "list_a", 1),
-    ]);
+    const list = listWithCardsOrderedByOrderAscFactory.build(
+      { id: "list_a", order: 0, boardId },
+      {
+        associations: {
+          cards: [
+            cardFactory.build({ id: "card_a", order: 0 }),
+            cardFactory.build({ id: "card_b", order: 1 }),
+          ],
+        },
+      },
+    );
 
     render(<ListContainer boardId={boardId} data={[list]} />);
 
