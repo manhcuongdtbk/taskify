@@ -125,12 +125,11 @@ describe("CardModalDescription", () => {
   });
 
   test("renders existing description text", () => {
-    const card = cardWithListTitleFactory.build({
-      description: "Existing details",
-    });
+    const description = "Existing details";
+    const card = cardWithListTitleFactory.build({ description });
     renderWithQuery(<CardModalDescription data={card} />);
 
-    expect(screen.getByText(card.description!)).toBeInTheDocument();
+    expect(screen.getByText(description)).toBeInTheDocument();
   });
 
   test("renders the description skeleton", () => {
