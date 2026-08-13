@@ -22,15 +22,13 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { ListOptions } from "./list-options";
 
-const listRow = () => listFactory.build();
-
 describe("ListOptions", () => {
   beforeEach(() => {
     rewindListFactory();
   });
 
   test("copies the list with id and boardId", async () => {
-    const list = listRow();
+    const list = listFactory.build();
     copyList.mockResolvedValue({
       data: { id: "list_2", title: list.title },
     });
@@ -56,7 +54,7 @@ describe("ListOptions", () => {
   });
 
   test("deletes the list with id and boardId", async () => {
-    const list = listRow();
+    const list = listFactory.build();
     deleteList.mockResolvedValue({
       data: { id: list.id, title: list.title },
     });
@@ -82,7 +80,7 @@ describe("ListOptions", () => {
   });
 
   test("calls onAddCard when Add card is clicked", async () => {
-    const list = listRow();
+    const list = listFactory.build();
     const onAddCard = vi.fn();
     const user = userEvent.setup();
 
@@ -97,7 +95,7 @@ describe("ListOptions", () => {
   });
 
   test("toasts when copy fails", async () => {
-    const list = listRow();
+    const list = listFactory.build();
     copyList.mockResolvedValue({ serverError: "Copy failed" });
     const user = userEvent.setup();
 
@@ -117,7 +115,7 @@ describe("ListOptions", () => {
   });
 
   test("toasts when delete fails", async () => {
-    const list = listRow();
+    const list = listFactory.build();
     deleteList.mockResolvedValue({ serverError: "Delete failed" });
     const user = userEvent.setup();
 

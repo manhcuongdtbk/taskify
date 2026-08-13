@@ -24,15 +24,13 @@ vi.mock("./list-options", () => ({
 
 import { ListHeader } from "./list-header";
 
-const listColumn = () => listWithCardsOrderedByOrderAscFactory.build();
-
 describe("ListHeader", () => {
   beforeEach(() => {
     rewindListWithCardsOrderedByOrderAscFactory();
   });
 
   test("submits a changed title to updateList", async () => {
-    const list = listColumn();
+    const list = listWithCardsOrderedByOrderAscFactory.build();
     updateList.mockResolvedValue({
       data: { id: list.id, title: "Done" },
     });
@@ -60,7 +58,7 @@ describe("ListHeader", () => {
   });
 
   test("does not execute when the title is unchanged", async () => {
-    const list = listColumn();
+    const list = listWithCardsOrderedByOrderAscFactory.build();
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
@@ -75,7 +73,7 @@ describe("ListHeader", () => {
   });
 
   test("toasts when update fails", async () => {
-    const list = listColumn();
+    const list = listWithCardsOrderedByOrderAscFactory.build();
     updateList.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
 
@@ -96,7 +94,7 @@ describe("ListHeader", () => {
   });
 
   test("submits on Escape while editing", async () => {
-    const list = listColumn();
+    const list = listWithCardsOrderedByOrderAscFactory.build();
     updateList.mockResolvedValue({
       data: { id: list.id, title: "Done" },
     });

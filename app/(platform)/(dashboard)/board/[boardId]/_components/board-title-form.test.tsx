@@ -20,15 +20,13 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { BoardTitleForm } from "./board-title-form";
 
-const boardRow = () => boardFactory.build({ title: "Old title" });
-
 describe("BoardTitleForm", () => {
   beforeEach(() => {
     rewindBoardFactory();
   });
 
   test("renames the board title on success", async () => {
-    const board = boardRow();
+    const board = boardFactory.build({ title: "Old title" });
     updateBoard.mockResolvedValue({
       data: { ...board, title: "Roadmap" },
     });
@@ -60,7 +58,7 @@ describe("BoardTitleForm", () => {
   });
 
   test("toasts when update fails", async () => {
-    const board = boardRow();
+    const board = boardFactory.build({ title: "Old title" });
     updateBoard.mockResolvedValue({ serverError: "Update failed" });
     const user = userEvent.setup();
 
