@@ -182,7 +182,7 @@ HTTP mocks for **Vitest** component + Query suites. Prefer MSW over ad-hoc `vi.s
 
 Default [`handlers`](../lib/testing/msw/handlers/index.ts) may stay empty; compose with `server.use` + one file per resource under [`handlers/`](../lib/testing/msw/handlers/) (MSW allows `setupServer()` with no base handlers; [Structuring handlers](https://mswjs.io/docs/best-practices/structuring-handlers/) mapped here instead of `mocks/handlers/`).
 
-Pending helpers use MSW [`delay("infinite")`](https://mswjs.io/docs/api/delay/). Vitest has no pending-promise matcher; handler suites use [`stillPending`](../lib/testing/msw/handlers/helpers/still-pending.ts) (do **not** `await` the request — that hangs until the test timeout). UI suites assert the loading UI instead ([Avoid request assertions](https://mswjs.io/docs/best-practices/avoid-request-assertions/)).
+Pending helpers use [`pendingForever`](../lib/testing/msw/handlers/helpers/pending-forever.ts) ([`delay("infinite")`](https://mswjs.io/docs/api/delay/)). Vitest has no pending-promise matcher; handler suites use [`stillPending`](../lib/testing/msw/handlers/helpers/still-pending.ts) (do **not** `await` the request — that hangs until the test timeout). UI suites assert the loading UI instead ([Avoid request assertions](https://mswjs.io/docs/best-practices/avoid-request-assertions/)).
 
 ### Fixing bugs with tests (agents)
 
