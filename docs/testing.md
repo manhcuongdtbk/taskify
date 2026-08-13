@@ -619,7 +619,7 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 - **Complete object** — has every field the production type needs: do **not** use `as Model` or `satisfies Model`. Pass the plain object; the typed call site already checks assignability.
 - **Shared Fishery factories when shapes repeat** — see [Fishery practices](#fishery-practices) below. Thin `{ id, boardId }` action inputs stay local. Don’t confuse with Vitest/Playwright **fixtures** (`test.extend` lifecycle). Don’t add `@faker-js/faker` until random/unique values actually hurt.
 - **Factory exists for that model** — `.build({ fields under test })`. Unused columns come from the factory, not a `Pick` + `as Model` lie. See [`lib/generate-audit-log-message.test.ts`](../lib/generate-audit-log-message.test.ts).
-- **Intentional partial** — only when there is **no** factory (or the value is not that entity). Keep the production param as the model type; in the test use a **named cast** helper that accepts `Pick<…>` and returns `as Model`. Do **not** invent unused columns only to please TypeScript.
+- **Intentional partial** — only when there is **no** factory, or the value is **not** a valid row (e.g. missing `cards` to hit a runtime guard). Keep the production param as the model type; in the test use a **named** helper that returns `as Model`. Do **not** inline `as unknown as`. See `listWithMissingCards` in [`list-container.test.tsx`](<../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.test.tsx>).
 - Zod schema suites and other plain-input unit tests do not need this pattern. Do not blanket-ban `as` — Clerk/auth mocks and similar partial stubs still need casts.
 
 ### Fishery practices

@@ -101,6 +101,20 @@ function fireDragEnd(result: DropResult) {
   onDragEndRef.current?.(result, {} as ResponderProvided);
 }
 
+/**
+ * Query payloads always include `cards: []`, but ListContainer still guards
+ * `if (!list.cards)`. Named `as Model` for that hole — see docs/testing.md
+ * (intentional partial).
+ */
+function listWithMissingCards(
+  list: ListWithCardsOrderedByOrderAsc,
+): ListWithCardsOrderedByOrderAsc {
+  return {
+    ...list,
+    cards: undefined,
+  } as unknown as ListWithCardsOrderedByOrderAsc;
+}
+
 describe("ListContainer", () => {
   test("renders lists from props", () => {
     const data = [
@@ -414,14 +428,13 @@ describe("ListContainer", () => {
         },
       },
     );
-    const destination = {
-      ...listWithCardsOrderedByOrderAscFactory.build({
+    const destination = listWithMissingCards(
+      listWithCardsOrderedByOrderAscFactory.build({
         id: "list_b",
         order: 1,
         boardId,
       }),
-      cards: undefined as unknown as ListWithCardsOrderedByOrderAsc["cards"],
-    };
+    );
 
     render(<ListContainer boardId={boardId} data={[source, destination]} />);
 
@@ -448,14 +461,13 @@ describe("ListContainer", () => {
   });
 
   test("initializes a missing source cards array and no-ops when empty", () => {
-    const source = {
-      ...listWithCardsOrderedByOrderAscFactory.build({
+    const source = listWithMissingCards(
+      listWithCardsOrderedByOrderAscFactory.build({
         id: "list_a",
         order: 0,
         boardId,
       }),
-      cards: undefined as unknown as ListWithCardsOrderedByOrderAsc["cards"],
-    };
+    );
 
     render(<ListContainer boardId={boardId} data={[source]} />);
 
