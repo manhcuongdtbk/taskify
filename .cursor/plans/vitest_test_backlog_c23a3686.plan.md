@@ -50,6 +50,9 @@ todos:
   - id: p4-polish
     content: "TODO later — P4: Broader role/a11y asserts; thin leftovers; raise overall coverage vs P3; then coverage.include/CI thresholds; confirm no remaining formData.get as string in app UI"
     status: pending
+  - id: list-container-handle-drag-end
+    content: "Follow-up: simplify list-container handleDragEnd (dispatcher, clone-before-mutate, drop narrating comments). Keep DropResult suite green. P3 only DRY rearrange/updateOrder."
+    status: pending
 isProject: false
 ---
 
@@ -151,6 +154,10 @@ Local pre-merge All-files (not ledger until merge): stmts **68.4%** / branch **5
 ---
 
 ## TODO later
+
+### Follow-up — `list-container` `handleDragEnd`
+
+Simplify [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) `handleDragEnd` for readability (dispatcher for list vs card, clone-before-mutate so we don’t write into live state, drop narrating comments). Keep the colocated DropResult suite green. **P3 only DRY `rearrange` / `updateOrder`** — do not fold this into the P3 PR.
 
 ### P4 — Polish
 

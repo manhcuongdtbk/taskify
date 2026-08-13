@@ -1,5 +1,6 @@
 "use client";
 
+import { type Card } from "@/app/generated/prisma/client";
 import { type ListWithCardsOrderedByOrderAsc } from "@/lib/prisma/query-options/list";
 import { ListForm } from "./list-form";
 import { useEffect, useState } from "react";
@@ -15,15 +16,23 @@ interface ListContainerProps {
   data: ListWithCardsOrderedByOrderAsc[];
 }
 
-function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-  return result;
+type ListOrCard = ListWithCardsOrderedByOrderAsc | Card;
+
+function rearrange<T extends ListOrCard>(
+  items: T[],
+  from: number,
+  to: number,
+): T[] {
+  const item = items[from];
+  return items.toSpliced(from, 1).toSpliced(to, 0, item);
+}
+
+function updateOrder<T extends ListOrCard>(items: T[]): T[] {
+  return items.map((item, order) => ({ ...item, order }));
 }
 
 export const ListContainer = ({ boardId, data }: ListContainerProps) => {
-  const [orderedData, setOrderedData] = useState(data);
+  const [lists, setLists] = useState(data);
   const { execute: executeUpdateListOrder } = useAction(updateListOrder, {
     onSuccess: (data) => {
       toast.add({
@@ -56,7 +65,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
   useEffect(() => {
     // TODO: true optimistic UI (`useOptimistic`) while dragging — docs/data.md
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setOrderedData(data);
+    setLists(data);
   }, [data]);
 
   const handleDragEnd = (result: DropResult) => {
@@ -73,28 +82,24 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
 
     // user moves a list
     if (type === "list") {
-      const items = reorder(orderedData, source.index, destination.index).map(
-        (item, index) => ({
-          ...item,
-          order: index,
-        }),
-      );
-      setOrderedData(items);
+      const rearrangedLists = rearrange(lists, source.index, destination.index);
+      const orderedLists = updateOrder(rearrangedLists);
+      setLists(orderedLists);
       executeUpdateListOrder({
         boardId,
-        items,
+        items: orderedLists,
       });
     }
 
     // user moves a card
     if (type === "card") {
-      const newOrderedData = [...orderedData];
+      const nextLists = [...lists];
 
       // source and destination list
-      const sourceList = newOrderedData.find(
+      const sourceList = nextLists.find(
         (list) => list.id === source.droppableId,
       );
-      const destinationList = newOrderedData.find(
+      const destinationList = nextLists.find(
         (list) => list.id === destination.droppableId,
       );
 
@@ -114,22 +119,19 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
       if (source.droppableId === destination.droppableId) {
         if (sourceList.cards.length === 0) return;
 
-        const reorderedCards = reorder(
+        const rearrangedCards = rearrange(
           sourceList.cards,
           source.index,
           destination.index,
         );
+        const orderedCards = updateOrder(rearrangedCards);
 
-        reorderedCards.forEach((card, index) => {
-          card.order = index;
-        });
+        sourceList.cards = orderedCards;
 
-        sourceList.cards = reorderedCards;
-
-        setOrderedData(newOrderedData);
+        setLists(nextLists);
         executeUpdateCardOrder({
           boardId,
-          items: reorderedCards,
+          items: orderedCards,
         });
         // user moves the card to another list
       } else {
@@ -143,19 +145,17 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
         // add card to the destination list
         destinationList.cards.splice(destination.index, 0, movedCard);
 
-        sourceList.cards.forEach((card, index) => {
-          card.order = index;
-        });
+        const orderedSourceCards = updateOrder(sourceList.cards);
+        sourceList.cards = orderedSourceCards;
 
         // update the order for each card in the destination list
-        destinationList.cards.forEach((card, index) => {
-          card.order = index;
-        });
+        const orderedDestinationCards = updateOrder(destinationList.cards);
+        destinationList.cards = orderedDestinationCards;
 
-        setOrderedData(newOrderedData);
+        setLists(nextLists);
         executeUpdateCardOrder({
           boardId,
-          items: destinationList.cards,
+          items: orderedDestinationCards,
         });
       }
     }
@@ -170,7 +170,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
             ref={provided.innerRef}
             className="flex h-full gap-x-3"
           >
-            {orderedData.map((list, index) => (
+            {lists.map((list, index) => (
               <ListItem key={list.id} index={index} data={list} />
             ))}
             {provided.placeholder}

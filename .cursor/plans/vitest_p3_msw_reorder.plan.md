@@ -103,7 +103,7 @@ Cover branches:
 - props `data` change → `useEffect` syncs `orderedData`
 - action success/error → toast titles
 
-Keep inline `reorder` (no extract unless coverage forces it). Peer 100% via `test:coverage:paths` (outside All-files include).
+DRY `rearrange` + `updateOrder` only. **Do not** simplify `handleDragEnd` in this P — follow-up: [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (`list-container-handle-drag-end`). Peer 100% via `test:coverage:paths` (outside All-files include).
 
 ## Close-out
 
