@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { parseISO } from "date-fns";
 import { describe, expect, test, vi } from "vitest";
 
 const updateBoard = vi.hoisted(() => vi.fn());
@@ -15,6 +16,8 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { BoardTitleForm } from "./board-title-form";
 
+const instant = parseISO("2026-01-01T00:00:00.000Z");
+
 const board = {
   id: "board_1",
   title: "Old title",
@@ -24,8 +27,8 @@ const board = {
   imageFullUrl: "https://example.com/f",
   imageUserName: "Ada",
   imageLinkHTML: "https://example.com",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
+  createdAt: instant,
+  updatedAt: instant,
 };
 
 describe("BoardTitleForm", () => {

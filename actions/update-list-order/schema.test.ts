@@ -1,3 +1,4 @@
+import { parseISO } from "date-fns";
 import { describe, expect, test } from "vitest";
 
 import { safeParseFieldErrors } from "@/lib/testing/zod/safe-parse-field-errors";
@@ -14,8 +15,8 @@ const listItem = {
   id: "list_1",
   title: "Todo",
   order: 0,
-  createdAt: new Date("2024-01-01T00:00:00.000Z"),
-  updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+  createdAt: parseISO("2024-01-01T00:00:00.000Z"),
+  updatedAt: parseISO("2024-01-02T00:00:00.000Z"),
 };
 
 describe("UpdateListOrderSchema", () => {

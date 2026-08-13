@@ -1,8 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma/client";
-import { milliseconds } from "date-fns";
-
-const DAY_IN_MS = milliseconds({ days: 1 });
+import { addDays, isFuture } from "date-fns";
 
 /**
  * Whether the current Clerk organization has an active Pro plan subscription.
@@ -35,12 +33,14 @@ export const checkSubscription = async () => {
     return false;
   }
 
+  const { stripePriceId, stripeCurrentPeriodEnd } = organizationSubscription;
+  // Calendar day, not exactly 24h (`milliseconds({ days: 1 })`). DST can make
+  // addDays 23h or 25h; this grace is for webhook / clock skew, so that gap
+  // does not matter. Prefer addDays so the 1-day intent is obvious.
   const isValid =
-    organizationSubscription.stripePriceId &&
-    // TODO: is there a better way to handle this rather than disabling the rule?
-    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-    organizationSubscription.stripeCurrentPeriodEnd?.getTime()! + DAY_IN_MS >
-      Date.now();
+    stripePriceId &&
+    stripeCurrentPeriodEnd != null &&
+    isFuture(addDays(stripeCurrentPeriodEnd, 1));
 
   return !!isValid;
 };

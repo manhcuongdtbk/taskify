@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { parseISO } from "date-fns";
 import { describe, expect, test, vi } from "vitest";
 
 const copyList = vi.hoisted(() => vi.fn());
@@ -20,13 +21,15 @@ vi.mock("@/components/ui/toast", () => ({
 
 import { ListOptions } from "./list-options";
 
+const instant = parseISO("2026-01-01T00:00:00.000Z");
+
 const list = {
   id: "list_1",
   title: "Todo",
   order: 0,
   boardId: "board_1",
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
+  createdAt: instant,
+  updatedAt: instant,
 };
 
 describe("ListOptions", () => {

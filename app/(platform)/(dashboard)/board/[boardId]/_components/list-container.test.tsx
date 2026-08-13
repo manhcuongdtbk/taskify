@@ -4,6 +4,7 @@ import {
   type DropResult,
   type ResponderProvided,
 } from "@hello-pangea/dnd";
+import { parseISO } from "date-fns";
 import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
@@ -81,6 +82,7 @@ vi.mock("@/components/ui/toast", () => ({
 import { ListContainer } from "./list-container";
 
 const boardId = "board_1";
+const instant = parseISO("2026-01-01T00:00:00.000Z");
 
 function makeCard(
   id: string,
@@ -94,8 +96,8 @@ function makeCard(
     order,
     description: null,
     listId,
-    createdAt: new Date("2026-01-01"),
-    updatedAt: new Date("2026-01-01"),
+    createdAt: instant,
+    updatedAt: instant,
   };
 }
 
@@ -109,8 +111,8 @@ function makeList(
     title: id,
     order,
     boardId,
-    createdAt: new Date("2026-01-01"),
-    updatedAt: new Date("2026-01-01"),
+    createdAt: instant,
+    updatedAt: instant,
     cards,
   };
 }
