@@ -31,6 +31,7 @@ function updateOrder<T extends ListOrCard>(items: T[]): T[] {
   return items.map((item, order) => ({ ...item, order }));
 }
 
+// TODO: ListContainer vs ListsContainer (holds many lists; siblings are List* prefix)
 export const ListContainer = ({ boardId, data }: ListContainerProps) => {
   const [lists, setLists] = useState(data);
   const { execute: executeUpdateListOrder } = useAction(updateListOrder, {

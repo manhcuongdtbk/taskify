@@ -159,6 +159,8 @@ Local pre-merge All-files (not ledger until merge): stmts **68.4%** / branch **5
 
 Simplify [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) `handleDragEnd` for readability (dispatcher for list vs card, clone-before-mutate so we don’t write into live state, drop narrating comments). Keep the colocated DropResult suite green. **P3 only DRY `rearrange` / `updateOrder`** — do not fold this into the P3 PR.
 
+Also reconsider **`ListContainer` vs `ListsContainer`**: it holds many lists, but siblings stay `List*` as the feature prefix (`ListItem`, `ListForm`, `ListWrapper`). Inline TODO on the export.
+
 ### P4 — Polish
 
 - Broader role/a11y asserts in other component suites (FormPicker keyboard covered under P2); thin leftovers
