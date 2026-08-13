@@ -44,8 +44,8 @@ flowchart TB
 ## Shared doubles (house style)
 
 - Match installed MSW docs for the version added via `pnpm add -D msw` (request `all` permissions — no project `.pnpm-store/`).
-- `setupServer` lifecycle: `listen` / `resetHandlers` / `close` (global in [`vitest.setup.ts`](../../vitest.setup.ts) or a small `lib/testing/msw/` module imported from setup — prefer handlers under `lib/testing/msw/`, not a top-level `mocks/` folder per [`docs/project-structure.md`](../../docs/project-structure.md)).
-- Card HTTP: MSW on `/api/cards/:cardId` and `/api/cards/:cardId/logs` mirroring [`app/api/cards/[cardId]/route.ts`](../../app/api/cards/[cardId]/route.ts) / logs route shapes (JSON body, 401/500 text).
+- `setupServer` lifecycle: `listen` / `resetHandlers` / `close` (global in [`vitest.setup.ts`](../../vitest.setup.ts)). Handlers under [`lib/testing/msw/handlers/`](../../lib/testing/msw/handlers/) by resource (`card.ts`) + [`helpers/`](../../lib/testing/msw/handlers/helpers/) (`stillPending`, `pendingForever`) — not a top-level `mocks/` folder per [`docs/project-structure.md`](../../docs/project-structure.md).
+- Card HTTP: MSW on `/api/cards/:cardId` and `/api/cards/:cardId/audit-logs` mirroring [`app/api/cards/[cardId]/route.ts`](../../app/api/cards/[cardId]/route.ts) / [`audit-logs/route.ts`](../../app/api/cards/[cardId]/audit-logs/route.ts) (JSON body, 401 text).
 - Reuse [`renderWithQuery`](../../lib/testing/tanstack-query/render-with-query.tsx) (`retry: false`).
 - Do **not** re-assert `cardQueries` key/`queryFn` wiring (P1 owns [`lib/api/card.test.ts`](../../lib/api/card.test.ts)).
 - Stub child modal sections in the shell suite so peer coverage stays on [`index.tsx`](../../components/modals/card-modal/index.tsx) gates (skeleton vs loaded), not retesting header/description/actions/activity.
@@ -54,7 +54,7 @@ flowchart TB
 ## Wave 1 — MSW harness
 
 1. `pnpm add -D msw` (global store, `required_permissions: ["all"]`).
-2. Add shared server + default/empty handlers under `lib/testing/msw/` (e.g. `server.ts`, card handler helpers).
+2. Add shared server + empty default `handlers` array under `lib/testing/msw/`; domain handlers as `handlers/<resource>.ts` applied with `server.use`.
 3. Wire lifecycle into [`vitest.setup.ts`](../../vitest.setup.ts) alongside existing jest-dom + RTL `cleanup`.
 4. Light SoT note in [`docs/testing.md`](../../docs/testing.md): mark the “MSW when Query-backed UI needs HTTP mocks” TODO done; point at the setup module (no essay).
 
@@ -100,10 +100,20 @@ Cover branches:
 - `type === "card"` same list → reorder cards, execute card action with that list’s cards
 - cross-list card move → `listId` update, reindex both, execute with **destination** cards
 - missing source/destination list → no-op
-- props `data` change → `useEffect` syncs `orderedData`
+- props `data` change → `useEffect` syncs `lists`
 - action success/error → toast titles
 
-DRY `rearrange` + `updateOrder` only. **Do not** simplify `handleDragEnd` in this P — follow-up: [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (`list-container-handle-drag-end`). Peer 100% via `test:coverage:paths` (outside All-files include).
+DRY `rearrange` + `updateOrder` only. `rearrange` is `Array.from` + `splice` — not `toSpliced` (Firefox 115+; Next’s stated baseline is Firefox 111 and does not polyfill prototype methods). **Do not** simplify `handleDragEnd` in this P — follow-up: [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (`list-container-handle-drag-end`). Peer 100% via `test:coverage:paths` (outside All-files include).
+
+## Also landed on this branch (look-back)
+
+Not in the original waves; recorded so P4 does not re-litigate. Full highlights: [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md) (P3).
+
+- Fishery typed fixtures (`board` / `list` / `card` / `audit-log`); copy association cards before stamping `listId`
+- Prisma `query-options` + `*GetPayload` under `lib/prisma/` (not handwritten `Card & { list }`)
+- date-fns `constructNow` for shared current instants
+- Audit-log vocabulary + `generateAuditLogMessage` + API `.../audit-logs`
+- ESLint flat `no-restricted-syntax` **replaces** (re-spread prior entries on overlapping globs)
 
 ## Close-out
 

@@ -144,10 +144,15 @@ Shipped on `test/vitest-p2-components` → [PR #8](https://github.com/manhcuongd
 
 Shipped on `test/vitest-p3-msw-reorder`. Execution plan: [`vitest_p3_msw_reorder.plan.md`](vitest_p3_msw_reorder.plan.md). Highlights:
 
-- First MSW harness under [`lib/testing/msw/`](../../lib/testing/msw/) (not top-level `mocks/`); lifecycle in [`vitest.setup.ts`](../../vitest.setup.ts) (`listen` / `resetHandlers` / `close`, `onUnhandledRequest: "error"`)
-- [`CardModal`](../../components/modals/card-modal/index.tsx) shell suite with MSW `/api/cards/:id` + logs; stubbed children; skeleton vs loaded gates (incl. 200-null + unauthorized)
+- First MSW harness under [`lib/testing/msw/`](../../lib/testing/msw/) (`handlers/` by resource, not top-level `mocks/`); `pendingForever` / `stillPending`; lifecycle in [`vitest.setup.ts`](../../vitest.setup.ts) (`listen` / `resetHandlers` / `close`, `onUnhandledRequest: "error"`)
+- [`CardModal`](../../components/modals/card-modal/index.tsx) shell suite with MSW `/api/cards/:id` + `/audit-logs`; stubbed children; skeleton vs loaded gates (incl. 200-null + unauthorized)
 - FormPicker keeps `vi.mock("@/lib/unsplash")` SDK seam (not BFF HTTP); loading status + error-payload + stale-reject coverage
-- [`list-container`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) synthetic `DropResult` via mocked `@hello-pangea/dnd` (no pointer DnD); empty/missing card array no-ops
+- [`list-container`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) synthetic `DropResult` via mocked `@hello-pangea/dnd` (no pointer DnD); `rearrange` + `updateOrder`; `lists` state; empty/missing card array no-ops
+- Fishery typed fixtures under [`lib/testing/factories/`](../../lib/testing/factories/) (`board`, `list`, `card`, `audit-log`); copy association cards before stamping `listId`; vs prisma-fabbrica in [`docs/testing.md`](../../docs/testing.md)
+- Prisma `query-options` + `*GetPayload` under [`lib/prisma/`](../../lib/prisma/) (not handwritten `Card & { list }`)
+- date-fns `constructNow` for shared current instants (no parallel datetime libs)
+- Audit-log vocabulary (`generateAuditLogMessage`; API `.../audit-logs`) — [`docs/vocabulary.md`](../../docs/vocabulary.md)
+- ESLint flat `no-restricted-syntax` **replaces** (Fishery `*.test.*` block had dropped the other test-file bans — [`docs/testing.md`](../../docs/testing.md))
 
 Local pre-merge All-files (not ledger until merge): stmts **68.4%** / branch **56.75%** / funcs **88.01%** / lines **67.66%** (beats P2).
 
