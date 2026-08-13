@@ -57,14 +57,15 @@ describe("listWithCardsOrderedByOrderAscFactory", () => {
       },
     );
 
-    expect(list.cards).toHaveLength(2);
-    expect(list.cards[0]?.listId).toBe(list.id);
-    expect(list.cards[1]?.listId).toBe(list.id);
+    expect(list.cards.map((card) => card.listId)).toStrictEqual([
+      list.id,
+      list.id,
+    ]);
   });
 
   test("orders associated cards by order asc", () => {
-    const later = cardFactory.build({ id: "card_later", order: 1 });
-    const earlier = cardFactory.build({ id: "card_earlier", order: 0 });
+    const later = cardFactory.build({ order: 1 });
+    const earlier = cardFactory.build({ order: 0 });
     const list = listWithCardsOrderedByOrderAscFactory.build(
       {},
       {
@@ -75,8 +76,8 @@ describe("listWithCardsOrderedByOrderAscFactory", () => {
     );
 
     expect(list.cards.map((card) => card.id)).toStrictEqual([
-      "card_earlier",
-      "card_later",
+      earlier.id,
+      later.id,
     ]);
   });
 });
