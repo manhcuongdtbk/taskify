@@ -11,6 +11,7 @@
  */
 
 import { constructNow } from "date-fns";
+import { sortBy } from "es-toolkit";
 import { Factory } from "fishery";
 
 import { type List } from "@/app/generated/prisma/client";
@@ -36,10 +37,13 @@ export const listWithCardsOrderedByOrderAscFactory =
   Factory.define<ListWithCardsOrderedByOrderAsc>(
     ({ associations, afterBuild }) => {
       // Keep card.listId on this list after DeepPartial overlays of `cards`.
+      // Match Prisma `orderBy: { order: "asc" }` on the query args — callers
+      // may pass associations in any order.
       afterBuild((list) => {
         for (const card of list.cards) {
           card.listId = list.id;
         }
+        list.cards = sortBy(list.cards, ["order"]);
       });
 
       const list = listFactory.build();
