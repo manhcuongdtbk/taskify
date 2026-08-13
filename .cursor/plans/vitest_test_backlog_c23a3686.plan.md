@@ -83,7 +83,7 @@ Record from `pnpm test:coverage` summary **after each P is merged** (same `vites
 | P0       |            |         |          |         |         | Not captured at merge; P1 is the ratchet baseline for P2                                              |
 | P1       | 2026-08-07 | 27.27   | 23.07    | 37.00   | 27.06   | After [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7) merge — `pnpm test:coverage` All files |
 | P2       | 2026-08-10 | 64.12   | 49.63    | 84.49   | 63.87   | After [PR #8](https://github.com/manhcuongdtbk/taskify/pull/8) merge — `pnpm test:coverage` All files |
-| P3       |            |         |          |         |         | Must beat P2 — record after merge                                                                     |
+| P3       | 2026-08-14 | 69.91   | 57.92    | 88.69   | 69.2    | After [PR #9](https://github.com/manhcuongdtbk/taskify/pull/9) merge — `pnpm test:coverage` All files |
 | P4       |            |         |          |         |         | Must beat P3; then formal thresholds / include polish                                                 |
 
 ---
@@ -142,7 +142,7 @@ Shipped on `test/vitest-p2-components` → [PR #8](https://github.com/manhcuongd
 
 ## P3 — Done: MSW + CardModal Query shell + reorder
 
-Shipped on `test/vitest-p3-msw-reorder`. Execution plan: [`vitest_p3_msw_reorder.plan.md`](vitest_p3_msw_reorder.plan.md). Highlights:
+Shipped on `test/vitest-p3-msw-reorder` → [PR #9](https://github.com/manhcuongdtbk/taskify/pull/9). Execution plan: [`vitest_p3_msw_reorder.plan.md`](vitest_p3_msw_reorder.plan.md). Highlights:
 
 - First MSW harness under [`lib/testing/msw/`](../../lib/testing/msw/) (`handlers/` by resource, not top-level `mocks/`); `pendingForever` / `stillPending`; lifecycle in [`vitest.setup.ts`](../../vitest.setup.ts) (`listen` / `resetHandlers` / `close`, `onUnhandledRequest: "error"`)
 - [`CardModal`](../../components/modals/card-modal/index.tsx) shell suite with MSW `/api/cards/:id` + `/audit-logs`; stubbed children; skeleton vs loaded gates (incl. 200-null + unauthorized)
@@ -154,15 +154,13 @@ Shipped on `test/vitest-p3-msw-reorder`. Execution plan: [`vitest_p3_msw_reorder
 - Audit-log vocabulary (`generateAuditLogMessage`; API `.../audit-logs`) — [`docs/vocabulary.md`](../../docs/vocabulary.md)
 - ESLint flat `no-restricted-syntax` **replaces** (Fishery `*.test.*` block had dropped the other test-file bans — [`docs/testing.md`](../../docs/testing.md))
 
-Local pre-merge All-files (not ledger until merge): stmts **68.4%** / branch **56.75%** / funcs **88.01%** / lines **67.66%** (beats P2).
-
 ---
 
 ## TODO later
 
 ### Follow-up — `list-container` `handleDragEnd`
 
-Simplify [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) `handleDragEnd` for readability (dispatcher for list vs card, clone-before-mutate so we don’t write into live state, drop narrating comments). Keep the colocated DropResult suite green. **P3 only DRY `rearrange` / `updateOrder`** — do not fold this into the P3 PR.
+Simplify [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) `handleDragEnd` for readability (dispatcher for list vs card, clone-before-mutate so we don’t write into live state, drop narrating comments). Keep the colocated DropResult suite green. P3 only DRY’d `rearrange` / `updateOrder`.
 
 Also reconsider **`ListContainer` vs `ListsContainer`**: it holds many lists, but siblings stay `List*` as the feature prefix (`ListItem`, `ListForm`, `ListWrapper`). Inline TODO on the export.
 

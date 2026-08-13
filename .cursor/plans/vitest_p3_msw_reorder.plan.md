@@ -1,6 +1,6 @@
 ---
 name: Vitest P3 MSW
-overview: "Execute Vitest backlog P3 only: add MSW, cover CardModal Query+HTTP shell, finish FormPicker network-path asserts at the Unsplash SDK seam, and cover list-container DropResult/reorder without pointer DnD — then ratchet overall coverage above P2 and open a PR."
+overview: "Done — P3 MSW + CardModal shell + list reorder shipped on test/vitest-p3-msw-reorder (PR #9). Keep this plan in-repo until the Vitest backlog is finished so P4 can look back at MSW handlers/, Fishery fixtures, Prisma GetPayload, and list-container DropResult doubles."
 todos:
   - id: branch-p3
     content: Create test/vitest-p3-msw-reorder from up-to-date main; write this plan under .cursor/plans/
@@ -119,8 +119,10 @@ Not in the original waves; recorded so P4 does not re-litigate. Full highlights:
 
 1. `pnpm test:run` green.
 2. Peer 100% for new/expanded suites; All-files stmts **> 64.12%**.
-3. Update backlog: mark `p3-msw-reorder` completed; refresh P3 section + notes (FormPicker seam clarification); leave ledger P3 row empty until **after merge**.
+3. Update backlog: mark `p3-msw-reorder` completed; refresh P3 section + notes (FormPicker seam clarification); fill ledger P3 row **after merge**.
 4. Self-review, push, open PR to `main`.
+
+**Merged:** [PR #9](https://github.com/manhcuongdtbk/taskify/pull/9). Ledger filled after merge on `main`.
 
 ## Out of scope (P4 / later)
 
