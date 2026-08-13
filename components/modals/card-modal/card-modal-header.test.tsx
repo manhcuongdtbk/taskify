@@ -33,9 +33,8 @@ describe("CardModalHeader", () => {
 
   test("submits a changed title to updateCard", async () => {
     const card = cardWithListTitleFactory.build();
-    updateCard.mockResolvedValue({
-      data: { id: card.id, title: "Renamed" },
-    });
+    const updatedCard = { ...card, title: "Renamed" };
+    updateCard.mockResolvedValue({ data: updatedCard });
     const user = userEvent.setup();
     const { invalidateQueries } = renderWithQuery(
       <CardModalHeader data={card} />,
@@ -43,19 +42,19 @@ describe("CardModalHeader", () => {
 
     const input = screen.getByDisplayValue(card.title);
     await user.clear(input);
-    await user.type(input, "Renamed");
+    await user.type(input, updatedCard.title);
     await user.tab();
 
     await waitFor(() => {
       expect(updateCard).toHaveBeenCalledExactlyOnceWith({
-        title: "Renamed",
+        title: updatedCard.title,
         boardId: "board_1",
         id: card.id,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: "Renamed to Renamed",
+      title: `Renamed to ${updatedCard.title}`,
     });
     expect(invalidateQueries).toHaveBeenCalledExactlyOnceWith({
       queryKey: cardQueries.byId(card.id),
@@ -75,13 +74,14 @@ describe("CardModalHeader", () => {
 
   test("toasts when update fails", async () => {
     const card = cardWithListTitleFactory.build();
+    const updatedCard = { ...card, title: "Renamed" };
     updateCard.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
     renderWithQuery(<CardModalHeader data={card} />);
 
     const input = screen.getByDisplayValue(card.title);
     await user.clear(input);
-    await user.type(input, "Renamed");
+    await user.type(input, updatedCard.title);
     await user.tab();
 
     await waitFor(() => {

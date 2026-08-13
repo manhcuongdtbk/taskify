@@ -33,9 +33,8 @@ describe("CardModalDescription", () => {
 
   test("submits description to updateCard", async () => {
     const card = cardWithListTitleFactory.build();
-    updateCard.mockResolvedValue({
-      data: { id: card.id, title: card.title, description: "Details" },
-    });
+    const updatedCard = { ...card, description: "Details" };
+    updateCard.mockResolvedValue({ data: updatedCard });
     const user = userEvent.setup();
     const { invalidateQueries } = renderWithQuery(
       <CardModalDescription data={card} />,
@@ -48,7 +47,7 @@ describe("CardModalDescription", () => {
     );
     await user.type(
       screen.getByPlaceholderText("Add a more detailed description"),
-      "Details",
+      updatedCard.description,
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
 
@@ -56,7 +55,7 @@ describe("CardModalDescription", () => {
       expect(updateCard).toHaveBeenCalledExactlyOnceWith({
         boardId: "board_1",
         id: card.id,
-        description: "Details",
+        description: updatedCard.description,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
@@ -70,6 +69,7 @@ describe("CardModalDescription", () => {
 
   test("toasts when update fails", async () => {
     const card = cardWithListTitleFactory.build();
+    const updatedCard = { ...card, description: "Details" };
     updateCard.mockResolvedValue({ serverError: "Update failed" });
     const user = userEvent.setup();
     renderWithQuery(<CardModalDescription data={card} />);
@@ -81,7 +81,7 @@ describe("CardModalDescription", () => {
     );
     await user.type(
       screen.getByPlaceholderText("Add a more detailed description"),
-      "Details",
+      updatedCard.description,
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
 
@@ -137,7 +137,7 @@ describe("CardModalDescription", () => {
     });
     renderWithQuery(<CardModalDescription data={card} />);
 
-    expect(screen.getByText("Existing details")).toBeInTheDocument();
+    expect(screen.getByText(card.description!)).toBeInTheDocument();
   });
 
   test("renders the description skeleton", () => {

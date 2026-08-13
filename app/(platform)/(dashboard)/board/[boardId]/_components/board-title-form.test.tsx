@@ -26,10 +26,9 @@ describe("BoardTitleForm", () => {
   });
 
   test("renames the board title on success", async () => {
-    const board = boardFactory.build({ title: "Old title" });
-    updateBoard.mockResolvedValue({
-      data: { ...board, title: "Roadmap" },
-    });
+    const board = boardFactory.build();
+    const updatedBoard = { ...board, title: "Updated title" };
+    updateBoard.mockResolvedValue({ data: updatedBoard });
     const user = userEvent.setup();
 
     render(<BoardTitleForm data={board} />);
@@ -37,28 +36,28 @@ describe("BoardTitleForm", () => {
     await user.click(screen.getByRole("button", { name: board.title }));
     const input = screen.getByDisplayValue(board.title);
     await user.clear(input);
-    await user.type(input, "Roadmap");
+    await user.type(input, updatedBoard.title);
     await user.tab();
 
     await waitFor(() => {
       expect(updateBoard).toHaveBeenCalledExactlyOnceWith({
         id: board.id,
-        title: "Roadmap",
+        title: updatedBoard.title,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'Board "Roadmap" updated',
+      title: `Board "${updatedBoard.title}" updated`,
     });
     // Confirmed local mirror: UI must show Action `data.title`, not stale
     // `useState` / props — see docs/data.md (Client mirrors after Server Actions).
     expect(
-      await screen.findByRole("button", { name: "Roadmap" }),
+      await screen.findByRole("button", { name: updatedBoard.title }),
     ).toBeInTheDocument();
   });
 
   test("toasts when update fails", async () => {
-    const board = boardFactory.build({ title: "Old title" });
+    const board = boardFactory.build();
     updateBoard.mockResolvedValue({ serverError: "Update failed" });
     const user = userEvent.setup();
 

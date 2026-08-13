@@ -31,9 +31,8 @@ describe("ListHeader", () => {
 
   test("submits a changed title to updateList", async () => {
     const list = listWithCardsOrderedByOrderAscFactory.build();
-    updateList.mockResolvedValue({
-      data: { id: list.id, title: "Done" },
-    });
+    const updatedList = { ...list, title: "Done" };
+    updateList.mockResolvedValue({ data: updatedList });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
@@ -41,19 +40,19 @@ describe("ListHeader", () => {
     await user.click(screen.getByText(list.title));
     const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
-    await user.type(input, "Done");
+    await user.type(input, updatedList.title);
     await user.tab();
 
     await waitFor(() => {
       expect(updateList).toHaveBeenCalledExactlyOnceWith({
         id: list.id,
-        title: "Done",
+        title: updatedList.title,
         boardId: list.boardId,
       });
     });
     expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
       type: "success",
-      title: 'Renamed to "Done"',
+      title: `Renamed to "${updatedList.title}"`,
     });
   });
 
@@ -74,6 +73,7 @@ describe("ListHeader", () => {
 
   test("toasts when update fails", async () => {
     const list = listWithCardsOrderedByOrderAscFactory.build();
+    const updatedList = { ...list, title: "Done" };
     updateList.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
 
@@ -82,7 +82,7 @@ describe("ListHeader", () => {
     await user.click(screen.getByText(list.title));
     const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
-    await user.type(input, "Done");
+    await user.type(input, updatedList.title);
     await user.tab();
 
     await waitFor(() => {
@@ -95,9 +95,8 @@ describe("ListHeader", () => {
 
   test("submits on Escape while editing", async () => {
     const list = listWithCardsOrderedByOrderAscFactory.build();
-    updateList.mockResolvedValue({
-      data: { id: list.id, title: "Done" },
-    });
+    const updatedList = { ...list, title: "Done" };
+    updateList.mockResolvedValue({ data: updatedList });
     const user = userEvent.setup();
 
     render(<ListHeader data={list} onAddCard={vi.fn()} />);
@@ -105,13 +104,13 @@ describe("ListHeader", () => {
     await user.click(screen.getByText(list.title));
     const input = screen.getByDisplayValue(list.title);
     await user.clear(input);
-    await user.type(input, "Done");
+    await user.type(input, updatedList.title);
     await user.keyboard("{Escape}");
 
     await waitFor(() => {
       expect(updateList).toHaveBeenCalledExactlyOnceWith({
         id: list.id,
-        title: "Done",
+        title: updatedList.title,
         boardId: list.boardId,
       });
     });
