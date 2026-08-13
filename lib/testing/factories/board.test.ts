@@ -19,12 +19,9 @@ describe("boardFactory", () => {
   });
 
   test("merges overrides", () => {
-    const board = boardFactory.build({
-      title: "Old title",
-      orgId: "org_other",
-    });
+    const overrides = { title: "Old title", orgId: "org_other" };
+    const board = boardFactory.build(overrides);
 
-    expect(board.title).toBe("Old title");
-    expect(board.orgId).toBe("org_other");
+    expect(board).toMatchObject(overrides);
   });
 });

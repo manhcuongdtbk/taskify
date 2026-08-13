@@ -29,20 +29,19 @@ describe("auditLogFactory", () => {
       { transient: { card } },
     );
 
-    expect(cardAuditLog.entityTitle).toBe("Renamed");
+    expect(cardAuditLog.entityTitle).toBe(card.title);
     expect(cardAuditLog.action).toBe(ACTION.UPDATE);
     expect(cardAuditLog.entityId).toBe(card.id);
   });
 
   test("explicit entity overrides win over transient card", () => {
     const card = cardFactory.build({ title: "From card" });
-    const cardAuditLog = auditLogFactory.build(
-      { entityTitle: "Explicit", entityId: "card_explicit" },
-      { transient: { card } },
-    );
+    const overrides = { entityTitle: "Explicit", entityId: "card_explicit" };
+    const cardAuditLog = auditLogFactory.build(overrides, {
+      transient: { card },
+    });
 
     // Fishery overlays params on the returned object after the factory runs.
-    expect(cardAuditLog.entityTitle).toBe("Explicit");
-    expect(cardAuditLog.entityId).toBe("card_explicit");
+    expect(cardAuditLog).toMatchObject(overrides);
   });
 });

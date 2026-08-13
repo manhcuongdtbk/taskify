@@ -25,13 +25,10 @@ describe("listFactory", () => {
   });
 
   test("merges overrides", () => {
-    const list = listFactory.build({
-      title: "Doing",
-      boardId: "board_other",
-    });
+    const overrides = { title: "Doing", boardId: "board_other" };
+    const list = listFactory.build(overrides);
 
-    expect(list.title).toBe("Doing");
-    expect(list.boardId).toBe("board_other");
+    expect(list).toMatchObject(overrides);
   });
 });
 

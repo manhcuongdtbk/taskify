@@ -24,13 +24,10 @@ describe("cardFactory", () => {
   });
 
   test("merges overrides", () => {
-    const card = cardFactory.build({
-      title: "Renamed",
-      listId: "list_other",
-    });
+    const overrides = { title: "Renamed", listId: "list_other" };
+    const card = cardFactory.build(overrides);
 
-    expect(card.title).toBe("Renamed");
-    expect(card.listId).toBe("list_other");
+    expect(card).toMatchObject(overrides);
   });
 });
 
@@ -49,14 +46,13 @@ describe("cardWithListTitleFactory", () => {
   });
 
   test("merges card and list title overrides", () => {
-    const card = cardWithListTitleFactory.build({
+    const overrides = {
       title: "Renamed",
       description: "Details",
       list: { title: "Doing" },
-    });
+    };
+    const card = cardWithListTitleFactory.build(overrides);
 
-    expect(card.title).toBe("Renamed");
-    expect(card.description).toBe("Details");
-    expect(card.list.title).toBe("Doing");
+    expect(card).toMatchObject(overrides);
   });
 });
