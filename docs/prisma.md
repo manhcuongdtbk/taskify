@@ -20,7 +20,7 @@ Prefer [Prisma docs](https://www.prisma.io/docs) for the versions in `package.js
 - **Next.js singleton Client** in `lib/prisma/client.ts` with `@prisma/adapter-pg` and `DATABASE_URL` ([Prisma + Next.js](https://www.prisma.io/docs/guides/frameworks/nextjs)) — no barrel `index.ts`; import the file you need (`@/lib/prisma/client` vs `@/lib/prisma/query-options/<model>`)
 - **`prisma.config.ts`** for schema/migrations/datasource URL wiring
 - **`postinstall`: `prisma generate`** so Client stays in sync after install
-- **Schema format / validate on the lint contract** — editor uses the Prisma VS Code formatter; `pnpm lint:prisma` / `lint:prisma:fix` (`scripts/check-prisma-schema.ts`); staged `*.prisma` via lint-staged. Do **not** use Prettier on `.prisma`. SQL migrations are left unformatted. See [`conventions.md`](./conventions.md#lint--format-one-contract).
+- **Schema format / validate on the lint contract** — editor uses the Prisma VS Code formatter; `pnpm lint:prisma` validates and format-checks a temp copy (does not write `schema.prisma`); `lint:prisma:fix` runs `prisma format`. Staged `*.prisma` via lint-staged. Do **not** use Prettier on `.prisma`. SQL migrations are left unformatted. See [`conventions.md`](./conventions.md#lint--format-one-contract).
 - **Domain models** for boards/lists/cards, audit logs, organization limits, and Stripe subscription mirror (`OrganizationSubscription`)
 - **Organization scoping** — queries/mutations typically filter by Clerk `orgId` (tenant id), not a Prisma multi-tenant plugin
 - **Cascade deletes** on list/card relations where the schema defines them
