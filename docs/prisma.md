@@ -16,7 +16,7 @@ Prefer [Prisma docs](https://www.prisma.io/docs) for the versions in `package.js
 ## Already following (keep as examples)
 
 - **Schema + migrations** under `prisma/` (`schema.prisma`, `migrations/`)
-- **Generated Client** output to `app/generated/prisma` (see `generator` in the schema) — import Client via `@/lib/prisma/client` or generated paths as needed
+- **Generated Client** output to `app/generated/prisma` (see `generator` in the schema) — import the live Client via `@/lib/prisma/client`. Split generated entrypoints: `client.ts` is Node-only (`PrismaClient` + `node:*`); enum **values** for Zod / Client Components come from `enums.ts` (or `browser.ts` for types + enums). A value import from `client.ts` in a `"use client"` graph (e.g. `lib/api/` JSON schemas) pulls `@prisma/client/runtime` into the browser and Turbopack fails (`node:module`). Type-only imports from `client.ts` are erased and stay safe.
 - **Next.js singleton Client** in `lib/prisma/client.ts` with `@prisma/adapter-pg` and `DATABASE_URL` ([Prisma + Next.js](https://www.prisma.io/docs/guides/frameworks/nextjs)) — no barrel `index.ts`; import the file you need (`@/lib/prisma/client` vs `@/lib/prisma/query-options/<model>`)
 - **`prisma.config.ts`** for schema/migrations/datasource URL wiring
 - **`postinstall`: `prisma generate`** so Client stays in sync after install

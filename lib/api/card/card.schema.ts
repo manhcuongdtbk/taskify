@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
+import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { JsonIsoDateTimeSchema } from "@/lib/json-iso-date-time";
 
 export const CardWithListTitleJsonSchema = z.object({
