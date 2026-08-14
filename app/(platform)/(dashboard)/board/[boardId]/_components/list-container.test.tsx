@@ -654,6 +654,68 @@ describe("ListContainer", () => {
         });
       });
 
+      test("does not mutate the lists passed as data when moving a card across lists", async () => {
+        updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
+        const source = listWithCardsOrderedByOrderAscFactory.build(
+          { id: "list_a", order: 0, boardId },
+          {
+            associations: {
+              cards: [
+                cardFactory.build({
+                  id: "card_a",
+                  listId: "list_a",
+                  order: 0,
+                }),
+              ],
+            },
+          },
+        );
+        const destination = listWithCardsOrderedByOrderAscFactory.build(
+          { id: "list_b", order: 1, boardId },
+          {
+            associations: {
+              cards: [
+                cardFactory.build({
+                  id: "card_b",
+                  listId: "list_b",
+                  order: 0,
+                }),
+              ],
+            },
+          },
+        );
+        const sourceCard = source.cards[0];
+        const destinationCard = destination.cards[0];
+
+        render(
+          <ListContainer boardId={boardId} data={[source, destination]} />,
+        );
+
+        fireDragEnd(
+          dropResult({
+            type: "card",
+            source: { droppableId: "list_a", index: 0 },
+            destination: { droppableId: "list_b", index: 0 },
+          }),
+        );
+
+        expect(updateCardOrder).toHaveBeenCalledOnce();
+        expect(source.cards).toHaveLength(1);
+        expect(source.cards[0]).toBe(sourceCard);
+        expect(sourceCard.listId).toBe("list_a");
+        expect(sourceCard.order).toBe(0);
+        expect(destination.cards).toHaveLength(1);
+        expect(destination.cards[0]).toBe(destinationCard);
+        expect(destinationCard.listId).toBe("list_b");
+        expect(destinationCard.order).toBe(0);
+        await waitFor(() => {
+          expect(screen.getByTestId("card-card_a")).toHaveAttribute(
+            "data-list-id",
+            "list_b",
+          );
+        });
+      });
+
       test("moves a card onto a list with no cards", async () => {
         updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
         const source = listWithCardsOrderedByOrderAscFactory.build(
