@@ -19,8 +19,7 @@ vi.mock("zustand/middleware", async (importOriginal) => {
   };
 });
 
-const STORE_STACK_LINE =
-  "    at /Users/cuong/Desktop/projects/exjunior/taskify/stores/use-card-modal-store.ts:10:40";
+const STORE_STACK_LINE = "    at stores/use-card-modal-store.ts:10:40";
 
 const unparseableStack = [
   "Error",
@@ -36,8 +35,8 @@ const storeFileStack = [
 
 describe("createStore", () => {
   afterEach(() => {
-    vi.unstubAllEnvs();
-    vi.restoreAllMocks();
+    // `unstubEnvs` / `restoreMocks` are on in vitest.config.mts; still reset
+    // modules that cached NODE_ENV, and the hoisted DevTools capture bag.
     vi.resetModules();
     capturedDevtools.options = undefined;
   });
