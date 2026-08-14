@@ -130,3 +130,4 @@ Not in the original waves; recorded so P4 does not re-litigate. Full highlights:
 - FormData `as string` ripgrep gate
 - Card detail 404 route fix; Unsplash → Query factory migration
 - Playwright / Browser Mode / Storybook
+- **`ListContainer` → `ListsContainer`** (and a same-pattern audit) — not this P; backlog todo `lists-container-rename`
