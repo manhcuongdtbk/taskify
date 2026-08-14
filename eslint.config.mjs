@@ -1,4 +1,5 @@
 import { basename } from "node:path";
+import { pascalCase } from "es-toolkit/string";
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 // Registers `@typescript-eslint/*` (transitive via `typescript-eslint`) — not a direct package.json dep.
@@ -525,17 +526,10 @@ const zustandStoreExportNameRestrictions = [
 const zustandCreateStoreRequiredMessage =
   "Define store hooks with createStore from @/lib/create-store (do not call zustand create here). See docs/client-ui-state.md.";
 
-/** `use-card-modal-store.ts` → `CardModalStore` — docs/client-ui-state.md */
-const kebabToPascal = (kebab) =>
-  kebab
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
-
 const devtoolsNameFromStoreFilename = (filename) => {
   const base = basename(filename).replace(/\.(ts|tsx)$/u, "");
   if (!/^use-[a-z0-9-]+-store$/u.test(base)) return undefined;
-  return kebabToPascal(base.slice("use-".length));
+  return pascalCase(base.slice("use-".length));
 };
 
 const zustandDevtoolsNamePlugin = {
