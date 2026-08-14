@@ -41,4 +41,4 @@ isProject: false
 
 ## Still later (not this backlog)
 
-Clerk+Prisma (`subscription`, `organization-limit`), Prisma/Unsplash singletons, `actions/*/index.ts`, card 404, Unsplash Query factory, Playwright / Browser Mode / Storybook.
+Prisma/Unsplash singletons, `actions/*/index.ts`, card 404, Unsplash Query factory, Playwright / Browser Mode / Storybook. (`lib/subscription.ts` / `lib/organization-limit.ts` are in the coverage bucket with mocked Clerk+Prisma suites — not exclude-list leftovers.)

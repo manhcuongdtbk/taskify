@@ -47,11 +47,10 @@ export default defineConfig({
         "lib/prisma/client.ts",
         "lib/prisma/query-options/**", // shapes only — docs/prisma.md
         "lib/unsplash.ts",
-        "lib/subscription.ts",
-        "lib/organization-limit.ts",
         "constants/images.ts",
       ],
-      // Floor under post-P4 All-files (not 100% global). CI: .github/workflows/vitest.yml
+      // Floor under All-files on this include/exclude (not 100% of every file).
+      // CI: .github/workflows/vitest.yml
       thresholds: {
         statements: 99,
         branches: 99,

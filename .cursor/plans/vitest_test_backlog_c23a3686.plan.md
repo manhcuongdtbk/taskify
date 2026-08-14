@@ -127,7 +127,7 @@ Shipped on `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuong
 
 Also in this PR (store/Query hygiene under freeze — [`docs/testing.md`](../../docs/testing.md)): move card Query factories to `lib/api` with `queryOptions`; `byId` invalidation (one call scopes detail + logs); derive open from **truthy** `id` via `selectCardModalIsOpen` (+ ESLint `select*`); card-modal consumers rewired; expect-order polish on `create-safe-action` tests. Root fix for 200-null card detail tracked in [`docs/data.md`](../../docs/data.md) (return 404, then drop `| null`).
 
-Still deferred: heavy Clerk+Prisma paths (`subscription`, `organization-limit`); `unsplash` / `prisma` singleton; no `vitest-mock-extended`.
+Still deferred: `unsplash` / `prisma` singleton; no `vitest-mock-extended`. (`subscription` / `organization-limit` now have mocked Clerk+Prisma suites.)
 
 ---
 

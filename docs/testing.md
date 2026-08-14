@@ -452,7 +452,7 @@ The Vitest backlog freeze is **done** ([P4](../.cursor/plans/vitest_p4_polish.pl
 Going forward:
 
 1. **New/expanded `*.test.*` → 100% on its colocated peer(s)** — statements, branches, functions, and lines under V8. Check with `pnpm test:coverage:paths <peer>` (or scoped `--coverage.include`). Do **not** count incidental imports as “owned” unless you add a dedicated colocated suite. **`test:coverage:paths` pairs by the same file extension** (`foo.ts` ↔ `foo.test.ts`, `foo.tsx` ↔ `foo.test.tsx`).
-2. **All-files floor** — [`vitest.config.mts`](../vitest.config.mts) `coverage.thresholds` (99% stmts / branch / funcs / lines) on the polished include/exclude. CI runs `pnpm test:run` and `pnpm test:coverage` ([`.github/workflows/vitest.yml`](../.github/workflows/vitest.yml)).
+2. **All-files floor** — [`vitest.config.mts`](../vitest.config.mts) `coverage.thresholds` (**99%** statements / branches / functions / lines). That is a **global minimum on the coverage bucket** (`coverage.include` minus `coverage.exclude`), not “every file in the repo is 100%” and not a per-file gate. CI runs `pnpm test:run` and `pnpm test:coverage` ([`.github/workflows/vitest.yml`](../.github/workflows/vitest.yml)).
 3. **`formData.get(…) as string`** is banned in app/UI via ESLint `no-restricted-syntax` — use [`formDataString`](../lib/form-data.ts) ([`docs/data.md`](./data.md)).
 
 Live coverage numbers are not stored in git — regenerate with `pnpm test:coverage` and open gitignored [`coverage/`](../coverage/) (see [Coverage reports](#coverage-reports-vitest-output)). The backlog ledger is a historical snapshot of closed P’s.
@@ -658,7 +658,7 @@ Fabbrica’s `.build` / `.buildList` skip insert, but that does **not** make it 
 
 **Do not add `"type": "module"` to root [`package.json`](../package.json)** to “match” Prisma blog samples. Those samples are bare Node/Vitest packages. This app relies on Next.js, Vitest/Vite, and `node --import tsx` for scripts; forcing package-wide ESM can break CJS assumptions. Revisit only if a concrete Node entrypoint fails without it.
 
-**Landed:** Client mock via inline `vi.mock` factory in [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) (no `lib/__mocks__/prisma.ts` yet — add that file if multiple suites need the same stub). Types-only helpers still skip Client mocks.
+**Landed:** Client mock via inline `vi.mock` factories in [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts), [`lib/subscription.test.ts`](../lib/subscription.test.ts), and [`lib/organization-limit.test.ts`](../lib/organization-limit.test.ts) (no shared `lib/__mocks__/prisma.ts` yet — each suite stubs the models it calls). Types-only helpers still skip Client mocks.
 
 ### Storybook (when needed)
 
