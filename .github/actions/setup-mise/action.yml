@@ -5,7 +5,8 @@ runs:
   steps:
     # Tool versions come from mise.toml + mise.lock (`mise install --locked`).
     # Do not pass node-version here — that would ignore mise.
+    # Marketplace actions: current major tag only (docs/conventions.md).
     - uses: jdx/mise-action@v4
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         cache: pnpm
