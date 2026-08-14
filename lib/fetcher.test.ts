@@ -1,9 +1,14 @@
 import { describe, expect, test, vi } from "vitest";
+import * as z from "zod";
 
 import { fetcher } from "./fetcher";
 
+const CardIdJsonSchema = z.object({
+  id: z.string().trim(),
+});
+
 describe("fetcher", () => {
-  test("returns the parsed JSON body for an ok response", async () => {
+  test("returns schema output for an ok JSON body", async () => {
     const json = vi.fn().mockResolvedValue({ id: "card_1" });
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -11,7 +16,7 @@ describe("fetcher", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const body = await fetcher<{ id: string }>("/api/cards/card_1");
+    const body = await fetcher("/api/cards/card_1", CardIdJsonSchema);
 
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
     expect(json).toHaveBeenCalledOnce();
@@ -28,10 +33,25 @@ describe("fetcher", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(fetcher("/api/missing")).rejects.toThrow(
+    await expect(fetcher("/api/missing", CardIdJsonSchema)).rejects.toThrow(
       "Request failed: 404 Not Found",
     );
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/missing");
     expect(json).not.toHaveBeenCalled();
+  });
+
+  test("throws when the JSON body fails the schema", async () => {
+    const json = vi.fn().mockResolvedValue({ id: 1 });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      fetcher("/api/cards/card_1", CardIdJsonSchema),
+    ).rejects.toBeInstanceOf(z.ZodError);
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
+    expect(json).toHaveBeenCalledOnce();
   });
 });

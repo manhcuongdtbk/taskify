@@ -23,7 +23,7 @@ export async function GET(
 
     // TODO: return 404 when `card` is null (deleted or another org) instead of
     // a 200 null body — clients cannot tell "missing" from "empty", and
-    // lib/api/card.ts has to widen the type to `CardWithListTitle | null` to match.
+    // lib/api/card has to widen the type to `CardWithListTitle | null` to match.
     return NextResponse.json(card);
   } catch {
     return new NextResponse("Internal Error", { status: 500 });

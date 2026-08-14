@@ -167,7 +167,7 @@ Helpers that exist **only** to serve suites live in [`lib/testing/`](../lib/test
 
 ### MSW in this repo
 
-HTTP mocks for **Vitest** component + Query suites. Prefer MSW over ad-hoc `vi.stubGlobal("fetch", …)` when the UI under test goes through real `fetcher` / network (thin factory unit suites may still stub `fetch` — e.g. [`lib/api/card.test.ts`](../lib/api/card.test.ts)). Match the installed `msw` major — [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs).
+HTTP mocks for **Vitest** component + Query suites. Prefer MSW over ad-hoc `vi.stubGlobal("fetch", …)` when the UI under test goes through real `fetcher` / network (thin factory unit suites may still stub `fetch` — e.g. [`lib/api/card/index.test.ts`](../lib/api/card/index.test.ts)). Match the installed `msw` major — [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs).
 
 **Official entrypoints (version-matched):** [Quick start](https://mswjs.io/docs/quick-start/) · [Best practices](https://mswjs.io/docs/best-practices/) · [Structuring handlers](https://mswjs.io/docs/best-practices/structuring-handlers/) · [Avoid request assertions](https://mswjs.io/docs/best-practices/avoid-request-assertions/).
 
@@ -291,9 +291,9 @@ expect(warn).toHaveBeenCalledOnce();
 
 #### Calling `queryFn` from `queryOptions` in unit tests
 
-Resource **factories** ([`lib/api/card.ts`](../lib/api/card.ts); term: [`vocabulary.md`](./vocabulary.md)) build options with [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options). TanStack types `queryFn` as a function that takes a **`QueryFunctionContext`** (and the property may be optional). Our factories usually **ignore** that context — they close over `id` and call `fetcher` — so a unit test that invokes `queryFn` directly to assert the URL / payload hits a TypeScript mismatch: “expected 1 argument” / “possibly undefined.”
+Resource **factories** ([`lib/api/card/`](../lib/api/card/); term: [`vocabulary.md`](./vocabulary.md)) build options with [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options). TanStack types `queryFn` as a function that takes a **`QueryFunctionContext`** (and the property may be optional). Our factories usually **ignore** that context — they close over `id` and call `fetcher` — so a unit test that invokes `queryFn` directly to assert the URL / payload hits a TypeScript mismatch: “expected 1 argument” / “possibly undefined.”
 
-**Pattern** (example: [`lib/api/card.test.ts`](../lib/api/card.test.ts)):
+**Pattern** (example: [`lib/api/card/index.test.ts`](../lib/api/card/index.test.ts)):
 
 1. Stub `fetch` (or mock `fetcher`) so the call is hermetic.
 2. Assert `queryFn` is present if needed, then **cast only the call shape** so you can invoke with no args.
@@ -363,7 +363,7 @@ expect(result.current.isLoading).toBe(false);
 
 ```ts
 // lib/fetcher.test.ts — happy path
-const body = await fetcher<{ id: string }>("/api/cards/card_1");
+const body = await fetcher("/api/cards/card_1", CardIdJsonSchema);
 
 expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
 expect(json).toHaveBeenCalledOnce();
@@ -374,7 +374,7 @@ expect(body).toStrictEqual({ id: "card_1" });
 
 **When there is only one assert** (pure return, schema `safeParse` shape, store field), order is moot. **When several asserts span calls + state**, chronological order is required. Prefer `const result = await …` + ordered expects over `await expect(…).resolves…` then a mock assert that happened earlier — unless a single `rejects`/`resolves` is the whole test.
 
-Examples already following this: [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) · [`lib/fetcher.test.ts`](../lib/fetcher.test.ts) · [`lib/create-safe-action.test.ts`](../lib/create-safe-action.test.ts) · [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) · [`lib/api/card.test.ts`](../lib/api/card.test.ts).
+Examples already following this: [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) · [`lib/fetcher.test.ts`](../lib/fetcher.test.ts) · [`lib/create-safe-action.test.ts`](../lib/create-safe-action.test.ts) · [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) · [`lib/api/card/index.test.ts`](../lib/api/card/index.test.ts).
 
 ### Vitest lint & config choices
 
@@ -627,7 +627,7 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 
 Match installed [Fishery](https://github.com/thoughtbot/fishery). Concern wiring here; API details in the Fishery README / `node_modules/fishery/dist/factory.d.ts` for the installed major — [`conventions.md` Match installed](./conventions.md#match-installed-official-docs).
 
-**Fishery builds TypeScript types for tests, not Prisma models.** It does not read `schema.prisma`. Do not expect factory_bot + ActiveRecord (`list:` on a Card that only has `listId`). For component / MSW suites, factories are typed JSON that match the UI/`fetcher` payload (`CardWithListTitle`, etc.).
+**Fishery builds TypeScript types for tests, not Prisma models.** It does not read `schema.prisma`. Do not expect factory_bot + ActiveRecord (`list:` on a Card that only has `listId`). For component / MSW suites, factories match the **domain** payload (`CardWithListTitle` with `Date`s). MSW/`JSON.stringify` turns those into ISO strings; `fetcher` + Zod maps them back.
 
 #### Fishery vs prisma-fabbrica (do not replace; optional later)
 

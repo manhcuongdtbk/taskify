@@ -12,7 +12,7 @@ import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 import { pendingForever } from "./helpers/pending-forever";
 
-/** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/api/card.ts`. */
+/** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/api/card`. */
 const cardDetailPath = "/api/cards/:cardId" as const;
 const cardAuditLogsPath = "/api/cards/:cardId/audit-logs" as const;
 

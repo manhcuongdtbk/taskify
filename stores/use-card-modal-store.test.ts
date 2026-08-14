@@ -38,7 +38,7 @@ describe("useCardModalStore", () => {
     expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(true);
   });
 
-  // Matches `enabled: !!id` in lib/api/card.ts — an empty id must not read as open,
+  // Matches `enabled: !!id` in lib/api/card — an empty id must not read as open,
   // or the dialog renders skeletons forever with both queries disabled.
   test("an empty id does not count as open", () => {
     useCardModalStore.getState().open("");

@@ -191,14 +191,15 @@ A **factory** is a function (or small module of functions) that **creates and re
 | **Do we implement GoF?** | —                                         | **No** — borrow the word and intent, not the class hierarchy    |
 
 ```ts
-// lib/api/card.ts — colloquial resource factory
+// lib/api/card/index.ts — colloquial resource factory
 export const cardQueries = {
   all: () => ["card"] as const,
   byId: (id: string | undefined) => [...cardQueries.all(), id] as const,
   detail: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "detail"] as const,
-      queryFn: () => fetcher<CardWithListTitle | null>(`/api/cards/${id}`), // | null until route returns 404 — docs/data.md
+      queryFn: () =>
+        fetcher(`/api/cards/${id}`, CardWithListTitleJsonSchema.nullable()), // | null until route returns 404 — docs/data.md
       enabled: !!id,
     }),
 };
@@ -210,7 +211,7 @@ useQuery(cardQueries.detail(id));
 
 | We say                       | What it is                                                                                                                    | Where                                                                            |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **Resource / Query factory** | `cardQueries`-style module: `queryKey` + `queryOptions`                                                                       | [`lib/api/card.ts`](../lib/api/card.ts) · why/layout: [`data.md`](./data.md)     |
+| **Resource / Query factory** | `cardQueries`-style module: `queryKey` + `queryOptions`                                                                       | [`lib/api/card/`](../lib/api/card/) · why/layout: [`data.md`](./data.md)         |
 | **Store factory**            | [`createStore`](../lib/create-store.ts) — sole Zustand import                                                                 | [`client-ui-state.md`](./client-ui-state.md)                                     |
 | **`vi.mock` factory**        | Callback that supplies mocked exports                                                                                         | [`testing.md`](./testing.md) · [vi.mock](https://vitest.dev/api/vi.html#vi-mock) |
 | **`factories/` (folder)**    | Optional top-level for **test data factories** — prefer [`lib/testing/factories/`](../lib/testing/factories/) + Fishery first | [`project-structure.md`](./project-structure.md) · [`testing.md`](./testing.md)  |
