@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 // Registers `@typescript-eslint/*` (transitive via `typescript-eslint`) — not a direct package.json dep.
@@ -524,6 +525,76 @@ const zustandStoreExportNameRestrictions = [
 const zustandCreateStoreRequiredMessage =
   "Define store hooks with createStore from @/lib/create-store (do not call zustand create here). See docs/client-ui-state.md.";
 
+/** `use-card-modal-store.ts` → `CardModalStore` — docs/client-ui-state.md */
+const kebabToPascal = (kebab) =>
+  kebab
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
+
+const devtoolsNameFromStoreFilename = (filename) => {
+  const base = basename(filename).replace(/\.(ts|tsx)$/u, "");
+  if (!/^use-[a-z0-9-]+-store$/u.test(base)) return undefined;
+  return kebabToPascal(base.slice("use-".length));
+};
+
+const zustandDevtoolsNamePlugin = {
+  meta: { name: "zustand-devtools-name" },
+  rules: {
+    "name-matches-file": {
+      meta: {
+        type: "problem",
+        docs: {
+          description:
+            "createStore's DevTools name must match the store filename. See docs/client-ui-state.md.",
+        },
+        schema: [],
+        messages: {
+          missing:
+            'Pass a DevTools name as createStore\'s second argument ("CardModalStore" from use-card-modal-store.ts). See docs/client-ui-state.md.',
+          mismatch:
+            "DevTools name {{actual}} must be {{expected}} (from this filename). See docs/client-ui-state.md.",
+        },
+      },
+      create(context) {
+        const expected = devtoolsNameFromStoreFilename(context.filename);
+        if (!expected) return {};
+
+        return {
+          CallExpression(node) {
+            if (
+              node.callee.type !== "Identifier" ||
+              node.callee.name !== "createStore"
+            ) {
+              return;
+            }
+
+            const nameArg = node.arguments[1];
+            if (
+              nameArg?.type !== "Literal" ||
+              typeof nameArg.value !== "string"
+            ) {
+              context.report({ node, messageId: "missing" });
+              return;
+            }
+
+            if (nameArg.value !== expected) {
+              context.report({
+                node: nameArg,
+                messageId: "mismatch",
+                data: {
+                  actual: JSON.stringify(nameArg.value),
+                  expected: JSON.stringify(expected),
+                },
+              });
+            }
+          },
+        };
+      },
+    },
+  },
+};
+
 const zustandCreateStoreRequiredRestrictions = [
   {
     selector:
@@ -808,9 +879,11 @@ const eslintConfig = defineConfig([
     files: ["stores/**/*-store.ts", "stores/**/*-store.tsx"],
     plugins: {
       "filename-match-export": filenameMatchExport,
+      "zustand-devtools-name": zustandDevtoolsNamePlugin,
     },
     rules: {
       "filename-match-export/match-named-export": "error",
+      "zustand-devtools-name/name-matches-file": "error",
       ...noForwardRefImport,
       "no-restricted-syntax": [
         "error",
