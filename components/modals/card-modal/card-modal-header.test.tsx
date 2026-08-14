@@ -30,7 +30,7 @@ describe("CardModalHeader", () => {
     updateCard.mockResolvedValue({ data: updatedCard });
     const user = userEvent.setup();
     const { invalidateQueries } = renderWithQuery(
-      <CardModalHeader data={card} />,
+      <CardModalHeader card={card} />,
     );
 
     const input = screen.getByDisplayValue(card.title);
@@ -57,7 +57,7 @@ describe("CardModalHeader", () => {
   test("does not execute when the title is unchanged", async () => {
     const card = cardWithListTitleFactory.build();
     const user = userEvent.setup();
-    renderWithQuery(<CardModalHeader data={card} />);
+    renderWithQuery(<CardModalHeader card={card} />);
 
     await user.click(screen.getByDisplayValue(card.title));
     await user.tab();
@@ -70,7 +70,7 @@ describe("CardModalHeader", () => {
     const updatedCard = { ...card, title: "Renamed" };
     updateCard.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
-    renderWithQuery(<CardModalHeader data={card} />);
+    renderWithQuery(<CardModalHeader card={card} />);
 
     const input = screen.getByDisplayValue(card.title);
     await user.clear(input);
@@ -96,7 +96,7 @@ describe("CardModalHeader", () => {
 
   test("shows the list title", () => {
     const card = cardWithListTitleFactory.build();
-    renderWithQuery(<CardModalHeader data={card} />);
+    renderWithQuery(<CardModalHeader card={card} />);
 
     expect(screen.getByText(card.list.title)).toBeInTheDocument();
   });

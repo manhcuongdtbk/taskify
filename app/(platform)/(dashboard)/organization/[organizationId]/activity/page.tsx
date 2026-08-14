@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { OrganizationInfo } from "../_components/organization-info";
 import { Suspense } from "react";
-import { ActivityList } from "../_components/activity-list";
+import { ActivityList } from "./_components/activity-list";
 import { checkSubscription } from "@/lib/subscription";
 
 export default async function OrganizationActivityPage({}: PageProps<"/organization/[organizationId]/activity">) {

@@ -14,7 +14,7 @@ import {
 } from "@/lib/organization-limit";
 import { checkSubscription } from "@/lib/subscription";
 
-const handler = async (data: InputType): Promise<ReturnType> => {
+const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
@@ -32,8 +32,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         "You have reached your limit of free boards. Please upgrade to create more.",
     };
   }
-
-  const { title, image } = data;
 
   let board;
 

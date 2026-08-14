@@ -9,7 +9,7 @@ import { UpdateBoardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 
-const handler = async (data: InputType): Promise<ReturnType> => {
+const handler = async ({ id, title }: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
@@ -17,8 +17,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       serverError: "Unauthorized",
     };
   }
-
-  const { id, title } = data;
 
   let board;
 

@@ -49,13 +49,13 @@ export const FormPopover = ({
   const [selectedImage, setSelectedImage] = useState<BoardImageInput>();
 
   const { execute, fieldErrors } = useAction(createBoard, {
-    onSuccess: (data) => {
+    onSuccess: (board) => {
       toast.add({
         type: "success",
         title: "Board created!",
       });
       closeRef.current?.click();
-      router.push(paths.board(data.id));
+      router.push(paths.board(board.id));
     },
     onError: (error) => {
       toast.add({

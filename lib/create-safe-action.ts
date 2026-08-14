@@ -38,10 +38,10 @@ const actionValidationError: z.core.$ZodErrorMap = (issue) => {
 
 export const createSafeAction = <TInput, TOutput>(
   schema: z.ZodType<TInput>,
-  handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>,
+  handler: (input: TInput) => Promise<ActionState<TInput, TOutput>>,
 ) => {
-  return async (data: TInput): Promise<ActionState<TInput, TOutput>> => {
-    const validationResult = schema.safeParse(data, {
+  return async (input: TInput): Promise<ActionState<TInput, TOutput>> => {
+    const validationResult = schema.safeParse(input, {
       error: actionValidationError,
     });
 

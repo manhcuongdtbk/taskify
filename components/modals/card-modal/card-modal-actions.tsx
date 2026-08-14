@@ -15,10 +15,10 @@ import { toast } from "@/components/ui/toast";
 const heading = "Actions";
 
 interface CardModalActionsProps {
-  data: CardWithListTitle;
+  card: CardWithListTitle;
 }
 
-export const CardModalActions = ({ data }: CardModalActionsProps) => {
+export const CardModalActions = ({ card }: CardModalActionsProps) => {
   const params = useParams();
   const close = useCardModalStore((state) => state.close);
 
@@ -28,7 +28,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
       onSuccess: () => {
         toast.add({
           type: "success",
-          title: `Card "${data.title}" copied`,
+          title: `Card "${card.title}" copied`,
         });
         close();
       },
@@ -46,7 +46,7 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
       onSuccess: () => {
         toast.add({
           type: "success",
-          title: `Card "${data.title}" deleted`,
+          title: `Card "${card.title}" deleted`,
         });
         close();
       },
@@ -62,13 +62,13 @@ export const CardModalActions = ({ data }: CardModalActionsProps) => {
   const handleCopy = () => {
     const boardId = params.boardId as string;
 
-    executeCopyCard({ id: data.id, boardId });
+    executeCopyCard({ id: card.id, boardId });
   };
 
   const handleDelete = () => {
     const boardId = params.boardId as string;
 
-    executeDeleteCard({ id: data.id, boardId });
+    executeDeleteCard({ id: card.id, boardId });
   };
 
   return (

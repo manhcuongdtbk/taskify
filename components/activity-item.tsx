@@ -4,27 +4,27 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { format, parseISO } from "date-fns";
 
 interface ActivityItemProps {
-  data: AuditLog;
+  auditLog: AuditLog;
 }
 
-export const ActivityItem = ({ data }: ActivityItemProps) => {
+export const ActivityItem = ({ auditLog }: ActivityItemProps) => {
   // Query JSON leaves DateTime as ISO strings; Prisma (RSC) gives Date.
   const createdAt =
-    typeof data.createdAt === "string"
-      ? parseISO(data.createdAt)
-      : data.createdAt;
+    typeof auditLog.createdAt === "string"
+      ? parseISO(auditLog.createdAt)
+      : auditLog.createdAt;
 
   return (
     <li className="flex items-center gap-x-2">
       <Avatar className="h-8 w-8">
-        <AvatarImage src={data.userImage} />
+        <AvatarImage src={auditLog.userImage} />
       </Avatar>
       <div className="flex flex-col space-y-0.5">
         <p className="text-sm text-muted-foreground">
           <span className="font-semibold text-neutral-700 lowercase">
-            {data.userName}
+            {auditLog.userName}
           </span>{" "}
-          {generateAuditLogMessage(data)}
+          {generateAuditLogMessage(auditLog)}
         </p>
         <p className="text-xs text-muted-foreground">
           {format(createdAt, "MMM d, yyyy 'at' h:mm a")}

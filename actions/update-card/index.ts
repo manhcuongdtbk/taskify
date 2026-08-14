@@ -9,7 +9,11 @@ import { UpdateCardSchema } from "./schema";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const handler = async (data: InputType): Promise<ReturnType> => {
+const handler = async ({
+  id,
+  boardId,
+  ...values
+}: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
@@ -17,8 +21,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       serverError: "Unauthorized",
     };
   }
-
-  const { id, boardId, ...values } = data;
 
   let card;
 

@@ -30,7 +30,7 @@ describe("ListOptions", () => {
     });
     const user = userEvent.setup();
 
-    render(<ListOptions data={list} onAddCard={vi.fn()} />);
+    render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByRole("button"));
     await user.click(
@@ -56,7 +56,7 @@ describe("ListOptions", () => {
     });
     const user = userEvent.setup();
 
-    render(<ListOptions data={list} onAddCard={vi.fn()} />);
+    render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByRole("button"));
     await user.click(
@@ -80,7 +80,7 @@ describe("ListOptions", () => {
     const onAddCard = vi.fn();
     const user = userEvent.setup();
 
-    render(<ListOptions data={list} onAddCard={onAddCard} />);
+    render(<ListOptions list={list} onAddCard={onAddCard} />);
 
     await user.click(screen.getByRole("button"));
     await user.click(
@@ -95,7 +95,7 @@ describe("ListOptions", () => {
     copyList.mockResolvedValue({ serverError: "Copy failed" });
     const user = userEvent.setup();
 
-    render(<ListOptions data={list} onAddCard={vi.fn()} />);
+    render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByRole("button"));
     await user.click(
@@ -115,7 +115,7 @@ describe("ListOptions", () => {
     deleteList.mockResolvedValue({ serverError: "Delete failed" });
     const user = userEvent.setup();
 
-    render(<ListOptions data={list} onAddCard={vi.fn()} />);
+    render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByRole("button"));
     await user.click(

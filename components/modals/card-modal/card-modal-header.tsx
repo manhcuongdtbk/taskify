@@ -15,20 +15,20 @@ import { cardQueries } from "@/lib/api/card";
 import { formDataString } from "@/lib/form-data";
 
 interface CardModalHeaderProps {
-  data: CardWithListTitle;
+  card: CardWithListTitle;
 }
 
-export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
+export const CardModalHeader = ({ card }: CardModalHeaderProps) => {
   const queryClient = useQueryClient();
   const params = useParams();
   const { execute } = useAction(updateCard, {
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: cardQueries.byId(data.id) });
+    onSuccess: (card) => {
+      queryClient.invalidateQueries({ queryKey: cardQueries.byId(card.id) });
       toast.add({
         type: "success",
-        title: `Renamed to ${data.title}`,
+        title: `Renamed to ${card.title}`,
       });
-      setTitle(data.title); // Confirmed local mirror — docs/data.md
+      setTitle(card.title); // Confirmed local mirror — docs/data.md
     },
     onError: (error) => {
       toast.add({
@@ -38,7 +38,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
     },
   });
   const inputRef = useRef<ComponentRef<"input">>(null);
-  const [title, setTitle] = useState(data.title);
+  const [title, setTitle] = useState(card.title);
 
   const handleBlur = () => {
     inputRef.current?.form?.requestSubmit();
@@ -48,9 +48,9 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
     const title = formDataString(formData, "title");
     const boardId = params.boardId as string;
 
-    if (title === data.title) return;
+    if (title === card.title) return;
 
-    execute({ title, boardId, id: data.id });
+    execute({ title, boardId, id: card.id });
   };
 
   return (
@@ -67,7 +67,7 @@ export const CardModalHeader = ({ data }: CardModalHeaderProps) => {
           />
         </form>
         <p className="text-sm text-muted-foreground">
-          in list <span className="underline">{data.list.title}</span>
+          in list <span className="underline">{card.list.title}</span>
         </p>
       </div>
     </div>

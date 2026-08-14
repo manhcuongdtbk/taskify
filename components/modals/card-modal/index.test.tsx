@@ -18,8 +18,8 @@ import { useCardModalStore } from "@/stores/use-card-modal-store";
 vi.mock("./card-modal-header", () => {
   const Skeleton = () => <div data-testid="card-header-skeleton" />;
   const CardModalHeader = Object.assign(
-    ({ data }: { data: { title: string } }) => (
-      <div data-testid="card-header">{data.title}</div>
+    ({ card }: { card: { title: string } }) => (
+      <div data-testid="card-header">{card.title}</div>
     ),
     { Skeleton },
   );
@@ -29,8 +29,8 @@ vi.mock("./card-modal-header", () => {
 vi.mock("./card-modal-description", () => {
   const Skeleton = () => <div data-testid="card-description-skeleton" />;
   const CardModalDescription = Object.assign(
-    ({ data }: { data: { id: string } }) => (
-      <div data-testid="card-description">{data.id}</div>
+    ({ card }: { card: { id: string } }) => (
+      <div data-testid="card-description">{card.id}</div>
     ),
     { Skeleton },
   );
@@ -40,8 +40,8 @@ vi.mock("./card-modal-description", () => {
 vi.mock("./card-modal-actions", () => {
   const Skeleton = () => <div data-testid="card-actions-skeleton" />;
   const CardModalActions = Object.assign(
-    ({ data }: { data: { id: string } }) => (
-      <div data-testid="card-actions">{data.id}</div>
+    ({ card }: { card: { id: string } }) => (
+      <div data-testid="card-actions">{card.id}</div>
     ),
     { Skeleton },
   );
@@ -51,8 +51,8 @@ vi.mock("./card-modal-actions", () => {
 vi.mock("./card-modal-activity", () => {
   const Skeleton = () => <div data-testid="card-activity-skeleton" />;
   const CardModalActivity = Object.assign(
-    ({ items }: { items: { id: string }[] }) => (
-      <div data-testid="card-activity">{items.length}</div>
+    ({ auditLogs }: { auditLogs: { id: string }[] }) => (
+      <div data-testid="card-activity">{auditLogs.length}</div>
     ),
     { Skeleton },
   );

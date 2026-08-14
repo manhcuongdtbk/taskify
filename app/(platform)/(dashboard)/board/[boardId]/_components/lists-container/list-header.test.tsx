@@ -28,7 +28,7 @@ describe("ListHeader", () => {
     updateList.mockResolvedValue({ data: updatedList });
     const user = userEvent.setup();
 
-    render(<ListHeader data={list} onAddCard={vi.fn()} />);
+    render(<ListHeader list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByText(list.title));
     const input = screen.getByDisplayValue(list.title);
@@ -53,7 +53,7 @@ describe("ListHeader", () => {
     const list = listWithCardsOrderedByOrderAscFactory.build();
     const user = userEvent.setup();
 
-    render(<ListHeader data={list} onAddCard={vi.fn()} />);
+    render(<ListHeader list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByText(list.title));
     await user.tab();
@@ -70,7 +70,7 @@ describe("ListHeader", () => {
     updateList.mockResolvedValue({ serverError: "Rename failed" });
     const user = userEvent.setup();
 
-    render(<ListHeader data={list} onAddCard={vi.fn()} />);
+    render(<ListHeader list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByText(list.title));
     const input = screen.getByDisplayValue(list.title);
@@ -92,7 +92,7 @@ describe("ListHeader", () => {
     updateList.mockResolvedValue({ data: updatedList });
     const user = userEvent.setup();
 
-    render(<ListHeader data={list} onAddCard={vi.fn()} />);
+    render(<ListHeader list={list} onAddCard={vi.fn()} />);
 
     await user.click(screen.getByText(list.title));
     const input = screen.getByDisplayValue(list.title);
