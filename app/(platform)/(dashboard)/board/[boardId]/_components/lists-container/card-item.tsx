@@ -18,7 +18,7 @@ export const CardItem = ({ index, card }: CardItemProps) => {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Enter" && event.key !== " ") {
+    if (event.key !== "Enter") {
       return;
     }
 

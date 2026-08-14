@@ -66,7 +66,7 @@ describe("CardItem", () => {
     expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(true);
   });
 
-  test("opens the card modal with Space", async () => {
+  test("does not open the card modal with Space", async () => {
     const card = cardFactory.build();
     const user = userEvent.setup();
 
@@ -75,11 +75,11 @@ describe("CardItem", () => {
     screen.getByRole("button", { name: card.title }).focus();
     await user.keyboard(" ");
 
-    expect(useCardModalStore.getState().id).toBe(card.id);
-    expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(true);
+    expect(useCardModalStore.getState().id).toBeUndefined();
+    expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(false);
   });
 
-  test("ignores keys other than Enter and Space", async () => {
+  test("ignores keys other than Enter", async () => {
     const card = cardFactory.build();
     const user = userEvent.setup();
 
