@@ -52,7 +52,7 @@ todos:
     status: pending
   - id: list-container-handle-drag-end
     content: "Follow-up: simplify list-container handleDragEnd (dispatcher, clone-before-mutate, drop narrating comments). Keep DropResult suite green. P3 only DRY rearrange/updateOrder."
-    status: pending
+    status: completed
 isProject: false
 ---
 
