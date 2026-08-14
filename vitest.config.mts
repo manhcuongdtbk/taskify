@@ -42,8 +42,9 @@ export default defineConfig({
       exclude: [
         "components/ui/**", // shadcn
         "**/*.{test,spec}.{ts,tsx}",
-        "**/*.types.ts",
-        "actions/**/index.ts", // server actions — Playwright / later mocked I/O
+        "**/*.types.ts", // lib/create-safe-action.types.ts
+        "**/types.ts", // actions/<name>/types.ts — docs/conventions.md
+        "actions/**/index.ts", // handlers — drop this exclude when mocked Vitest suites land
         "lib/prisma/client.ts",
         "lib/prisma/query-options/**", // shapes only — docs/prisma.md
         "lib/unsplash.ts",

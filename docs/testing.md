@@ -7,7 +7,7 @@ Unit / component tests, E2E, and (later) Storybook. Where each tool’s **job** 
 | **Owner / SoT** | This file — Vitest setup map, run/debug, **what to test where** (Vitest / Playwright / Storybook), **terms & naming**                                                                                                                                                    |
 | **Open when**   | Choosing a **test type** / tool, adding a test or story, naming tests / Vitest vocabulary, changing Vitest/Playwright/Storybook config, or revisiting **jsdom vs Browser Mode** ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook)) |
 
-**Implementation today:** [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (**jsdom**). **When needed:** [Playwright](https://playwright.dev) (E2E), [Storybook](https://storybook.js.org) (UI catalog). Stack rationale / learning links / switch triggers: [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook). Index: [`README.md`](./README.md). Agents: [`AGENTS.md`](../AGENTS.md).
+**Implementation today:** [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (**jsdom**). That is the **only** automated test runner in CI. **Not installed yet:** [Playwright](https://playwright.dev) (real-browser product journeys) and [Storybook](https://storybook.js.org) (UI catalog). Saying a check “belongs to Playwright” means **Vitest cannot prove it** (no Next server, no real session, no real browser) — **not** that a Playwright file already exists, and not a queue to dump work into. Until Playwright lands, those journeys are **untested**. Stack rationale: [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook). Index: [`README.md`](./README.md). Agents: [`AGENTS.md`](../AGENTS.md).
 
 ## Decision record: Vitest / jsdom / Browser Mode / Playwright / Storybook
 
@@ -15,16 +15,16 @@ So agents and humans don’t re-litigate this stack every session. This section 
 
 ### Current defaults (do this today)
 
-| Job                                                                | Tool                                           | Notes                                                                                                   |
-| ------------------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Pure logic / schemas / `lib/*`                                     | **Vitest** (Node)                              | `*.test.ts` — no DOM needed                                                                             |
-| Hook via `renderHook` (no JSX in the suite)                        | **Vitest + jsdom + Testing Library**           | Match source: `foo.ts` → `foo.test.ts` (e.g. [`hooks/use-action.test.ts`](../hooks/use-action.test.ts)) |
-| Client **component** behavior (JSX in the suite)                   | **Vitest + jsdom + Testing Library**           | Match source: `foo.tsx` → `foo.test.tsx` — default until Browser Mode triggers flip                     |
-| Component + mocked HTTP                                            | **Vitest + jsdom + MSW** (when needed)         | Still Vitest’s job — not Playwright                                                                     |
-| Full-app journeys (routes, Clerk, cookies, async RSC, Checkout UI) | **Playwright** (`e2e/*.spec.*`)                | Real browser + real app — [when added](#todo)                                                           |
-| Visual regression                                                  | **Playwright** screenshots for now             | One visual system; Storybook/Chromatic only if deliberately chosen later                                |
-| A11y                                                               | Vitest (isolated UI) · Playwright (full pages) | Same split as component vs journey                                                                      |
-| UI catalog / human workshop                                        | **Storybook**                                  | [When triggers pass](#storybook-when-needed) — **not** a CI component-test runner yet                   |
+| Job                                                                | Tool                                            | Notes                                                                                                   |
+| ------------------------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Pure logic / schemas / `lib/*`                                     | **Vitest** (Node)                               | `*.test.ts` — no DOM needed                                                                             |
+| Hook via `renderHook` (no JSX in the suite)                        | **Vitest + jsdom + Testing Library**            | Match source: `foo.ts` → `foo.test.ts` (e.g. [`hooks/use-action.test.ts`](../hooks/use-action.test.ts)) |
+| Client **component** behavior (JSX in the suite)                   | **Vitest + jsdom + Testing Library**            | Match source: `foo.tsx` → `foo.test.tsx` — default until Browser Mode triggers flip                     |
+| Component + mocked HTTP                                            | **Vitest + jsdom + MSW** (when needed)          | Still Vitest’s job — not Playwright                                                                     |
+| Full-app journeys (routes, Clerk, cookies, async RSC, Checkout UI) | **Playwright** (`e2e/*.spec.*`) — **not added** | Vitest cannot boot the App Router. No `e2e/` suites today; [TODO](#todo)                                |
+| Visual regression                                                  | **Playwright** screenshots — **not added**      | One visual system later; Storybook/Chromatic only if deliberately chosen                                |
+| A11y                                                               | Vitest (isolated UI) now                        | Full-page a11y waits on Playwright                                                                      |
+| UI catalog / human workshop                                        | **Storybook**                                   | [When triggers pass](#storybook-when-needed) — **not** a CI component-test runner yet                   |
 
 **Not defaults:** Vitest Browser Mode as the component default; Storybook `play` / Storybook test-runner as the place for the same CI behavior asserts Vitest already owns; Cypress / Jest.
 
@@ -194,7 +194,7 @@ When fixing a bug in code that Vitest owns ([what to test where](#what-to-test-w
 
 Do **not** “fix” by weakening assertions or deleting the repro. Prefer real behavior over mocks unless the dependency is slow/flaky/side-effectful ([Testing in Practice](https://vitest.dev/guide/learn/testing-in-practice.html#fixing-bugs-with-tests)).
 
-If the bug needs the real app (Clerk, Stripe Checkout UI, async RSC, multi-page flows), use Playwright when added — don’t force a Vitest suite for that class of bug.
+If the bug only shows up in the real running app (hosted Clerk UI, Stripe Checkout, async RSC pages, multi-page flows), **do not invent a jsdom stand-in**. There is no Playwright suite yet; fix with manual repro until E2E exists ([TODO](#todo)).
 
 ### Vitest terms & naming
 
@@ -452,7 +452,7 @@ The Vitest backlog freeze is **done** ([P4](../.cursor/plans/vitest_p4_polish.pl
 Going forward:
 
 1. **New/expanded `*.test.*` → 100% on its colocated peer(s)** — statements, branches, functions, and lines under V8. Check with `pnpm test:coverage:paths <peer>` (or scoped `--coverage.include`). Do **not** count incidental imports as “owned” unless you add a dedicated colocated suite. **`test:coverage:paths` pairs by the same file extension** (`foo.ts` ↔ `foo.test.ts`, `foo.tsx` ↔ `foo.test.tsx`).
-2. **All-files floor** — [`vitest.config.mts`](../vitest.config.mts) `coverage.thresholds` (**99%** statements / branches / functions / lines). That is a **global minimum on the coverage bucket** (`coverage.include` minus `coverage.exclude`), not “every file in the repo is 100%” and not a per-file gate. CI runs `pnpm test:run` and `pnpm test:coverage` ([`.github/workflows/vitest.yml`](../.github/workflows/vitest.yml)).
+2. **All-files floor** — [`vitest.config.mts`](../vitest.config.mts) `coverage.thresholds` (**99%** statements / branches / functions / lines). That is a **global minimum on the coverage bucket** (`coverage.include` minus `coverage.exclude`), not “every file in the repo is 100%” and not a per-file gate. The bucket is `lib` / `components` / `actions` / `hooks` / `stores` / `constants`. Types-only files (`**/*.types.ts`, `**/types.ts`) are excluded. **`actions/**/index.ts` is excluded until a mocked Vitest suite lands** — then drop that exclude (same as `lib/subscription.ts`). **`app/` is not in the bucket:** `page` / `layout` / `route` need a running Next app (no E2E yet); `app/**/_components` still use colocated 100% via `pnpm test:coverage:paths` without counting toward the 99%. CI: [`pnpm test:run`](../.github/workflows/vitest.yml) + [`pnpm test:coverage`](../.github/workflows/vitest.yml).
 3. **`formData.get(…) as string`** is banned in app/UI via ESLint `no-restricted-syntax` — use [`formDataString`](../lib/form-data.ts) ([`docs/data.md`](./data.md)).
 
 Live coverage numbers are not stored in git — regenerate with `pnpm test:coverage` and open gitignored [`coverage/`](../coverage/) (see [Coverage reports](#coverage-reports-vitest-output)). The backlog ledger is a historical snapshot of closed P’s.
@@ -477,29 +477,40 @@ Defaults: [Vitest coverage](https://vitest.dev/guide/coverage.html) · `reportsD
 - **Cypress** and any other E2E runner beside Playwright — forever out of scope
 - **Storybook as a CI component/E2E test runner** — catalog/workshop only until an explicit ownership rewrite in the [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook); never duplicate Vitest/Playwright asserts in `play`/Storybook test-runner by default
 - **Vitest Browser Mode as the default component environment** — opt-in / future switch only when [triggers](#trigger-checklist-for-switching-the-component-default) fire; default remains jsdom ([decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook))
-- Catch-all Vitest trees (`tests/`, `__tests__/`, root `test/`) — colocate `*.test.*`; `e2e/` for Playwright
-- Async Server Components in Vitest — use Playwright E2E ([Next.js note](https://nextjs.org/docs/app/guides/testing/vitest)); neither jsdom nor Browser Mode fixes this
+- Catch-all Vitest trees (`tests/`, `__tests__/`, root `test/`) — colocate `*.test.*`; future Playwright files go in `e2e/`
+- **Proving `app/**/page.tsx` / `layout.tsx` / `route.ts` in Vitest** — Next’s [Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest) says async Server Components are not a Vitest job. jsdom and Browser Mode do not boot the App Router. That proof waits on Playwright ([TODO](#todo)); it is **untested today**, not covered by a hidden E2E suite
 
 ## What to test where
 
-The confusing part is **test type** (what you are verifying) vs **tool** (what runs it). Same-looking checks can live in Vitest, Playwright, or Storybook — this repo picks **one owner per type** ([one tool per job](./vocabulary.md#one-tool-per-job)).
+The confusing part is **test type** (what you are verifying) vs **tool** (what runs it). This repo picks **one owner per type** ([one tool per job](./vocabulary.md#one-tool-per-job)).
 
-Until Storybook exists, **Vitest + Playwright cover all automated verification**. Storybook later adds a **catalog/workshop** job, not a second place for the same CI assertions.
+**Today, only Vitest runs in CI.** Playwright and Storybook are planned, not present. A row that names Playwright is a **future owner**, not an existing test.
+
+### Server Actions (`actions/<name>/`)
+
+| File                              | Test with                                                                       | Notes                                                                                                           |
+| --------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `schema.ts`                       | **Vitest now**                                                                  | Colocated `schema.test.ts`                                                                                      |
+| `types.ts`                        | Nothing (types only)                                                            | Out of coverage                                                                                                 |
+| `index.ts` (handler)              | **Vitest + mocks** (`auth`, Prisma, `revalidatePath`) when the suite is written | Same pattern as [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts). Coverage exclude until then. |
+| “User copied a card on the board” | **Playwright later**                                                            | Real browser + session. Not a substitute for the handler unit test. Untested until `e2e/` exists.               |
+
+Component suites stub `useAction` / `execute`. They must not import `actions/*/index.ts`.
 
 ### Decide in order
 
 Ask top → bottom; stop at the first yes:
 
-1. **Needs the real running app?** (Clerk session, real routes, async RSC, Stripe Checkout UI, multi-page navigation, real cookies) → **Playwright** (`e2e/*.spec.ts`).
+1. **Needs the real running app?** (Clerk session, real routes, async RSC, Stripe Checkout UI, multi-page navigation, real cookies) → **future Playwright** (`e2e/*.spec.ts`). **Do not** fake this in jsdom. **There is no Playwright suite today**, so this class of check is simply not automated yet.
 2. **Pure logic — no React tree?** (Zod schema, `lib/*` helper, money/path formatting) → **Vitest unit** (`*.test.ts`).
 3. **Hook via `renderHook`, no JSX in the suite?** → **Vitest** + Testing Library + **jsdom**, file suffix **matches the source** (`use-action.ts` → `use-action.test.ts`). Do **not** use `.tsx` just because it’s a hook.
 4. **One client component — assert behavior?** (render, click, type, empty/error UI as DOM assertions) → **Vitest component** (`*.test.tsx` + Testing Library + **jsdom**). Use Browser Mode only if [triggers](#trigger-checklist-for-switching-the-component-default) / an explicit opt-in pilot say so — not because Vitest’s component guide prefers it.
 5. **Client UI that talks HTTP via Query?** → still **Vitest**, mock HTTP with **MSW** when needed (not Playwright).
 6. **Humans need a browsable gallery of UI variants?** → **Storybook** only when [triggers](#storybook-when-needed) pass — not for CI assertions of the same behavior.
-7. **Pixel / screenshot diff?** → **Playwright** until a Storybook visual workshop is deliberately adopted (then pick **one** visual system).
+7. **Pixel / screenshot diff?** → **Playwright later** (one visual system). Not automated today.
 
 ```text
-Needs full app / real browser product? ──yes──► Playwright
+Needs full app / real browser product? ──yes──► Playwright later (untested today)
          │ no
 Pure function / schema? ──yes──► Vitest unit (Node)
          │ no
@@ -509,22 +520,22 @@ Component behavior (JSX in suite)? ──yes──► Vitest + jsdom · *.test.t
          │                                      └─ Browser Mode only if triggers / pilot
 Catalog for humans? ──yes──► Storybook (when triggered; not CI assert owner)
          │ no
-Visual regression only? ──yes──► Playwright (for now)
+Visual regression only? ──yes──► Playwright later
 ```
 
 ### Test types (vocabulary)
 
-| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                                        | Typical files                | Examples                                                                                            |
-| --------------------------- | ------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                                           | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/fetcher.ts`, `lib/paths.ts`, `lib/generate-audit-log-message.ts`        |
-| **Hook (`renderHook`)**     | Hook state/callbacks without mounting component JSX          | jsdom                    | **Vitest** + Testing Library                                                         | `foo.test.ts` (match source) | [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) — **not** `.tsx` unless the suite has JSX |
-| **Component (static)**      | Given props, the right roles/text/structure appear           | jsdom                    | **Vitest** + Testing Library                                                         | `foo.test.tsx`               | Modal header title, disabled submit, empty list copy                                                |
-| **Component (interactive)** | User events change UI or call callbacks                      | jsdom + synthetic events | **Vitest** + Testing Library + `user-event`                                          | `foo.test.tsx`               | Type board title, open/close modal via store, toggle sidebar                                        |
-| **Component + HTTP**        | Query/UI with mocked network (not the real API)              | jsdom + MSW              | **Vitest** + MSW                                                                     | `foo.test.tsx`               | Card modal fetch success/error with MSW handlers                                                    |
-| **E2E (end-to-end)**        | A real user journey through the deployed/dev app             | Real browser             | **Playwright**                                                                       | `e2e/*.spec.ts`              | Sign-in → create board → add card → open billing                                                    |
-| **Visual regression**       | Pixels / layout look unchanged (or intentionally changed)    | Real browser             | **Playwright** screenshots **for now**; Storybook/Chromatic only if workshop trigger | `e2e/` or later stories      | Optional smoke screenshot of board canvas                                                           |
-| **Accessibility checks**    | Axe/roles issues on a unit of UI or a page                   | jsdom and/or browser     | Prefer **Vitest** for isolated components; **Playwright** for full pages             | colocated or `e2e/`          | Form missing label; dashboard a11y smoke                                                            |
-| **Story / catalog**         | Document and browse UI states for humans                     | Storybook app            | **Storybook** (when needed)                                                          | `foo.stories.tsx`            | All `CardModal` variants side by side — **not** a duplicate of the Vitest suite                     |
+| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                         | Typical files                | Examples                                                                                            |
+| --------------------------- | ------------------------------------------------------------ | ------------------------ | --------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                            | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/fetcher.ts`, `lib/paths.ts`, `lib/generate-audit-log-message.ts`        |
+| **Hook (`renderHook`)**     | Hook state/callbacks without mounting component JSX          | jsdom                    | **Vitest** + Testing Library                                          | `foo.test.ts` (match source) | [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) — **not** `.tsx` unless the suite has JSX |
+| **Component (static)**      | Given props, the right roles/text/structure appear           | jsdom                    | **Vitest** + Testing Library                                          | `foo.test.tsx`               | Modal header title, disabled submit, empty list copy                                                |
+| **Component (interactive)** | User events change UI or call callbacks                      | jsdom + synthetic events | **Vitest** + Testing Library + `user-event`                           | `foo.test.tsx`               | Type board title, open/close modal via store, toggle sidebar                                        |
+| **Component + HTTP**        | Query/UI with mocked network (not the real API)              | jsdom + MSW              | **Vitest** + MSW                                                      | `foo.test.tsx`               | Card modal fetch success/error with MSW handlers                                                    |
+| **E2E (end-to-end)**        | A real user journey through the deployed/dev app             | Real browser             | **Playwright** — **not added**; untested until then                   | `e2e/*.spec.ts`              | Sign-in → create board → add card → open billing                                                    |
+| **Visual regression**       | Pixels / layout look unchanged (or intentionally changed)    | Real browser             | **Playwright** later; Storybook/Chromatic only if workshop trigger    | `e2e/` or later stories      | Optional smoke screenshot of board canvas                                                           |
+| **Accessibility checks**    | Axe/roles issues on a unit of UI or a page                   | jsdom and/or browser     | **Vitest** for isolated components now; full pages wait on Playwright | colocated or later `e2e/`    | Form missing label; dashboard a11y smoke                                                            |
+| **Story / catalog**         | Document and browse UI states for humans                     | Storybook app            | **Storybook** (when needed)                                           | `foo.stories.tsx`            | All `CardModal` variants side by side — **not** a duplicate of the Vitest suite                     |
 
 **Not separate runners here:** “integration” is overloaded. A Vitest test that renders a component with MSW is still **Vitest** (component + HTTP). We do **not** add a third harness named integration.
 
@@ -593,16 +604,16 @@ Parts **1–2** are the least you need for current/near-term Client unit tests. 
 1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-audit-log-message.ts`](../lib/generate-audit-log-message.ts) + [`lib/generate-audit-log-message.test.ts`](../lib/generate-audit-log-message.test.ts).
 2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a **mocked** [`lib/prisma/client.ts`](../lib/prisma/client.ts) when that suite lands. First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching (blog part 2).
 3. **Need real SQL / relations** → integration against a test DB (later; blog part 3 / Prisma integration docs) — not default for app helpers.
-4. **Full product journey** → **Playwright** (blog part 4 when relevant).
+4. **Full product journey** → **Playwright when we add it** (blog part 4). Not automated today.
 
 ```text
 Uses Prisma Client? ──no──► types-only unit (no Client mock)
          │ yes
 Custom logic around queries? ──no──► skip Vitest (thin wrapper)
          │ yes
-Need real DB correctness? ──no──► Vitest + mocked Client (when added)
+Need real DB correctness? ──no──► Vitest + mocked Client
          │ yes
-                         └──► integration DB or Playwright
+                         └──► integration DB later, or Playwright when we add E2E
 ```
 
 **How to mock Client (Vitest only — no extra package by default)**
