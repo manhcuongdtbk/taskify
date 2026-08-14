@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { UpdateCardOrderSchema } from "./schema";
 
-const handler = async (data: InputType): Promise<ReturnType> => {
+const handler = async ({ items, boardId }: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
@@ -15,8 +15,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       serverError: "Unauthorized",
     };
   }
-
-  const { items, boardId } = data;
 
   let updatedCards;
 

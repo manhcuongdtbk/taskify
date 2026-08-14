@@ -19,18 +19,18 @@ import { type ComponentRef, useRef } from "react";
 import { toast } from "@/components/ui/toast";
 
 interface ListOptionsProps {
-  data: List;
+  list: List;
   onAddCard: () => void;
 }
 
-export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
+export const ListOptions = ({ list, onAddCard }: ListOptionsProps) => {
   const closeRef = useRef<ComponentRef<"button">>(null);
 
   const { execute: executeDelete } = useAction(deleteList, {
-    onSuccess: (data) => {
+    onSuccess: (list) => {
       toast.add({
         type: "success",
-        title: `List "${data.title}" deleted`,
+        title: `List "${list.title}" deleted`,
       });
       closeRef.current?.click();
     },
@@ -43,10 +43,10 @@ export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
   });
 
   const { execute: executeCopy } = useAction(copyList, {
-    onSuccess: (data) => {
+    onSuccess: (list) => {
       toast.add({
         type: "success",
-        title: `List "${data.title}" copied`,
+        title: `List "${list.title}" copied`,
       });
       closeRef.current?.click();
     },
@@ -102,8 +102,8 @@ export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
           Add card...
         </Button>
         <form action={handleCopy}>
-          <input hidden id="id" name="id" value={data.id} />
-          <input hidden id="boardId" name="boardId" value={data.boardId} />
+          <input hidden id="id" name="id" value={list.id} />
+          <input hidden id="boardId" name="boardId" value={list.boardId} />
           <FormSubmit
             variant="ghost"
             className="h-auto w-full justify-start rounded-none p-2 px-5 text-sm font-normal"
@@ -113,8 +113,8 @@ export const ListOptions = ({ data, onAddCard }: ListOptionsProps) => {
         </form>
         <Separator />
         <form action={handleDelete}>
-          <input hidden id="id" name="id" value={data.id} />
-          <input hidden id="boardId" name="boardId" value={data.boardId} />
+          <input hidden id="id" name="id" value={list.id} />
+          <input hidden id="boardId" name="boardId" value={list.boardId} />
           <FormSubmit
             variant="ghost"
             className="h-auto w-full justify-start rounded-none p-2 px-5 text-sm font-normal"

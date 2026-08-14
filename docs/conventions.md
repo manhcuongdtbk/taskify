@@ -147,6 +147,7 @@ When a package is missing from the table, still follow the procedure — don’t
 | Zustand store actions: **domain / event verbs** (`open`, `close`, …) — not `on*` / `handle*`                                                                                                                                                                                                                       | Adopted               | Teaching + enforcement: [`client-ui-state.md`](./client-ui-state.md). ESLint bans `on*`/`handle*` keys in `stores/**/*-store.ts`                                                                                                                                                                                                                                                                                                                                                                            |
 | Zustand stores: **`createStore`** → **`use*Store`** in **`stores/use-*-store.ts`**; **slice selectors**; **devtools** via factory; **filename ↔ export**                                                                                                                                                           | Adopted               | [`client-ui-state.md`](./client-ui-state.md) · [`lib/create-store.ts`](../lib/create-store.ts). ESLint: sole `zustand` import in that factory; stores must use `createStore` from `@/lib/create-store`; export must be `use*Store`; ban bare `use*Store()` and identity `(s) => s`; filename kebab ↔ export camel (`use-card-modal-store.ts` → `useCardModalStore`) via `filename-match-export`                                                                                                             |
 | App UI: **folder colocation** + **one main named export per component file** (props local unless a consumer needs them); **no `export type` / `export interface` in component files**                                                                                                                              | Adopted               | Folder layout: [`project-structure.md`](./project-structure.md). Public-surface rules: [Colocation and public exports](#colocation-and-public-exports). Importable UI types go in sibling `*.types.ts`. ESLint bans type co-exports in `components/**` + `app/**/_components/**` (not `ui/`, not `*.types.ts`)                                                                                                                                                                                              |
+| App UI: **domain names** for props/locals (`list`, `board`, `card`, …); **`*Container` vs `*Wrapper`**                                                                                                                                                                                                             | Adopted               | React/Next name the value, not generic `data`. `*Container` = stateful shell; `*Wrapper` = `children` chrome. ESLint bans UI prop/JSX `data` (not `ui/`). See [Component export names](#component-export-names).                                                                                                                                                                                                                                                                                            |
 | **Companion files:** feature folders use bare `schema.ts` / `types.ts`; flat peers use role mid-suffixes (`*.test.tsx`, `*.stories.tsx`, `*.types.ts`, …)                                                                                                                                                          | Adopted / When needed | See [Companion files: role mid-suffixes vs bare names](#companion-files-role-mid-suffixes-vs-bare-names). Don’t mix both for the same concern                                                                                                                                                                                                                                                                                                                                                               |
 | Env vars: **`SCREAMING_SNAKE_CASE`**; client-exposed only via `NEXT_PUBLIC_*`; **`isDevelopment` / `isProduction`** from [`lib/env.ts`](../lib/env.ts) for `NODE_ENV` checks                                                                                                                                       | Adopted               | [Next.js Environment Variables](https://nextjs.org/docs/app/guides/environment-variables). ESLint bans `process.env.NODE_ENV` outside `lib/env.ts`. Use `isDevelopment` vs `!isProduction` intentionally (`test` is neither). Next still inlines the booleans for dead-code elimination.                                                                                                                                                                                                                    |
 | Current `Date`: date-fns **`constructNow`**                                                                                                                                                                                                                                                                        | Adopted               | [`constructNow`](https://date-fns.org/docs/constructNow) — `constructNow(undefined)` for a plain `Date`; pass a `Date`/`TZDate` for that constructor’s now. JSON ISO datetimes: [`parseISO`](https://date-fns.org/docs/parseISO) where you format (Query JSON vs Prisma `Date`) — not a `fetcher` reviver. ESLint bans argument-less `new Date()`. Keep `new Date(value)` for parse/fixed instants; `Date.now()` for epoch ms; `fromUnixTime` for Stripe Unix seconds ([`lib/stripe.ts`](../lib/stripe.ts)) |
@@ -264,7 +265,7 @@ Examples: [`form-popover.tsx`](../components/form/form-popover.tsx), [`hint.tsx`
 2. Middle child accepts `ref` on props and passes it: `<FormTextarea ref={ref} />`.
 3. Inner child puts it on the real node: `<Textarea ref={ref} />` → `<textarea>`.
 
-**Examples in this repo:** `list-item.tsx` → `card-form.tsx` → `components/form/form-textarea.tsx` (and `form-input.tsx`).
+**Examples in this repo:** `lists-container/list-item.tsx` → `card-form.tsx` → `components/form/form-textarea.tsx` (and `form-input.tsx`).
 
 **No `displayName`:** `export const FormInput = (…) =>` already has `.name === "FormInput"`. `displayName` was a workaround for anonymous `forwardRef((props, ref) => …)` wrappers. Named `export const` + ref-as-prop does not need it.
 
@@ -272,8 +273,9 @@ Examples: [`form-popover.tsx`](../components/form/form-popover.tsx), [`hint.tsx`
 2. **Props type** — when the first parameter uses a named type, call it **`{Component}Props`** (e.g. `BoardTitleForm` → `BoardTitleFormProps`). Keep it **file-local** (non-exported) unless something outside must import it — then use sibling `*.types.ts`, not `export type` on the component file. **App Router `page` / `layout` are exempt** — use `PageProps` / `LayoutProps` ([`nextjs.md`](./nextjs.md#route-props-helpers-pageprops--layoutprops--routecontext)), not `BoardIdPageProps`. Naming enforced by [`@noctcore/eslint-plugin-react`](https://github.com/noctcore/eslint-plugins/tree/main/packages/eslint-plugin-react) `component-props-naming`; **no type co-export** enforced by ESLint `no-restricted-syntax` on app UI files (see [Colocation and public exports](#colocation-and-public-exports)). Inline object types and wrappers like `PropsWithChildren<…>` / `React.ComponentProps<…>` are left alone. **Watch noctcore:** it is new and low-adoption; we only enable this one rule. Revisit if the package goes unmaintained, breaks on ESLint upgrades, or an official/typescript-eslint equivalent appears — then swap to a small local rule.
 3. **Generics denylist** — do not export these bare names as components: `Header`, `Footer`, `Navbar`, `Sidebar`, `Actions`, `Activity`, `Description`, `Info`, `Content`, `Item`. Qualify with the nearest useful segment (folder / route / feature), e.g. `CardModalHeader`, `OrganizationInfo`, `MarketingNavbar`, `DashboardSidebar`.
 4. **`components/form/**`** — exported components must be prefixed **`Form`** (`FormInput`, `FormSubmit`, …); files stay `form-*.tsx`.
-5. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`.
-6. **Not enforced (automation)** — see [Enforcement status](#enforcement-status-colocation--companions) (folder layout scripts, test/story colocation checks, feature-folder triggers, …).
+5. **Role affixes (doc only)** — prefer suffixes like `*Form`, `*Item`, `*Provider`, `*Button`, `*Container`, `*Wrapper`; use a shared-kit **prefix** when the folder is a family (`Form*`). Not linted beyond `Form*`. **`*Container`** is a stateful shell (domain values, effects, many children) — e.g. [`ListsContainer`](<../app/(platform)/(dashboard)/board/[boardId]/_components/lists-container/index.tsx>). **`*Wrapper`** is presentational `children` chrome with no domain payload — e.g. [`ListWrapper`](<../app/(platform)/(dashboard)/board/[boardId]/_components/lists-container/list-wrapper.tsx>). Do not mix the words.
+6. **Domain names, not generic `data`** — name UI props and locals after the value ([Passing Props](https://react.dev/learn/passing-props-to-a-component), [Thinking in React](https://react.dev/learn/thinking-in-react); Next examples use `posts` / `post`). Ours: `lists` / `list` / `board` / `card` / `auditLog(s)`. ESLint bans identifier `data` as a component prop / JSX attribute on `components/**` (except `ui/`) and `app/**/_components/**` — not `data-*`, not `result.data`, not Prisma `data:`, not `const { data: card }`. Keep `ActionState.data`, `useAction` return `data`, Zod `safeParse` `.data`, `FormData`, Stripe `price_data`, Next `metadata`. Server Action handlers receive `InputType`: destructure at the parameter (unused bag: `_input`).
+7. **Not enforced (automation)** — see [Enforcement status](#enforcement-status-colocation--companions) (folder layout scripts, test/story colocation checks, feature-folder triggers, …).
 
 #### Colocation and public exports
 
@@ -340,7 +342,16 @@ components/modals/card-modal/
   card-modal-header.tsx          → CardModalHeader
   card-modal-description.tsx
   …
+
+app/(platform)/(dashboard)/board/[boardId]/_components/lists-container/
+  index.tsx                      → ListsContainer
+  index.test.tsx
+  list-wrapper.tsx
+  list-item.tsx
+  …
 ```
+
+Siblings stay **flat** in that folder (do not nest `list-item/`). Shared-by-two stays in the parent (`ListWrapper` used by `ListItem` and `ListForm`).
 
 **Folder colocation — server action** (types _are_ co-exported because callers import them)
 
@@ -356,10 +367,10 @@ actions/create-board/
 ```ts
 // board-title-form.tsx / card-modal-header.tsx pattern
 interface BoardTitleFormProps {
-  data: Board;
+  board: Board;
 }
 
-export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
+export const BoardTitleForm = ({ board }: BoardTitleFormProps) => {
   /* … */
 };
 ```
@@ -413,7 +424,7 @@ In the test, **import the component** and pass props **inline** in JSX — you d
 import { render, screen } from "@testing-library/react";
 import { BoardTitleForm } from "./board-title-form";
 
-render(<BoardTitleForm data={{ id: "b1", title: "Roadmap" /* … */ }} />);
+render(<BoardTitleForm board={{ id: "b1", title: "Roadmap" /* … */ }} />);
 ```
 
 Playwright E2E stays under `e2e/` (whole-app flows), not beside every component — and not root `tests/` ([why](./testing.md#playwright-folder-e2e-not-tests)).
@@ -435,11 +446,11 @@ Use `*.types.ts` next to UI, or `actions/<name>/types.ts` for actions — same i
 | Need                                          | Do                                                               | Example in / near this repo                                                                                                                           |
 | --------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Props only used by that component             | Local, unexported — **no** `*.types.ts`                          | `BoardTitleFormProps`, `CardItemProps`, `NavItemProps`                                                                                                |
-| Test passes props in JSX                      | Still **no** types file — props **inline**                       | `render(<BoardTitleForm data={{ … }} />)`                                                                                                             |
+| Test passes props in JSX                      | Still **no** types file — props **inline**                       | `render(<BoardTitleForm board={{ … }} />)`                                                                                                            |
 | Domain entity shared widely                   | Shared module — **not** `card-item.types.ts`                     | `CardWithListTitle` / `ListWithCardsOrderedByOrderAsc` in `lib/prisma/query-options/card.ts` / `list.ts` (`GetPayload` + shared args); Prisma `Board` |
 | Action I/O imported by callers                | `actions/<name>/types.ts`                                        | `create-board/types.ts` → `InputType`, `ReturnType`                                                                                                   |
 | Wrapper / sibling must import component props | Sibling `foo.types.ts` (not `export type` on the component file) | Hypothetical: `form-input.types.ts` → `FormInputProps` for `form-input-with-hint.tsx`                                                                 |
-| Several siblings share one shape              | One types module in the **same folder**                          | Hypothetical: `list-dnd.types.ts` used by `list-item.tsx` + `list-container.tsx`                                                                      |
+| Several siblings share one shape              | One types module in the **same folder**                          | Hypothetical: `lists-container/list-dnd.types.ts` used by `list-item.tsx` + `index.tsx`                                                               |
 | `lib/` helper contract imported widely        | Sibling `*.types.ts` (not `export type` on the helper)           | `create-safe-action.types.ts` → `ActionState` (`SchemaActionErrors` ∩ `HandlerActionResult`), `FieldErrors`, `FormErrors`, `ServerError`              |
 
 **Sibling UI example** (only when the import is real):
@@ -685,12 +696,12 @@ pnpm lint:file-support          # ESLint list + Prettier targets present in the 
 pnpm lint:file-support -- --all # also dump Prettier’s full getSupportInfo() matrix
 ```
 
-| Tool                                | Source of truth                                                                                                                                           | Typical in this repo                                      |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| **ESLint** (`pnpm lint:eslint`)     | Flat config `files` / `ignores` in `eslint.config.mjs` (+ Next). Commit filter: `ESLint#isPathIgnored` === false.                                         | JS/TS family (`js`/`jsx`/`mjs`/`ts`/`tsx`/…)              |
-| **Prettier** (`pnpm lint:prettier`) | Prettier’s language support + `.prettierignore`. CLI: `prettier --check/--write .`. Commit filter: `prettier.getFileInfo` (inferred parser, not ignored). | JS/TS, JSON, CSS, MD, YAML, HTML, … + Tailwind class sort |
-| **Prisma** (`pnpm lint:prisma`)     | `prisma format` / `prisma validate` via [`scripts/check-prisma-schema.ts`](../scripts/check-prisma-schema.ts). Editor: Prisma VS Code formatter.          | `prisma/schema.prisma` only                               |
-| **Neither**                         | Outside ESLint, Prettier, and Prisma format                                                                                                               | SQL migrations, images, lockfiles, Cursor rules, …        |
+| Tool                                | Source of truth                                                                                                                                                                                                                                 | Typical in this repo                                      |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **ESLint** (`pnpm lint:eslint`)     | Flat config `files` / `ignores` in `eslint.config.mjs` (+ Next). Commit filter: `ESLint#isPathIgnored` === false.                                                                                                                               | JS/TS family (`js`/`jsx`/`mjs`/`ts`/`tsx`/…)              |
+| **Prettier** (`pnpm lint:prettier`) | Prettier’s language support + `.prettierignore`. CLI: `prettier --check/--write .`. Commit filter: `prettier.getFileInfo` (inferred parser, not ignored).                                                                                       | JS/TS, JSON, CSS, MD, YAML, HTML, … + Tailwind class sort |
+| **Prisma** (`pnpm lint:prisma`)     | `prisma validate` + format-check on a **temp copy** ([`scripts/check-prisma-schema.ts`](../scripts/check-prisma-schema.ts); Prisma has no `format --check`). `--fix` runs `prisma format` on `schema.prisma`. Editor: Prisma VS Code formatter. | `prisma/schema.prisma` only                               |
+| **Neither**                         | Outside ESLint, Prettier, and Prisma format                                                                                                                                                                                                     | SQL migrations, images, lockfiles, Cursor rules, …        |
 
 **Overlap** (ESLint ∩ Prettier): ESLint first, Prettier last — editor, commit, `lint:fix`.
 

@@ -48,19 +48,19 @@ vi.mock("@hello-pangea/dnd", () => ({
 
 vi.mock("./list-item", () => ({
   ListItem: ({
-    data,
+    list,
     index,
   }: {
-    data: ListWithCardsOrderedByOrderAsc;
+    list: ListWithCardsOrderedByOrderAsc;
     index: number;
   }) => (
     <li
-      data-testid={`list-${data.id}`}
-      data-order={String(data.order)}
+      data-testid={`list-${list.id}`}
+      data-order={String(list.order)}
       data-index={String(index)}
     >
-      {data.title}
-      {data.cards?.map((card) => (
+      {list.title}
+      {list.cards?.map((card) => (
         <span
           key={card.id}
           data-testid={`card-${card.id}`}
@@ -88,7 +88,7 @@ vi.mock("@/components/ui/toast", () => ({
   toast: { add: toastAdd },
 }));
 
-import { ListContainer } from "./list-container";
+import { ListsContainer } from "./index";
 
 const boardId = "board_1";
 
@@ -109,7 +109,7 @@ function fireDragEnd(result: DropResult) {
 }
 
 /**
- * Query payloads always include `cards: []`, but ListContainer still treats
+ * Query payloads always include `cards: []`, but ListsContainer still treats
  * missing `cards` as `[]`. Named `as Model` for that hole — see docs/testing.md
  * (intentional partial).
  */
@@ -122,10 +122,10 @@ function listWithMissingCards(
   } as unknown as ListWithCardsOrderedByOrderAsc;
 }
 
-describe("ListContainer", () => {
+describe("ListsContainer", () => {
   describe("rendering", () => {
     test("renders lists and the list form", () => {
-      const data = [
+      const lists = [
         listWithCardsOrderedByOrderAscFactory.build({
           id: "list_a",
           order: 0,
@@ -138,7 +138,7 @@ describe("ListContainer", () => {
         }),
       ];
 
-      render(<ListContainer boardId={boardId} data={data} />);
+      render(<ListsContainer boardId={boardId} lists={lists} />);
 
       expect(screen.getByTestId("list-list_a")).toHaveAttribute(
         "data-order",
@@ -151,22 +151,22 @@ describe("ListContainer", () => {
       expect(screen.getByTestId("list-form")).toBeInTheDocument();
     });
 
-    test("syncs lists when props data change", () => {
+    test("syncs lists when lists props change", () => {
       const listA = listWithCardsOrderedByOrderAscFactory.build({
         id: "list_a",
         order: 0,
         boardId,
       });
       const { rerender } = render(
-        <ListContainer boardId={boardId} data={[listA]} />,
+        <ListsContainer boardId={boardId} lists={[listA]} />,
       );
 
       expect(screen.getByTestId("list-list_a")).toBeInTheDocument();
 
       rerender(
-        <ListContainer
+        <ListsContainer
           boardId={boardId}
-          data={[
+          lists={[
             listA,
             listWithCardsOrderedByOrderAscFactory.build({
               id: "list_b",
@@ -185,9 +185,9 @@ describe("ListContainer", () => {
   describe("ignored drops", () => {
     test("does nothing when there is no destination", () => {
       render(
-        <ListContainer
+        <ListsContainer
           boardId={boardId}
-          data={[
+          lists={[
             listWithCardsOrderedByOrderAscFactory.build({
               id: "list_a",
               order: 0,
@@ -229,9 +229,9 @@ describe("ListContainer", () => {
       "does nothing when a $type is dropped in the same position",
       (partial) => {
         render(
-          <ListContainer
+          <ListsContainer
             boardId={boardId}
-            data={[
+            lists={[
               listWithCardsOrderedByOrderAscFactory.build({
                 id: "list_a",
                 order: 0,
@@ -270,9 +270,9 @@ describe("ListContainer", () => {
       "does nothing when the $type source index is out of range",
       ({ type, source, destination, cards }) => {
         render(
-          <ListContainer
+          <ListsContainer
             boardId={boardId}
-            data={[
+            lists={[
               listWithCardsOrderedByOrderAscFactory.build(
                 { id: "list_a", order: 0, boardId },
                 cards
@@ -307,9 +307,9 @@ describe("ListContainer", () => {
 
     test("throws when the drag type is neither list nor card", () => {
       render(
-        <ListContainer
+        <ListsContainer
           boardId={boardId}
-          data={[
+          lists={[
             listWithCardsOrderedByOrderAscFactory.build({
               id: "list_a",
               order: 0,
@@ -352,9 +352,9 @@ describe("ListContainer", () => {
       "does nothing when the $missing list is missing",
       ({ source, destination }) => {
         render(
-          <ListContainer
+          <ListsContainer
             boardId={boardId}
-            data={[
+            lists={[
               listWithCardsOrderedByOrderAscFactory.build(
                 { id: "list_a", order: 0, boardId },
                 {
@@ -388,9 +388,9 @@ describe("ListContainer", () => {
       });
 
       render(
-        <ListContainer
+        <ListsContainer
           boardId={boardId}
-          data={[
+          lists={[
             listWithCardsOrderedByOrderAscFactory.build({
               id: "list_a",
               order: 0,
@@ -443,9 +443,9 @@ describe("ListContainer", () => {
       updateListOrder.mockResolvedValue({ serverError: "List order failed" });
 
       render(
-        <ListContainer
+        <ListsContainer
           boardId={boardId}
-          data={[
+          lists={[
             listWithCardsOrderedByOrderAscFactory.build({
               id: "list_a",
               order: 0,
@@ -495,7 +495,7 @@ describe("ListContainer", () => {
           },
         );
 
-        render(<ListContainer boardId={boardId} data={[list]} />);
+        render(<ListsContainer boardId={boardId} lists={[list]} />);
 
         fireDragEnd(
           dropResult({
@@ -539,7 +539,7 @@ describe("ListContainer", () => {
           }),
         );
 
-        render(<ListContainer boardId={boardId} data={[source]} />);
+        render(<ListsContainer boardId={boardId} lists={[source]} />);
 
         fireDragEnd(
           dropResult({
@@ -566,7 +566,7 @@ describe("ListContainer", () => {
           },
         );
 
-        render(<ListContainer boardId={boardId} data={[list]} />);
+        render(<ListsContainer boardId={boardId} lists={[list]} />);
 
         fireDragEnd(
           dropResult({
@@ -606,7 +606,7 @@ describe("ListContainer", () => {
         );
 
         render(
-          <ListContainer boardId={boardId} data={[source, destination]} />,
+          <ListsContainer boardId={boardId} lists={[source, destination]} />,
         );
 
         fireDragEnd(
@@ -688,7 +688,7 @@ describe("ListContainer", () => {
         const destinationCard = destination.cards[0];
 
         render(
-          <ListContainer boardId={boardId} data={[source, destination]} />,
+          <ListsContainer boardId={boardId} lists={[source, destination]} />,
         );
 
         fireDragEnd(
@@ -735,7 +735,7 @@ describe("ListContainer", () => {
         );
 
         render(
-          <ListContainer boardId={boardId} data={[source, destination]} />,
+          <ListsContainer boardId={boardId} lists={[source, destination]} />,
         );
 
         fireDragEnd(
@@ -786,7 +786,7 @@ describe("ListContainer", () => {
         });
 
         render(
-          <ListContainer boardId={boardId} data={[source, destination]} />,
+          <ListsContainer boardId={boardId} lists={[source, destination]} />,
         );
 
         fireDragEnd(
@@ -830,9 +830,9 @@ describe("ListContainer", () => {
 
       test("does nothing when the dragged card is missing from the source list", () => {
         render(
-          <ListContainer
+          <ListsContainer
             boardId={boardId}
-            data={[
+            lists={[
               listWithCardsOrderedByOrderAscFactory.build({
                 id: "list_a",
                 order: 0,

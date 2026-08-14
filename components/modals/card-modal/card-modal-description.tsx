@@ -20,10 +20,10 @@ import { formDataString } from "@/lib/form-data";
 const heading = "Description";
 
 interface CardModalDescriptionProps {
-  data: CardWithListTitle;
+  card: CardWithListTitle;
 }
 
-export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
+export const CardModalDescription = ({ card }: CardModalDescriptionProps) => {
   const queryClient = useQueryClient();
   const params = useParams();
   const [isEditing, setIsEditing] = useState(false);
@@ -54,11 +54,11 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
   );
 
   const { execute, fieldErrors } = useAction(updateCard, {
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: cardQueries.byId(data.id) });
+    onSuccess: (card) => {
+      queryClient.invalidateQueries({ queryKey: cardQueries.byId(card.id) });
       toast.add({
         type: "success",
-        title: `Card "${data.title}" updated`,
+        title: `Card "${card.title}" updated`,
       });
       handleDisableEditing();
     },
@@ -76,7 +76,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
 
     execute({
       boardId,
-      id: data.id,
+      id: card.id,
       description,
     });
   };
@@ -92,7 +92,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
               id="description"
               className="mt-2 w-full"
               placeholder="Add a more detailed description"
-              defaultValue={data.description || undefined}
+              defaultValue={card.description || undefined}
               errors={fieldErrors}
               ref={textareaRef}
             />
@@ -114,7 +114,7 @@ export const CardModalDescription = ({ data }: CardModalDescriptionProps) => {
             role="button"
             className="min-h-17.5 rounded-md bg-neutral-200 px-3.5 py-3 text-sm font-medium"
           >
-            {data.description || "Add a more detailed description..."}
+            {card.description || "Add a more detailed description..."}
           </div>
         )}
       </div>

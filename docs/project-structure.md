@@ -183,7 +183,7 @@ Nested layouts compose shared shell UI and route guards. Details of layout nesti
 
 ## Choosing where UI lives
 
-- **Route-only** UI → that route’s `_components/` (**route-first** — default now)
+- **Route-only** UI → that route’s `_components/` (**route-first** — default now). Put the folder on the **nearest segment that owns all importers** (`billing/_components/`, `activity/_components/`). Shared by sibling routes stays on the parent (`organization-info` on `[organizationId]`).
 - **Shared app UI** (forms, modals, logos, …) → `components/` (not under `ui/`)
 - **App tree providers** (Query, Clerk, theme, modal mount, …) → top-level `providers/`
 - **shadcn primitives** → `components/ui/` only (`components.json` alias `"ui": "@/components/ui"`). Do not put hand-rolled app components there.

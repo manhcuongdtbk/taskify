@@ -10,20 +10,20 @@ import { type ComponentRef, useRef, useState } from "react";
 import { toast } from "@/components/ui/toast";
 
 interface BoardTitleFormProps {
-  data: Board;
+  board: Board;
 }
 
-export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
+export const BoardTitleForm = ({ board }: BoardTitleFormProps) => {
   const { execute } = useAction(updateBoard, {
-    onSuccess: (result) => {
+    onSuccess: (board) => {
       toast.add({
         type: "success",
-        title: `Board "${result.title}" updated`,
+        title: `Board "${board.title}" updated`,
       });
       // Confirmed local mirror (not classic optimistic): apply Action `data`
       // after success. RSC props lag behind `revalidatePath`, and
-      // `useState(data.title)` does not re-seed on re-render — see docs/data.md.
-      setTitle(result.title);
+      // `useState(board.title)` does not re-seed on re-render — see docs/data.md.
+      setTitle(board.title);
       handleDisableEditing();
     },
     onError: (error) => {
@@ -37,7 +37,7 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
   const inputRef = useRef<ComponentRef<"input">>(null);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(data.title);
+  const [title, setTitle] = useState(board.title);
 
   const handleDisableEditing = () => {
     setIsEditing(false);
@@ -54,7 +54,7 @@ export const BoardTitleForm = ({ data }: BoardTitleFormProps) => {
   const handleSubmit = (formData: FormData) => {
     const title = formDataString(formData, "title");
 
-    execute({ id: data.id, title });
+    execute({ id: board.id, title });
   };
 
   const handleBlur = () => {

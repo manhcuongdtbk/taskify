@@ -24,7 +24,7 @@ describe("BoardTitleForm", () => {
     updateBoard.mockResolvedValue({ data: updatedBoard });
     const user = userEvent.setup();
 
-    render(<BoardTitleForm data={board} />);
+    render(<BoardTitleForm board={board} />);
 
     await user.click(screen.getByRole("button", { name: board.title }));
     const input = screen.getByDisplayValue(board.title);
@@ -54,7 +54,7 @@ describe("BoardTitleForm", () => {
     updateBoard.mockResolvedValue({ serverError: "Update failed" });
     const user = userEvent.setup();
 
-    render(<BoardTitleForm data={board} />);
+    render(<BoardTitleForm board={board} />);
 
     await user.click(screen.getByRole("button", { name: board.title }));
     await user.tab();

@@ -9,18 +9,18 @@ import { ActivityIcon } from "lucide-react";
 const heading = "Activity";
 
 interface CardModalActivityProps {
-  items: AuditLog[];
+  auditLogs: AuditLog[];
 }
 
-export const CardModalActivity = ({ items }: CardModalActivityProps) => {
+export const CardModalActivity = ({ auditLogs }: CardModalActivityProps) => {
   return (
     <div className="flex w-full items-start gap-x-3">
       <ActivityIcon className="mt-0.5 h-5 w-5 text-neutral-700" />
       <div className="w-full">
         <p className="mb-2 font-semibold text-neutral-700">{heading}</p>
         <ol className="mt-2 space-y-4">
-          {items.map((item) => (
-            <ActivityItem key={item.id} data={item} />
+          {auditLogs.map((auditLog) => (
+            <ActivityItem key={auditLog.id} auditLog={auditLog} />
           ))}
         </ol>
       </div>

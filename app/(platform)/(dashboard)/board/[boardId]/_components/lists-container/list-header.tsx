@@ -11,12 +11,12 @@ import { useEventListener } from "usehooks-ts";
 import { ListOptions } from "./list-options";
 
 interface ListHeaderProps {
-  data: ListWithCardsOrderedByOrderAsc;
+  list: ListWithCardsOrderedByOrderAsc;
   onAddCard: () => void;
 }
 
-export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
-  const [title, setTitle] = useState(data.title);
+export const ListHeader = ({ list, onAddCard }: ListHeaderProps) => {
+  const [title, setTitle] = useState(list.title);
   const [isEditing, setIsEditing] = useState(false);
 
   const formRef = useRef<ComponentRef<"form">>(null);
@@ -36,12 +36,12 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
   };
 
   const { execute } = useAction(updateList, {
-    onSuccess: (data) => {
+    onSuccess: (list) => {
       toast.add({
         type: "success",
-        title: `Renamed to "${data.title}"`,
+        title: `Renamed to "${list.title}"`,
       });
-      setTitle(data.title); // Confirmed local mirror — docs/data.md
+      setTitle(list.title); // Confirmed local mirror — docs/data.md
       handleDisableEditing();
     },
     onError: (error) => {
@@ -57,7 +57,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
     const id = formDataString(formData, "id");
     const boardId = formDataString(formData, "boardId");
 
-    if (title === data.title) {
+    if (title === list.title) {
       return handleDisableEditing();
     }
 
@@ -80,8 +80,8 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
     <div className="flex items-start justify-between gap-x-2 px-2 pt-2 text-sm font-semibold">
       {isEditing ? (
         <form className="flex-1 px-0.5" ref={formRef} action={handleSubmit}>
-          <input hidden id="id" name="id" value={data.id} />
-          <input hidden id="boardId" name="boardId" value={data.boardId} />
+          <input hidden id="id" name="id" value={list.id} />
+          <input hidden id="boardId" name="boardId" value={list.boardId} />
           <FormInput
             ref={inputRef}
             id="title"
@@ -100,7 +100,7 @@ export const ListHeader = ({ data, onAddCard }: ListHeaderProps) => {
           {title}
         </div>
       )}
-      <ListOptions data={data} onAddCard={onAddCard} />
+      <ListOptions list={list} onAddCard={onAddCard} />
     </div>
   );
 };

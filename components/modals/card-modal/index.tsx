@@ -17,36 +17,32 @@ export const CardModal = () => {
   const isOpen = useCardModalStore(selectCardModalIsOpen);
   const handleClose = useCardModalStore((state) => state.close);
 
-  const { data: cardData } = useQuery(cardQueries.detail(id));
-  const { data: cardAuditLogsData } = useQuery(cardQueries.auditLogs(id));
+  const { data: card } = useQuery(cardQueries.detail(id));
+  const { data: cardAuditLogs } = useQuery(cardQueries.auditLogs(id));
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl">
-        {!cardData ? (
-          <CardModalHeader.Skeleton />
-        ) : (
-          <CardModalHeader data={cardData} />
-        )}
+        {!card ? <CardModalHeader.Skeleton /> : <CardModalHeader card={card} />}
         <div className="grid grid-cols-1 md:grid-cols-4 md:gap-4">
           <div className="col-span-3">
             <div className="w-full space-y-6">
-              {!cardData ? (
+              {!card ? (
                 <CardModalDescription.Skeleton />
               ) : (
-                <CardModalDescription data={cardData} />
+                <CardModalDescription card={card} />
               )}
-              {!cardAuditLogsData ? (
+              {!cardAuditLogs ? (
                 <CardModalActivity.Skeleton />
               ) : (
-                <CardModalActivity items={cardAuditLogsData} />
+                <CardModalActivity auditLogs={cardAuditLogs} />
               )}
             </div>
           </div>
-          {!cardData ? (
+          {!card ? (
             <CardModalActions.Skeleton />
           ) : (
-            <CardModalActions data={cardData} />
+            <CardModalActions card={card} />
           )}
         </div>
       </DialogContent>

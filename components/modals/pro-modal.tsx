@@ -19,9 +19,9 @@ export const ProModal = () => {
   const handleClose = useProModalStore((state) => state.close);
 
   const { execute, isLoading } = useAction(stripeRedirect, {
-    onSuccess: (data) => {
+    onSuccess: (url) => {
       // TODO: read Next.js doc about redirecting to external URLs
-      window.location.href = data;
+      window.location.href = url;
     },
     onError: (error) => {
       toast.add({

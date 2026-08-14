@@ -16,9 +16,9 @@ import { toast } from "@/components/ui/toast";
 import { useAction } from "@/hooks/use-action";
 import { updateCardOrder } from "@/actions/update-card-order";
 
-interface ListContainerProps {
+interface ListsContainerProps {
   boardId: string;
-  data: ListWithCardsOrderedByOrderAsc[];
+  lists: ListWithCardsOrderedByOrderAsc[];
 }
 
 type ListOrCard = ListWithCardsOrderedByOrderAsc | Card;
@@ -74,8 +74,8 @@ function isSamePosition(
   );
 }
 
-export const ListContainer = ({ boardId, data }: ListContainerProps) => {
-  const [lists, setLists] = useState(data);
+export const ListsContainer = ({ boardId, lists }: ListsContainerProps) => {
+  const [orderedLists, setOrderedLists] = useState(lists);
   const { execute: executeUpdateListOrder } = useAction(updateListOrder, {
     onSuccess: () => {
       toast.add({
@@ -108,11 +108,11 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
   useEffect(() => {
     // TODO: true optimistic UI (`useOptimistic`) while dragging — docs/data.md
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLists(data);
-  }, [data]);
+    setOrderedLists(lists);
+  }, [lists]);
 
   const persistListOrder = (nextLists: ListWithCardsOrderedByOrderAsc[]) => {
-    setLists(nextLists);
+    setOrderedLists(nextLists);
     executeUpdateListOrder({ boardId, items: nextLists });
   };
 
@@ -120,12 +120,12 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
     nextLists: ListWithCardsOrderedByOrderAsc[],
     items: Card[],
   ) => {
-    setLists(nextLists);
+    setOrderedLists(nextLists);
     executeUpdateCardOrder({ boardId, items });
   };
 
   const moveList = (from: number, to: number) => {
-    const rearranged = rearrange(lists, from, to);
+    const rearranged = rearrange(orderedLists, from, to);
     if (!rearranged) return;
 
     const nextLists = updateOrder(rearranged);
@@ -144,7 +144,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
     if (!rearranged) return;
 
     const nextCards = updateOrder(rearranged);
-    const nextLists = withCardsOnList(lists, list.id, nextCards);
+    const nextLists = withCardsOnList(orderedLists, list.id, nextCards);
     persistCardOrder(nextLists, nextCards);
   };
 
@@ -168,7 +168,7 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
     const nextSourceCards = updateOrder(sourceCards);
     const nextDestinationCards = updateOrder(destinationCards);
     const listsWithRemainingSourceCards = withCardsOnList(
-      lists,
+      orderedLists,
       sourceList.id,
       nextSourceCards,
     );
@@ -185,8 +185,10 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
     source: DraggableLocation,
     destination: DraggableLocation,
   ) => {
-    const sourceList = lists.find((list) => list.id === source.droppableId);
-    const destinationList = lists.find(
+    const sourceList = orderedLists.find(
+      (list) => list.id === source.droppableId,
+    );
+    const destinationList = orderedLists.find(
       (list) => list.id === destination.droppableId,
     );
     if (!sourceList || !destinationList) return;
@@ -228,8 +230,8 @@ export const ListContainer = ({ boardId, data }: ListContainerProps) => {
             ref={provided.innerRef}
             className="flex h-full gap-x-3"
           >
-            {lists.map((list, index) => (
-              <ListItem key={list.id} index={index} data={list} />
+            {orderedLists.map((list, index) => (
+              <ListItem key={list.id} index={index} list={list} />
             ))}
             {provided.placeholder}
             <ListForm />

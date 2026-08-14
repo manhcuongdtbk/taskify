@@ -8,7 +8,7 @@ import { CardModalActivity } from "./card-modal-activity";
 describe("CardModalActivity", () => {
   test("renders activity items from card audit logs", () => {
     const cardAuditLog = auditLogFactory.build();
-    render(<CardModalActivity items={[cardAuditLog]} />);
+    render(<CardModalActivity auditLogs={[cardAuditLog]} />);
 
     expect(screen.getByText("Activity")).toBeInTheDocument();
     expect(screen.getByText(/ada lovelace/i)).toBeInTheDocument();
@@ -19,8 +19,8 @@ describe("CardModalActivity", () => {
     ).toBeInTheDocument();
   });
 
-  test("renders an empty list when there are no items", () => {
-    render(<CardModalActivity items={[]} />);
+  test("renders an empty list when there are no audit logs", () => {
+    render(<CardModalActivity auditLogs={[]} />);
 
     expect(screen.getByText("Activity")).toBeInTheDocument();
     expect(screen.queryByRole("listitem")).not.toBeInTheDocument();

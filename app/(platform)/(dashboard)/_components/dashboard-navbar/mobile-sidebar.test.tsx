@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => pathname.current,
 }));
 
-vi.mock("./dashboard-sidebar", () => ({
+vi.mock("../dashboard-sidebar", () => ({
   DashboardSidebar: ({ storageKey }: { storageKey: string }) => (
     <div data-testid="dashboard-sidebar">{storageKey}</div>
   ),

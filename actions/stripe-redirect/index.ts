@@ -18,8 +18,8 @@ import { PRO_PLAN } from "@/constants/pricing-plans";
  * - Already a Stripe customer → Customer Portal (SDK: billingPortal.sessions) to
  *   manage/cancel/update card. “Billing Portal” in the API name = Customer Portal in docs.
  */
-const handler = async (data: InputType): Promise<ReturnType> => {
-  // TODO: unused `data` — schema is empty today; prefix with `_` or use fields once Checkout needs input.
+const handler = async ({}: InputType): Promise<ReturnType> => {
+  // TODO: schema is empty today; destructure fields once Checkout needs input.
   const { userId, orgId } = await auth();
   const user = await currentUser();
 

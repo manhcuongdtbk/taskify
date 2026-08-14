@@ -30,7 +30,7 @@ describe("CardModalDescription", () => {
     updateCard.mockResolvedValue({ data: updatedCard });
     const user = userEvent.setup();
     const { invalidateQueries } = renderWithQuery(
-      <CardModalDescription data={card} />,
+      <CardModalDescription card={card} />,
     );
 
     await user.click(
@@ -65,7 +65,7 @@ describe("CardModalDescription", () => {
     const updatedCard = { ...card, description: "Details" };
     updateCard.mockResolvedValue({ serverError: "Update failed" });
     const user = userEvent.setup();
-    renderWithQuery(<CardModalDescription data={card} />);
+    renderWithQuery(<CardModalDescription card={card} />);
 
     await user.click(
       screen.getByRole("button", {
@@ -89,7 +89,7 @@ describe("CardModalDescription", () => {
   test("cancels editing", async () => {
     const card = cardWithListTitleFactory.build();
     const user = userEvent.setup();
-    renderWithQuery(<CardModalDescription data={card} />);
+    renderWithQuery(<CardModalDescription card={card} />);
 
     await user.click(
       screen.getByRole("button", {
@@ -108,7 +108,7 @@ describe("CardModalDescription", () => {
   test("closes editing on Escape", async () => {
     const card = cardWithListTitleFactory.build();
     const user = userEvent.setup();
-    renderWithQuery(<CardModalDescription data={card} />);
+    renderWithQuery(<CardModalDescription card={card} />);
 
     await user.click(
       screen.getByRole("button", {
@@ -127,7 +127,7 @@ describe("CardModalDescription", () => {
   test("renders existing description text", () => {
     const description = "Existing details";
     const card = cardWithListTitleFactory.build({ description });
-    renderWithQuery(<CardModalDescription data={card} />);
+    renderWithQuery(<CardModalDescription card={card} />);
 
     expect(screen.getByText(description)).toBeInTheDocument();
   });

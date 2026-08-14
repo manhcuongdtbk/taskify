@@ -8,7 +8,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { siteLocalStorageKeys } from "@/config/site";
 import { Menu } from "lucide-react";
 import { useIsClient } from "usehooks-ts";
-import { DashboardSidebar } from "./dashboard-sidebar";
+import { DashboardSidebar } from "../dashboard-sidebar";
 
 export const MobileSidebar = () => {
   const pathname = usePathname();

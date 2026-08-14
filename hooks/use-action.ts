@@ -8,7 +8,7 @@ import {
 } from "@/lib/create-safe-action.types";
 
 type Action<TInput, TOutput> = (
-  data: TInput,
+  input: TInput,
 ) => Promise<ActionState<TInput, TOutput>>;
 
 interface UseActionOptions<TOutput> {

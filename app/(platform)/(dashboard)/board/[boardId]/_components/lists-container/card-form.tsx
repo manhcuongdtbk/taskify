@@ -35,10 +35,10 @@ export const CardForm = ({
   const formRef = useRef<ComponentRef<"form">>(null);
 
   const { execute, fieldErrors } = useAction(createCard, {
-    onSuccess: (data) => {
+    onSuccess: (card) => {
       toast.add({
         type: "success",
-        title: `Card "${data.title}" created`,
+        title: `Card "${card.title}" created`,
       });
       formRef.current?.reset();
     },

@@ -13,7 +13,7 @@ import { decrementAvailableCount } from "@/lib/organization-limit";
 import { checkSubscription } from "@/lib/subscription";
 import { paths } from "@/lib/paths";
 
-const handler = async (data: InputType): Promise<ReturnType> => {
+const handler = async ({ id }: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
@@ -23,8 +23,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   }
 
   const isPro = await checkSubscription();
-
-  const { id } = data;
 
   let board;
 

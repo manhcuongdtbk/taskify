@@ -12,15 +12,15 @@ const Schema = z.object({
 });
 
 const fieldErrorsFor = async (schema: z.ZodType, input: unknown) => {
-  const action = createSafeAction(schema, async (data) => ({ data }));
+  const action = createSafeAction(schema, async (input) => ({ data: input }));
 
   return (await action(input)).fieldErrors;
 };
 
 describe("createSafeAction", () => {
   test("valid: passes parsed data to the handler", async () => {
-    const handler = vi.fn(async (data: z.infer<typeof Schema>) => ({
-      data: data.title,
+    const handler = vi.fn(async (input: z.infer<typeof Schema>) => ({
+      data: input.title,
     }));
     const action = createSafeAction(Schema, handler);
 

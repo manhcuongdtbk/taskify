@@ -22,8 +22,8 @@ export const SubscriptionButton = ({ isPro }: SubscriptionButtonProps) => {
   const openProModal = useProModalStore((state) => state.open);
 
   const { execute, isLoading } = useAction(stripeRedirect, {
-    onSuccess: (data) => {
-      window.location.href = data;
+    onSuccess: (url) => {
+      window.location.href = url;
     },
     onError: (error) => {
       toast.add({

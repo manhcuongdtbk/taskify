@@ -34,7 +34,7 @@ describe("CardModalActions", () => {
     copyCard.mockResolvedValue({ data: { id: card.id } });
     const user = userEvent.setup();
 
-    render(<CardModalActions data={card} />);
+    render(<CardModalActions card={card} />);
     await user.click(screen.getByRole("button", { name: /Copy/i }));
 
     await waitFor(() => {
@@ -56,7 +56,7 @@ describe("CardModalActions", () => {
     copyCard.mockResolvedValue({ serverError: "Copy failed" });
     const user = userEvent.setup();
 
-    render(<CardModalActions data={card} />);
+    render(<CardModalActions card={card} />);
     await user.click(screen.getByRole("button", { name: /Copy/i }));
 
     await waitFor(() => {
@@ -73,7 +73,7 @@ describe("CardModalActions", () => {
     deleteCard.mockResolvedValue({ data: { id: card.id } });
     const user = userEvent.setup();
 
-    render(<CardModalActions data={card} />);
+    render(<CardModalActions card={card} />);
     await user.click(screen.getByRole("button", { name: /Delete/i }));
 
     await waitFor(() => {
@@ -95,7 +95,7 @@ describe("CardModalActions", () => {
     deleteCard.mockResolvedValue({ serverError: "Delete failed" });
     const user = userEvent.setup();
 
-    render(<CardModalActions data={card} />);
+    render(<CardModalActions card={card} />);
     await user.click(screen.getByRole("button", { name: /Delete/i }));
 
     await waitFor(() => {
