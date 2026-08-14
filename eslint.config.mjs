@@ -661,6 +661,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vitest V8 HTML/JS report (gitignored; also in .prettierignore)
+    "coverage/**",
     // Vendor / agent skill trees (not app source)
     ".agents/**",
     ".claude/**",
