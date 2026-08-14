@@ -577,6 +577,16 @@ const constructNowRestrictions = [
   },
 ];
 
+/** Narrow FormData via formDataString — docs/data.md. */
+const formDataGetAsStringRestrictions = [
+  {
+    selector:
+      "TSAsExpression[typeAnnotation.typeAnnotation.type='TSStringKeyword'] > CallExpression[callee.property.name='get'][callee.object.name='formData']",
+    message:
+      "Narrow FormData with formDataString (lib/form-data.ts), not `as string`. See docs/data.md.",
+  },
+];
+
 /**
  * SkeletonStatus + section/item compounds — docs/conventions.md
  * (section vs item skeletons).
@@ -642,6 +652,10 @@ const skeletonStatusLabelRestrictions = [
     message:
       "Item compound `Foo.SkeletonItem` must stay a bare row placeholder — do not wrap <SkeletonStatus> (parent `Foo.Skeleton` owns the landmark). See docs/conventions.md.",
   },
+];
+
+/** App UI only — colocated SkeletonStatus suite must render the wrapper. */
+const skeletonStatusInlineUsageRestrictions = [
   {
     selector:
       "JSXOpeningElement[name.name='SkeletonStatus']:not(AssignmentExpression[left.property.name='Skeleton'] JSXOpeningElement)",
@@ -687,7 +701,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
       ],
     },
   },
@@ -705,7 +721,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
     },
@@ -724,7 +742,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
       ],
@@ -751,7 +771,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -798,7 +820,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
         ...zustandCreateStoreRequiredRestrictions,
@@ -845,7 +869,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
     },
@@ -863,7 +889,9 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -908,7 +936,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,
@@ -1022,6 +1052,7 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -1047,6 +1078,7 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,

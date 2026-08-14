@@ -29,7 +29,9 @@ describe("MobileSidebar", () => {
     render(<MobileSidebar />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Open navigation" }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -38,10 +40,12 @@ describe("MobileSidebar", () => {
     render(<MobileSidebar />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Open navigation" }),
+      ).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "Open navigation" }));
 
     expect(await screen.findByTestId("dashboard-sidebar")).toHaveTextContent(
       siteLocalStorageKeys.mobileSidebarExpanded,
@@ -54,10 +58,12 @@ describe("MobileSidebar", () => {
     const { rerender } = render(<MobileSidebar />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Open navigation" }),
+      ).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "Open navigation" }));
     expect(useMobileSidebarStore.getState().isOpen).toBe(true);
 
     pathname.current = "/organization/org_2";

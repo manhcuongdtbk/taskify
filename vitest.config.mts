@@ -42,7 +42,22 @@ export default defineConfig({
       exclude: [
         "components/ui/**", // shadcn
         "**/*.{test,spec}.{ts,tsx}",
+        "**/*.types.ts",
+        "actions/**/index.ts", // server actions — Playwright / later mocked I/O
+        "lib/prisma/client.ts",
+        "lib/prisma/query-options/**", // shapes only — docs/prisma.md
+        "lib/unsplash.ts",
+        "lib/subscription.ts",
+        "lib/organization-limit.ts",
+        "constants/images.ts",
       ],
+      // Floor under post-P4 All-files (not 100% global). CI: .github/workflows/vitest.yml
+      thresholds: {
+        statements: 99,
+        branches: 99,
+        functions: 99,
+        lines: 99,
+      },
     },
   },
 });

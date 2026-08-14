@@ -22,7 +22,7 @@ describe("BoardOptions", () => {
 
     render(<BoardOptions id="board_1" />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "Board actions" }));
     await user.click(
       await screen.findByRole("button", { name: "Delete this board" }),
     );
@@ -32,13 +32,25 @@ describe("BoardOptions", () => {
     });
   });
 
+  test("names the menu trigger and close control", async () => {
+    const user = userEvent.setup();
+
+    render(<BoardOptions id="board_1" />);
+
+    await user.click(screen.getByRole("button", { name: "Board actions" }));
+
+    expect(
+      await screen.findByRole("button", { name: "Close board actions" }),
+    ).toBeInTheDocument();
+  });
+
   test("toasts when delete fails", async () => {
     deleteBoard.mockResolvedValue({ serverError: "Failed to delete board" });
     const user = userEvent.setup();
 
     render(<BoardOptions id="board_1" />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "Board actions" }));
     await user.click(
       await screen.findByRole("button", { name: "Delete this board" }),
     );

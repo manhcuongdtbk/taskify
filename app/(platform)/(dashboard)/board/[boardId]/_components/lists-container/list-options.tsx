@@ -74,7 +74,11 @@ export const ListOptions = ({ list, onAddCard }: ListOptionsProps) => {
     <Popover>
       <PopoverTrigger
         render={
-          <Button className="h-auto w-auto p-2" variant="ghost">
+          <Button
+            className="h-auto w-auto p-2"
+            variant="ghost"
+            aria-label="List actions"
+          >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         }
@@ -88,6 +92,7 @@ export const ListOptions = ({ list, onAddCard }: ListOptionsProps) => {
             <Button
               className="absolute top-2 right-2 h-auto w-auto p-2 text-neutral-600"
               variant="ghost"
+              aria-label="Close list actions"
             >
               <X className="h-4 w-4" />
             </Button>

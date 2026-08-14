@@ -139,11 +139,11 @@ test("submits on click", async () => {
 });
 ```
 
-- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `setupFiles: ["./vitest.setup.ts"]` (jest-dom + RTL `cleanup` + MSW `setupServer` lifecycle — we don’t use Vitest `globals`, so RTL’s auto-cleanup hook doesn’t run), `restoreMocks: true`, `mockReset: true`, `unstubGlobals: true`, `unstubEnvs: true`, `expect.requireAssertions: true`, `coverage.provider: "v8"`, `vite-tsconfig-paths` for `@/*`
+- Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `setupFiles: ["./vitest.setup.ts"]` (jest-dom + RTL `cleanup` + MSW `setupServer` lifecycle — we don’t use Vitest `globals`, so RTL’s auto-cleanup hook doesn’t run), `restoreMocks: true`, `mockReset: true`, `unstubGlobals: true`, `unstubEnvs: true`, `expect.requireAssertions: true`, `coverage.provider: "v8"`, `coverage.thresholds` (99% All-files floor on the polished include), `vite-tsconfig-paths` for `@/*`
 - **MSW** for Query/`fetcher` HTTP in component suites — [MSW in this repo](#msw-in-this-repo)
 - Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:coverage` (`vitest run --coverage`), `pnpm test:inspect` (Chrome DevTools / Node inspector)
 - Coverage: `@vitest/coverage-v8` — [Coverage](https://vitest.dev/guide/coverage.html); reports under `coverage/` (gitignored)
-- **Vitest backlog freeze & coverage ratchet** (until [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md) is finished) — [below](#vitest-backlog-freeze--coverage-ratchet)
+- **New/expanded `*.test.*` → 100% colocated peer** (`pnpm test:coverage:paths`) unless a concern doc says otherwise — [below](#colocated-100--coverage-thresholds)
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
 - Colocated `*.test.ts` / `*.test.tsx` (**Vitest only**; never `*.spec.*`) — **same extension as the source** (`foo.ts` ↔ `foo.test.ts`, `foo.tsx` ↔ `foo.test.tsx`). `.tsx` only when the **test file** contains JSX — not because the subject is a hook or uses Testing Library. [`conventions.md`](./conventions.md) · [`project-structure.md`](./project-structure.md)
 - Explicit Vitest imports (no `globals`); `vi.*` only (Jest is never used here)
@@ -433,31 +433,29 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 ## TODO
 
 - [x] First colocated suite(s) — pure `lib/` helpers + Zod `actions/*/schema.ts` (P0).
-- [x] Mocked I/O / stores / `use-action` / first Prisma Client mock (`create-audit-log`) (P1). Remaining Vitest backlog (P4 polish): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
+- [x] Mocked I/O / stores / `use-action` / first Prisma Client mock (`create-audit-log`) (P1). Vitest backlog finished (P4): [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)
 - [x] Client component suites (jest-dom for DOM asserts; `userEvent.setup()` for interactions) — plan P2
 - [ ] Drop `vite-tsconfig-paths` for Vite native `resolve.tsconfigPaths` if the deprecation warning stays noisy
 - [x] MSW when a Query-backed UI needs HTTP mocks — [`lib/testing/msw/`](../lib/testing/msw/) + lifecycle in [`vitest.setup.ts`](../vitest.setup.ts) · [`conventions.md`](./conventions.md) · plan P3
 - [ ] Playwright for critical flows (auth, board, billing) — `e2e/*.spec.ts` only (never `*.test.*`; only E2E tool; no Cypress)
 - [ ] Storybook when [catalog triggers](#storybook-when-needed) pass — catalog/workshop only; colocated `*.stories.tsx` (not CI component-test owner unless [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) rewritten)
 - [ ] Revisit Vitest Browser Mode only if [triggers](#trigger-checklist-for-switching-the-component-default) fire — pilot jsdom vs Browser Mode before blanket switch; update decision record + config together
-- [ ] CI: run `pnpm test:run` on PRs; keep coverage ratchet / thresholds per [backlog freeze](#vitest-backlog-freeze--coverage-ratchet) (full threshold tighten still P4)
+- [x] CI: [`pnpm test:run`](../.github/workflows/vitest.yml) + [`pnpm test:coverage`](../.github/workflows/vitest.yml) on PRs (`coverage.thresholds` in [`vitest.config.mts`](../vitest.config.mts))
 - [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
-- [ ] Tighten `coverage.include` / Vitest `thresholds` once the backlog is done — plan P4 (ratchet while the backlog runs is manual + plan ledger, not config yet)
+- [x] Tighten `coverage.exclude` / Vitest `thresholds` (P4) — [`vitest.config.mts`](../vitest.config.mts) · [below](#colocated-100--coverage-thresholds)
 - [x] **Follow-up (after Vitest P0):** [`eslint-plugin-zod`](https://github.com/marcalexiei/eslint-plugin-zod) stock `recommended` in [`eslint.config.mjs`](../eslint.config.mjs) — namespace `import * as z from "zod"`, `*Schema` names, string `.trim()` ([one tool per job](./vocabulary.md#one-tool-per-job): lint aid, not a second schema stack). Authoring notes: [`conventions.md`](./conventions.md)
 
-## Vitest backlog freeze & coverage ratchet
+## Colocated 100% + coverage thresholds
 
-**Hard rules while** [`.cursor/plans/vitest_test_backlog_c23a3686.plan.md`](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md) **is unfinished** (P4 still open):
+The Vitest backlog freeze is **done** ([P4](../.cursor/plans/vitest_p4_polish.plan.md) · [backlog](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md)). Product work is no longer blocked by that freeze.
 
-1. **No new product features** — no new user-facing capability, schema/API surface, or parallel “while we’re here” product work. Allowed:
-   - Tests, test doubles, docs/plans
-   - Tiny production fixes **forced by a failing test** (TDD / regression)
-   - Backlog-listed cleanups (e.g. FormData casts after their suites)
-   - **Store / Query hygiene** paired with a colocated suite in the same P — e.g. derive a `select*` instead of a duplicate flag, move inline `useQuery({ queryKey, queryFn })` into a [`lib/api/`](../lib/api/) resource factory, or ESLint that enforces those exports. Must stay behind the suite’s peer(s); not a license for unrelated refactors or new product surface. P1 examples: [`selectCardModalIsOpen`](../stores/use-card-modal-store.ts), [`lib/api/card.ts`](../lib/api/card.ts).
-2. **New `*.test.*` → 100% on its colocated peer(s)** — for every new (or expanded) suite, the source file(s) that suite owns must reach **100%** statements, branches, functions, and lines under V8. Check with `pnpm test:coverage:paths <peer>` (or scoped `--coverage.include`). Do **not** count incidental imports (e.g. store tests importing `create-store`) as “owned” unless you add a dedicated colocated suite for that module. **`test:coverage:paths` pairs by the same file extension** (`foo.ts` ↔ `foo.test.ts`, `foo.tsx` ↔ `foo.test.tsx`) — a `.tsx` suite for a `.ts` source does not resolve (P1: [`hooks/use-action.test.ts`](../hooks/use-action.test.ts)).
-3. **End of each P → overall coverage must rise** — **after the P merges** (not mid-review), run `pnpm test:coverage` and record the **All files** summary (stmts / branch / funcs / lines) in the backlog plan’s [coverage ledger](../.cursor/plans/vitest_test_backlog_c23a3686.plan.md). Each closed P must be **strictly higher** on overall **statements** (and should not regress the other three) vs the previous closed P’s ledger row. Do **not** game the ratchet by shrinking `coverage.include` mid-backlog. **Live numbers** are not stored in git — regenerate with `pnpm test:coverage` and open gitignored [`coverage/`](../coverage/) (see [Coverage reports](#coverage-reports-vitest-output)).
+Going forward:
 
-When the backlog is marked done, drop the feature freeze; keep colocated 100% as the default for new suites unless a concern doc says otherwise; move formal Vitest `thresholds` / include tightening to P4 (or a follow-up).
+1. **New/expanded `*.test.*` → 100% on its colocated peer(s)** — statements, branches, functions, and lines under V8. Check with `pnpm test:coverage:paths <peer>` (or scoped `--coverage.include`). Do **not** count incidental imports as “owned” unless you add a dedicated colocated suite. **`test:coverage:paths` pairs by the same file extension** (`foo.ts` ↔ `foo.test.ts`, `foo.tsx` ↔ `foo.test.tsx`).
+2. **All-files floor** — [`vitest.config.mts`](../vitest.config.mts) `coverage.thresholds` (99% stmts / branch / funcs / lines) on the polished include/exclude. CI runs `pnpm test:run` and `pnpm test:coverage` ([`.github/workflows/vitest.yml`](../.github/workflows/vitest.yml)).
+3. **`formData.get(…) as string`** is banned in app/UI via ESLint `no-restricted-syntax` — use [`formDataString`](../lib/form-data.ts) ([`docs/data.md`](./data.md)).
+
+Live coverage numbers are not stored in git — regenerate with `pnpm test:coverage` and open gitignored [`coverage/`](../coverage/) (see [Coverage reports](#coverage-reports-vitest-output)). The backlog ledger is a historical snapshot of closed P’s.
 
 ### Coverage reports (Vitest output)
 
@@ -470,7 +468,7 @@ Vitest does **not** keep a checked-in “current coverage” file. After `pnpm t
 | `coverage/clover.xml`                           | Default `clover` reporter (CI/tools)                  |
 | Terminal **text** summary                       | Printed by the run — no file unless you add reporters |
 
-Defaults: [Vitest coverage](https://vitest.dev/guide/coverage.html) · `reportsDirectory` default `./coverage`. Re-run to refresh; do not commit `coverage/`. The backlog **ledger** is the durable human snapshot **after merge**, not a substitute for regenerating the report.
+Defaults: [Vitest coverage](https://vitest.dev/guide/coverage.html) · `reportsDirectory` default `./coverage`. Re-run to refresh; do not commit `coverage/`. The backlog **ledger** is a historical snapshot of closed P’s, not a substitute for regenerating the report. All-files floors: `coverage.thresholds` in [`vitest.config.mts`](../vitest.config.mts).
 
 ## Out of scope for now
 
