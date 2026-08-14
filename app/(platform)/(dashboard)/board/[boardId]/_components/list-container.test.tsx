@@ -109,8 +109,8 @@ function fireDragEnd(result: DropResult) {
 }
 
 /**
- * Query payloads always include `cards: []`, but ListContainer still guards
- * `if (!list.cards)`. Named `as Model` for that hole — see docs/testing.md
+ * Query payloads always include `cards: []`, but ListContainer still treats
+ * missing `cards` as `[]`. Named `as Model` for that hole — see docs/testing.md
  * (intentional partial).
  */
 function listWithMissingCards(
@@ -253,7 +253,59 @@ describe("ListContainer", () => {
       },
     );
 
-    test("does nothing when the drag type is neither list nor card", () => {
+    test.for([
+      {
+        type: "list",
+        source: { droppableId: "lists", index: 5 },
+        destination: { droppableId: "lists", index: 0 },
+        cards: undefined,
+      },
+      {
+        type: "card",
+        source: { droppableId: "list_a", index: 5 },
+        destination: { droppableId: "list_a", index: 0 },
+        cards: [{ id: "card_a", order: 0 }],
+      },
+    ])(
+      "does nothing when the $type source index is out of range",
+      ({ type, source, destination, cards }) => {
+        render(
+          <ListContainer
+            boardId={boardId}
+            data={[
+              listWithCardsOrderedByOrderAscFactory.build(
+                { id: "list_a", order: 0, boardId },
+                cards
+                  ? {
+                      associations: {
+                        cards: cards.map((card) => cardFactory.build(card)),
+                      },
+                    }
+                  : undefined,
+              ),
+              listWithCardsOrderedByOrderAscFactory.build({
+                id: "list_b",
+                order: 1,
+                boardId,
+              }),
+            ]}
+          />,
+        );
+
+        fireDragEnd(
+          dropResult({
+            type,
+            source,
+            destination,
+          }),
+        );
+
+        expect(updateListOrder).not.toHaveBeenCalled();
+        expect(updateCardOrder).not.toHaveBeenCalled();
+      },
+    );
+
+    test("throws when the drag type is neither list nor card", () => {
       render(
         <ListContainer
           boardId={boardId}
@@ -272,14 +324,15 @@ describe("ListContainer", () => {
         />,
       );
 
-      fireDragEnd(
-        dropResult({
-          type: "column",
-          source: { droppableId: "lists", index: 0 },
-          destination: { droppableId: "lists", index: 1 },
-        }),
-      );
-
+      expect(() =>
+        fireDragEnd(
+          dropResult({
+            type: "column",
+            source: { droppableId: "lists", index: 0 },
+            destination: { droppableId: "lists", index: 1 },
+          }),
+        ),
+      ).toThrow("Unexpected drag type: column");
       expect(updateListOrder).not.toHaveBeenCalled();
       expect(updateCardOrder).not.toHaveBeenCalled();
     });
@@ -601,6 +654,68 @@ describe("ListContainer", () => {
         });
       });
 
+      test("does not mutate the lists passed as data when moving a card across lists", async () => {
+        updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
+        const source = listWithCardsOrderedByOrderAscFactory.build(
+          { id: "list_a", order: 0, boardId },
+          {
+            associations: {
+              cards: [
+                cardFactory.build({
+                  id: "card_a",
+                  listId: "list_a",
+                  order: 0,
+                }),
+              ],
+            },
+          },
+        );
+        const destination = listWithCardsOrderedByOrderAscFactory.build(
+          { id: "list_b", order: 1, boardId },
+          {
+            associations: {
+              cards: [
+                cardFactory.build({
+                  id: "card_b",
+                  listId: "list_b",
+                  order: 0,
+                }),
+              ],
+            },
+          },
+        );
+        const sourceCard = source.cards[0];
+        const destinationCard = destination.cards[0];
+
+        render(
+          <ListContainer boardId={boardId} data={[source, destination]} />,
+        );
+
+        fireDragEnd(
+          dropResult({
+            type: "card",
+            source: { droppableId: "list_a", index: 0 },
+            destination: { droppableId: "list_b", index: 0 },
+          }),
+        );
+
+        expect(updateCardOrder).toHaveBeenCalledOnce();
+        expect(source.cards).toHaveLength(1);
+        expect(source.cards[0]).toBe(sourceCard);
+        expect(sourceCard.listId).toBe("list_a");
+        expect(sourceCard.order).toBe(0);
+        expect(destination.cards).toHaveLength(1);
+        expect(destination.cards[0]).toBe(destinationCard);
+        expect(destinationCard.listId).toBe("list_b");
+        expect(destinationCard.order).toBe(0);
+        await waitFor(() => {
+          expect(screen.getByTestId("card-card_a")).toHaveAttribute(
+            "data-list-id",
+            "list_b",
+          );
+        });
+      });
+
       test("moves a card onto a list with no cards", async () => {
         updateCardOrder.mockResolvedValue({ data: [{ id: "card_a" }] });
         const source = listWithCardsOrderedByOrderAscFactory.build(
@@ -683,11 +798,26 @@ describe("ListContainer", () => {
         );
 
         await waitFor(() => {
-          expect(screen.getByTestId("card-card_a")).toHaveAttribute(
-            "data-list-id",
-            "list_b",
-          );
+          expect(updateCardOrder).toHaveBeenCalledExactlyOnceWith({
+            boardId,
+            items: [
+              expect.objectContaining({
+                id: "card_b",
+                listId: "list_a",
+                order: 0,
+              }),
+              expect.objectContaining({
+                id: "card_a",
+                listId: "list_b",
+                order: 0,
+              }),
+            ],
+          });
         });
+        expect(screen.getByTestId("card-card_a")).toHaveAttribute(
+          "data-list-id",
+          "list_b",
+        );
         expect(screen.getByTestId("card-card_b")).toHaveAttribute(
           "data-list-id",
           "list_a",

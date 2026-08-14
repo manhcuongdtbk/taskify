@@ -1,6 +1,6 @@
 ---
 name: Vitest test backlog
-overview: "P0 (PR #5) + P1 (PR #7) + P2 (PR #8) + P3 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P4."
+overview: "P0 (PR #5) + P1 (PR #7) + P2 (PR #8) + P3 done. Freeze: no new features until this backlog finishes; new *.test.* must 100% cover colocated peers; each closed P must raise overall coverage (ledger below). Remaining: P4 + ListsContainer rename follow-up."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
@@ -52,6 +52,9 @@ todos:
     status: pending
   - id: list-container-handle-drag-end
     content: "Follow-up: simplify list-container handleDragEnd (dispatcher, clone-before-mutate, drop narrating comments). Keep DropResult suite green. P3 only DRY rearrange/updateOrder."
+    status: completed
+  - id: lists-container-rename
+    content: "Follow-up PR: rename ListContainer → ListsContainer (file lists-container.tsx for filename ↔ export); audit other collection wrappers; keep DropResult suite green; update docs/plans links."
     status: pending
 isProject: false
 ---
@@ -154,15 +157,24 @@ Shipped on `test/vitest-p3-msw-reorder` → [PR #9](https://github.com/manhcuong
 - Audit-log vocabulary (`generateAuditLogMessage`; API `.../audit-logs`) — [`docs/vocabulary.md`](../../docs/vocabulary.md)
 - ESLint flat `no-restricted-syntax` **replaces** (Fishery `*.test.*` block had dropped the other test-file bans — [`docs/testing.md`](../../docs/testing.md))
 
+**Follow-up after P3 (this PR, `test/list-container-handle-drag-end`):** `handleDragEnd` dispatcher (list vs card), clone-before-mutate, persist leftover source cards on cross-list moves, skip rearrange when `from` is out of range, lock that `data` props are not mutated. P3 itself only DRY’d `rearrange` / `updateOrder`.
+
 ---
 
 ## TODO later
 
-### Follow-up — `list-container` `handleDragEnd`
+### Follow-up — `ListContainer` → `ListsContainer` (separate PR)
 
-Simplify [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) `handleDragEnd` for readability (dispatcher for list vs card, clone-before-mutate so we don’t write into live state, drop narrating comments). Keep the colocated DropResult suite green. P3 only DRY’d `rearrange` / `updateOrder`.
+Rename because this file is the **wrapper for many lists**, not a container for one list. `List*` as a feature prefix (`ListItem`, `ListForm`, `ListWrapper`) is the wrong rule here — those siblings each own **one** list.
 
-Also reconsider **`ListContainer` vs `ListsContainer`**: it holds many lists, but siblings stay `List*` as the feature prefix (`ListItem`, `ListForm`, `ListWrapper`). Inline TODO on the export.
+Do in that PR:
+
+- Export `ListsContainer` / `ListsContainerProps`; file [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) → `lists-container.tsx` (+ colocated test) so filename ↔ export stays on.
+- Rewire [`board/[boardId]/page.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/page.tsx>) and the DropResult suite (`describe` / imports).
+- Point docs that link the old path: [`docs/testing.md`](../../docs/testing.md) (`listWithMissingCards`), [`docs/data.md`](../../docs/data.md) (DnD `useOptimistic` TODO), [`docs/conventions.md`](../../docs/conventions.md) hypothetical `list-dnd.types.ts` peer.
+- **Audit** other collection wrappers the same way (singular entity + `Container`/`List`/`Wrapper` when the UI holds **many**). Do **not** blindly pluralize: [`BoardList`](<../../app/(platform)/(dashboard)/organization/[organizationId]/_components/board-list.tsx>) is English “list of boards”; [`ListWrapper`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-wrapper.tsx>) wraps **one** column. Only rename when the current name reads as one-of-X but the component is many-of-X.
+
+Keep the DropResult suite green; no product behavior change.
 
 ### P4 — Polish
 
