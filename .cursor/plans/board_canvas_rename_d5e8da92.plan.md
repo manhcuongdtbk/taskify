@@ -1,28 +1,28 @@
 ---
 name: Board canvas rename
-overview: "Colocate widgets like card-modal; ListContainer → ListsContainer; domain names instead of generic data; ListWrapper forwards li props and wraps ListItem. No product behavior change."
+overview: Colocate widgets like card-modal; ListContainer → ListsContainer; domain names instead of generic data; ListWrapper forwards li props and wraps ListItem. No product behavior change.
 todos:
   - id: domain-names
     content: "Rename UI data→lists/list/board/card/auditLog(s); Query aliases; action handlers destructure InputType (stripe-redirect: _input); createSafeAction + useAction Action param input. Keep ActionState.data, Prisma data, useAction return data, Zod .data."
-    status: pending
+    status: completed
   - id: eslint-docs-rule
     content: "Conventions: folder colocation example, *Container vs *Wrapper, domain names. ESLint ban UI prop/JSX identifier data (not ui/, not ActionState/Prisma/Query). Re-spread overlapping no-restricted-syntax."
-    status: pending
+    status: completed
   - id: board-folders
-    content: "git mv board-navbar/ + lists-container/; ListsContainer lists=; ListWrapper ComponentProps<li> + cn; ListItem uses it (no nested li)."
-    status: pending
+    content: git mv board-navbar/ + lists-container/; ListsContainer lists=; ListWrapper ComponentProps<li> + cn; ListItem uses it (no nested li).
+    status: completed
   - id: dashboard-folders
-    content: "git mv dashboard-navbar/ (mobile-sidebar, theme-toggler) and dashboard-sidebar/ (nav-item); fix dashboard + organization layout imports and mobile-sidebar → ../dashboard-sidebar."
-    status: pending
+    content: git mv dashboard-navbar/ (mobile-sidebar, theme-toggler) and dashboard-sidebar/ (nav-item); fix dashboard + organization layout imports and mobile-sidebar → ../dashboard-sidebar.
+    status: completed
   - id: activity-list-move
-    content: "activity-list.tsx → activity/_components/; activity page import ./_components/activity-list; keep organization-info on [organizationId]."
-    status: pending
+    content: activity-list.tsx → activity/_components/; activity page import ./_components/activity-list; keep organization-info on [organizationId].
+    status: completed
   - id: path-docs
-    content: "Rewire features/testing/data/billing + backlog follow-up; grep ListContainer, list-container, UI data=."
-    status: pending
+    content: Rewire features/testing/data/billing + backlog follow-up; grep ListContainer, list-container, UI data=.
+    status: completed
   - id: verify
-    content: "pnpm lint; pnpm test:run; pnpm test:coverage:paths on peers that already have suites."
-    status: pending
+    content: pnpm lint; pnpm test:run; pnpm test:coverage:paths on peers that already have suites.
+    status: completed
 isProject: false
 ---
 

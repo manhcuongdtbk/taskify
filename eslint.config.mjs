@@ -317,6 +317,27 @@ const noForwardRefImportAllowZustand = {
 const appUiNoExportedTypeMessage =
   "Do not export types/interfaces from app UI component files (keeps filename ↔ export on). Keep props file-local, or move importable types to a sibling `*.types.ts`. See docs/conventions.md.";
 
+const appUiNoGenericDataPropMessage =
+  "Name UI props after the value (list, lists, board, card, auditLog). Keep library `data` (Prisma, ActionState, useQuery). See docs/conventions.md.";
+
+/** App UI: ban generic `data` as a component prop / JSX attribute — not `data-*`, not `.data`. */
+const appUiNoGenericDataPropRestrictions = [
+  {
+    selector: "JSXAttribute[name.name='data']",
+    message: appUiNoGenericDataPropMessage,
+  },
+  {
+    selector:
+      "TSInterfaceDeclaration[id.name=/Props$/] TSPropertySignature[key.name='data']",
+    message: appUiNoGenericDataPropMessage,
+  },
+  {
+    selector:
+      "TSTypeAliasDeclaration[id.name=/Props$/] TSPropertySignature[key.name='data']",
+    message: appUiNoGenericDataPropMessage,
+  },
+];
+
 const appUiNoExportedTypeRestrictions = [
   {
     selector:
@@ -889,6 +910,7 @@ const eslintConfig = defineConfig([
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,
+        ...appUiNoGenericDataPropRestrictions,
       ],
     },
   },
@@ -1027,6 +1049,7 @@ const eslintConfig = defineConfig([
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,
+        ...appUiNoGenericDataPropRestrictions,
       ],
     },
   },

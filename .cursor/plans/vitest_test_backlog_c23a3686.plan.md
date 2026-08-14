@@ -54,8 +54,8 @@ todos:
     content: "Follow-up: simplify list-container handleDragEnd (dispatcher, clone-before-mutate, drop narrating comments). Keep DropResult suite green. P3 only DRY rearrange/updateOrder."
     status: completed
   - id: lists-container-rename
-    content: "Follow-up PR: rename ListContainer → ListsContainer (file lists-container.tsx for filename ↔ export); audit other collection wrappers; keep DropResult suite green; update docs/plans links."
-    status: pending
+    content: "Shipped in docs/lists-container-plan — ListsContainer folder colocation + domain names. See board_canvas_rename_d5e8da92.plan.md."
+    status: completed
 isProject: false
 ---
 
@@ -163,18 +163,9 @@ Shipped on `test/vitest-p3-msw-reorder` → [PR #9](https://github.com/manhcuong
 
 ## TODO later
 
-### Follow-up — `ListContainer` → `ListsContainer` (separate PR)
+### Follow-up — `ListContainer` → `ListsContainer`
 
-Rename because this file is the **wrapper for many lists**, not a container for one list. `List*` as a feature prefix (`ListItem`, `ListForm`, `ListWrapper`) is the wrong rule here — those siblings each own **one** list.
-
-Do in that PR:
-
-- Export `ListsContainer` / `ListsContainerProps`; file [`list-container.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-container.tsx>) → `lists-container.tsx` (+ colocated test) so filename ↔ export stays on.
-- Rewire [`board/[boardId]/page.tsx`](<../../app/(platform)/(dashboard)/board/[boardId]/page.tsx>) and the DropResult suite (`describe` / imports).
-- Point docs that link the old path: [`docs/testing.md`](../../docs/testing.md) (`listWithMissingCards`), [`docs/data.md`](../../docs/data.md) (DnD `useOptimistic` TODO), [`docs/conventions.md`](../../docs/conventions.md) hypothetical `list-dnd.types.ts` peer.
-- **Audit** other collection wrappers the same way (singular entity + `Container`/`List`/`Wrapper` when the UI holds **many**). Do **not** blindly pluralize: [`BoardList`](<../../app/(platform)/(dashboard)/organization/[organizationId]/_components/board-list.tsx>) is English “list of boards”; [`ListWrapper`](<../../app/(platform)/(dashboard)/board/[boardId]/_components/list-wrapper.tsx>) wraps **one** column. Only rename when the current name reads as one-of-X but the component is many-of-X.
-
-Keep the DropResult suite green; no product behavior change.
+Shipped in this repo’s `docs/lists-container-plan` work ([`board_canvas_rename_d5e8da92.plan.md`](board_canvas_rename_d5e8da92.plan.md)): `lists-container/` (`ListsContainer`), domain names instead of UI `data`, folder colocation like `card-modal/`. Historical P3 plans may still say `list-container`.
 
 ### P4 — Polish
 
