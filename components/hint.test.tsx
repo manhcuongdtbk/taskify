@@ -18,6 +18,8 @@ describe("Hint", () => {
       </TooltipProvider>,
     );
 
+    expect(screen.queryByText("Create a board")).not.toBeInTheDocument();
+
     await user.hover(screen.getByRole("button", { name: "Add" }));
 
     expect(await screen.findByText("Create a board")).toBeInTheDocument();
@@ -33,6 +35,8 @@ describe("Hint", () => {
         </Hint>
       </TooltipProvider>,
     );
+
+    expect(screen.queryByText("Board actions")).not.toBeInTheDocument();
 
     await user.hover(screen.getByRole("button", { name: "More" }));
 
