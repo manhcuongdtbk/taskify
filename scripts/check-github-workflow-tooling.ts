@@ -5,20 +5,26 @@
  * Workflows install them only via `.github/actions/setup-mise` — no parallel
  * `actions/setup-node` / `pnpm/action-setup` version pins.
  *
- * Marketplace `uses:` must be the **current major tag** (`actions/checkout@v7`),
- * not an older major, a patch pin, or a commit SHA — unless listed in
- * `ACTION_PIN_EXCEPTIONS` with a reason. Latest major is the highest `vN`
- * tag (`/git/matching-refs/tags/v`), not `/releases/latest` (that follows the
- * newest GitHub Release, which can lag or skip a moving major tag). Timeout;
- * set `GITHUB_TOKEN` or `GH_TOKEN` in CI. Dependabot ignores patch/minor so
- * it does not rewrite `@v7` → `@v7.0.1`.
+ * Marketplace `uses:` must be a **floating major tag** (`actions/checkout@v7`),
+ * not an older documented floor, a patch pin, or a commit SHA — unless listed in
+ * `ACTION_PIN_EXCEPTIONS` with a reason. A live GitHub major newer than the pin
+ * **warns** (Dependabot bump) and does not fail this check. Latest major is the
+ * highest `vN` tag (`/git/matching-refs/tags/v`), not `/releases/latest`.
+ * Timeout; set `GITHUB_TOKEN` or `GH_TOKEN` in CI. Dependabot ignores
+ * patch/minor so it does not rewrite `@v7` → `@v7.0.1`.
  * Docs: docs/conventions.md.
  *
  *   pnpm lint:workflows
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { isJSONObject, mapAsync, uniq } from "es-toolkit";
+import { mapAsync, uniq } from "es-toolkit";
+
+import {
+  FALLBACK_LATEST_MAJOR,
+  evaluateMarketplacePin,
+  latestMajorFromTagRefs,
+} from "./github-workflow-pins";
 
 const ROOT = process.cwd();
 const GITHUB_DIR = join(ROOT, ".github");
@@ -52,15 +58,9 @@ const FORBID_IN_WORKFLOWS: PatternRule[] = [
  */
 const ACTION_PIN_EXCEPTIONS: Record<string, string> = {};
 
-/** Used when GitHub’s API is unreachable (offline lint). Prefer live latest. */
-const FALLBACK_LATEST_MAJOR: Record<string, number> = {
-  "actions/checkout": 7,
-  "actions/setup-node": 7,
-  "jdx/mise-action": 4,
-};
-
 const GITHUB_API_TIMEOUT_MS = 10_000;
 const errors: string[] = [];
+const warnings: string[] = [];
 
 void main().catch((reason: unknown) => {
   console.error(reason);
@@ -72,6 +72,10 @@ async function main(): Promise<void> {
   checkSetupAction(files);
   checkWorkflows(files);
   await checkMarketplacePins(files);
+
+  if (warnings.length > 0) {
+    console.warn(warnings.join("\n"));
+  }
 
   if (errors.length > 0) {
     console.error(errors.join("\n"));
@@ -121,7 +125,7 @@ function checkWorkflows(files: YamlFile[]): void {
 
 async function checkMarketplacePins(files: YamlFile[]): Promise<void> {
   const pins = marketplacePinsFrom(files);
-  const latestMajorByRepo = await resolveLatestMajors(
+  const liveMajorByRepo = await resolveLiveMajors(
     uniq(pins.map((pin) => pin.repo)),
   );
 
@@ -131,21 +135,18 @@ async function checkMarketplacePins(files: YamlFile[]): Promise<void> {
       continue;
     }
 
-    const latestMajor = latestMajorByRepo.get(pin.repo);
-    const usedMajor = majorFromRef(pin.ref);
-    const example = `@v${latestMajor ?? usedMajor ?? "N"}`;
+    const verdict = evaluateMarketplacePin({
+      spec,
+      rel: pin.rel,
+      ref: pin.ref,
+      liveMajor: liveMajorByRepo.get(pin.repo) ?? null,
+      floorMajor: FALLBACK_LATEST_MAJOR[pin.repo],
+    });
 
-    if (!/^v\d+$/.test(pin.ref)) {
-      errors.push(
-        `${pin.rel}: ${spec} must be the current major tag (e.g. ${example}) unless listed in ACTION_PIN_EXCEPTIONS with a reason`,
-      );
-      continue;
-    }
-
-    if (latestMajor != null && usedMajor != null && usedMajor !== latestMajor) {
-      errors.push(
-        `${pin.rel}: ${spec} is not the latest major (@v${latestMajor}) — bump it, or add ACTION_PIN_EXCEPTIONS with a reason`,
-      );
+    if (verdict.severity === "error") {
+      errors.push(verdict.message);
+    } else if (verdict.severity === "warn") {
+      warnings.push(verdict.message);
     }
   }
 }
@@ -176,17 +177,11 @@ function marketplacePinsFrom(files: YamlFile[]): Pin[] {
   return pins;
 }
 
-function majorFromRef(ref: string): number | null {
-  const match = /^v?(\d+)/.exec(ref);
-  return match ? Number(match[1]) : null;
-}
-
-async function resolveLatestMajors(
+async function resolveLiveMajors(
   repos: string[],
 ): Promise<Map<string, number>> {
   const entries = await mapAsync(repos, async (repo) => {
-    const major = (await fetchLatestMajor(repo)) ?? FALLBACK_LATEST_MAJOR[repo];
-    return [repo, major] as const;
+    return [repo, await fetchLatestMajor(repo)] as const;
   });
 
   return new Map(
@@ -207,30 +202,6 @@ function githubApiHeaders(): Record<string, string> {
     headers.Authorization = `Bearer ${token}`;
   }
   return headers;
-}
-
-/** Highest floating major tag (`v7`, not `v7.0.1`). */
-function latestMajorFromTagRefs(body: unknown): number | null {
-  if (!Array.isArray(body)) {
-    return null;
-  }
-
-  const majors: number[] = [];
-  for (const item of body) {
-    if (!isJSONObject(item) || typeof item.ref !== "string") {
-      continue;
-    }
-    const tag = item.ref.replace(/^refs\/tags\//u, "");
-    if (!/^v\d+$/u.test(tag)) {
-      continue;
-    }
-    const major = majorFromRef(tag);
-    if (major != null) {
-      majors.push(major);
-    }
-  }
-
-  return majors.length > 0 ? Math.max(...majors) : null;
 }
 
 async function fetchLatestMajor(repo: string): Promise<number | null> {
