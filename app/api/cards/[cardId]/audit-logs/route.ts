@@ -18,26 +18,28 @@ export async function GET(
 
   const { cardId } = await params;
 
-  const card = await prisma.card.findUnique({
-    where: { id: cardId, list: { board: { orgId } } },
-    select: { id: true },
-  });
+  // Existence + logs in one round-trip. Missing card still 404s. docs/prisma.md
+  const [card, cardAuditLogs] = await prisma.$transaction([
+    prisma.card.findUnique({
+      where: { id: cardId, list: { board: { orgId } } },
+      select: { id: true },
+    }),
+    prisma.auditLog.findMany({
+      where: {
+        orgId,
+        entityId: cardId,
+        entityType: ENTITY_TYPE.CARD,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 3,
+    }),
+  ]);
 
   if (!card) {
     notFound();
   }
-
-  const cardAuditLogs = await prisma.auditLog.findMany({
-    where: {
-      orgId,
-      entityId: cardId,
-      entityType: ENTITY_TYPE.CARD,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 3,
-  });
 
   return NextResponse.json(cardAuditLogs);
 }

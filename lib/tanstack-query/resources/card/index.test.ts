@@ -108,6 +108,27 @@ describe("cardQueries", () => {
     expect(body).toStrictEqual([cardAuditLog]);
   });
 
+  test("auditLogs queryFn throws when the card is missing", async () => {
+    const json = vi.fn();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      json,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { queryFn } = cardQueries.auditLogs("card_1");
+
+    await expect((queryFn as () => Promise<unknown>)()).rejects.toThrow(
+      "Request failed: 404 Not Found",
+    );
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      "/api/cards/card_1/audit-logs",
+    );
+    expect(json).not.toHaveBeenCalled();
+  });
+
   test("auditLogs queryFn rejects a partial JSON audit log", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
