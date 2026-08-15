@@ -63,7 +63,7 @@ export const CardModalHeader = ({ card }: CardModalHeaderProps) => {
             onBlur={handleBlur}
             id="title"
             defaultValue={title}
-            className="focus-visible::border-input relative -left-1.5 mb-0.5 w-[95%] truncate border-transparent bg-transparent px-1 text-xl font-semibold text-neutral-700 focus-visible:bg-white"
+            className="relative -left-1.5 mb-0.5 w-[95%] truncate border-transparent bg-transparent px-1 text-xl font-semibold text-neutral-700 focus-visible:border-input focus-visible:bg-white"
           />
         </form>
         <p className="text-sm text-muted-foreground">

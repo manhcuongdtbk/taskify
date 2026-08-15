@@ -86,7 +86,7 @@ const CardModalActivityStatus = ({
     return null;
   }
 
-  if (cardAuditLogsQuery.isPending) {
+  if (cardQuery.isPending || cardAuditLogsQuery.isPending) {
     return <CardModalActivity.Skeleton />;
   }
 
@@ -104,11 +104,15 @@ export const CardModal = () => {
 
   const cardQuery = useQuery(cardQueries.detail(id));
   const cardAuditLogsQuery = useQuery(cardQueries.auditLogs(id));
+  const dialogTitle =
+    cardQuery.isSuccess && cardQuery.data.title
+      ? cardQuery.data.title
+      : cardModalTitle;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl">
-        <DialogTitle className="sr-only">{cardModalTitle}</DialogTitle>
+        <DialogTitle className="sr-only">{dialogTitle}</DialogTitle>
         <CardModalHeaderStatus cardQuery={cardQuery} />
         <div className="grid grid-cols-1 md:grid-cols-4 md:gap-4">
           <div className="col-span-3">

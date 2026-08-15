@@ -91,7 +91,7 @@ describe("CardModal", () => {
       card.title,
     );
     expect(
-      screen.getByRole("dialog", { name: "Card details" }),
+      screen.getByRole("dialog", { name: card.title }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("card-description")).toHaveTextContent(card.id);
     expect(screen.getByTestId("card-actions")).toHaveTextContent(card.id);
@@ -111,9 +111,46 @@ describe("CardModal", () => {
     expect(
       await screen.findByTestId("card-header-skeleton"),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Card details" }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("card-description-skeleton")).toBeInTheDocument();
     expect(screen.getByTestId("card-actions-skeleton")).toBeInTheDocument();
     expect(screen.getByTestId("card-activity-skeleton")).toBeInTheDocument();
+  });
+
+  test("keeps the activity skeleton while the card query is pending even if card audit logs return", async () => {
+    const card = cardWithListTitleFactory.build();
+    const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
+    server.use(cardDetailPending(), cardAuditLogsOk([cardAuditLog]));
+    useCardModalStore.getState().open(card.id);
+
+    renderWithQuery(<CardModal />);
+
+    expect(
+      await screen.findByTestId("card-header-skeleton"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("card-activity-skeleton")).toBeInTheDocument();
+    expect(screen.queryByTestId("card-activity")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Couldn't load activity"),
+    ).not.toBeInTheDocument();
+  });
+
+  test("keeps the activity skeleton while the card query is pending even if card audit logs fail", async () => {
+    const card = cardWithListTitleFactory.build();
+    server.use(cardDetailPending(), cardAuditLogsNotFound());
+    useCardModalStore.getState().open(card.id);
+
+    renderWithQuery(<CardModal />);
+
+    expect(
+      await screen.findByTestId("card-header-skeleton"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("card-activity-skeleton")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Couldn't load activity"),
+    ).not.toBeInTheDocument();
   });
 
   test("keeps the activity skeleton when only card audit logs are pending", async () => {
