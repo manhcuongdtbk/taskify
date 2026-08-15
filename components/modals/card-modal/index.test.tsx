@@ -1,4 +1,5 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
@@ -99,6 +100,63 @@ describe("CardModal", () => {
     expect(
       screen.queryByTestId("card-header-skeleton"),
     ).not.toBeInTheDocument();
+  });
+
+  test("shows the newly opened card after switching ids", async () => {
+    const first = cardWithListTitleFactory.build({ title: "First card" });
+    const second = cardWithListTitleFactory.build({ title: "Second card" });
+    const firstAuditLog = auditLogFactory.build(
+      {},
+      { transient: { card: first } },
+    );
+    const secondAuditLog = auditLogFactory.build(
+      {},
+      { transient: { card: second } },
+    );
+    const cards = new Map([
+      [first.id, first],
+      [second.id, second],
+    ]);
+    const cardAuditLogs = new Map([
+      [first.id, [firstAuditLog]],
+      [second.id, [secondAuditLog]],
+    ]);
+    server.use(
+      http.get("/api/cards/:cardId", ({ params }) => {
+        const card = cards.get(String(params.cardId));
+        if (!card) {
+          return new HttpResponse("Not Found", { status: 404 });
+        }
+
+        return HttpResponse.json(card);
+      }),
+      http.get("/api/cards/:cardId/audit-logs", ({ params }) => {
+        const logs = cardAuditLogs.get(String(params.cardId));
+        if (!logs) {
+          return new HttpResponse("Not Found", { status: 404 });
+        }
+
+        return HttpResponse.json(logs);
+      }),
+    );
+    useCardModalStore.getState().open(first.id);
+
+    renderWithQuery(<CardModal />);
+
+    expect(await screen.findByTestId("card-header")).toHaveTextContent(
+      first.title,
+    );
+
+    useCardModalStore.getState().open(second.id);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("card-header")).toHaveTextContent(second.title);
+    });
+    expect(
+      screen.getByRole("dialog", { name: second.title }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("card-description")).toHaveTextContent(second.id);
+    expect(screen.getByTestId("card-actions")).toHaveTextContent(second.id);
   });
 
   test("shows card skeletons while the card query is pending", async () => {

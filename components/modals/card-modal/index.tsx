@@ -56,7 +56,7 @@ const CardModalDescriptionStatus = ({
     return null;
   }
 
-  return <CardModalDescription card={cardQuery.data} />;
+  return <CardModalDescription key={cardQuery.data.id} card={cardQuery.data} />;
 };
 
 const CardModalActionsStatus = ({
@@ -72,7 +72,7 @@ const CardModalActionsStatus = ({
     return null;
   }
 
-  return <CardModalActions card={cardQuery.data} />;
+  return <CardModalActions key={cardQuery.data.id} card={cardQuery.data} />;
 };
 
 const CardModalActivityStatus = ({
