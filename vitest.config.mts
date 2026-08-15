@@ -38,6 +38,7 @@ export default defineConfig({
         "hooks/**/*.{ts,tsx}",
         "stores/**/*.{ts,tsx}",
         "constants/**/*.{ts,tsx}",
+        "providers/query-provider.tsx",
       ],
       exclude: [
         "components/ui/**", // shadcn
