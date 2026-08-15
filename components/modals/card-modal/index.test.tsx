@@ -228,6 +228,18 @@ describe("CardModal", () => {
     ).not.toBeInTheDocument();
   });
 
+  test("shows an activity load error when only card audit log JSON fails the Query schema", async () => {
+    const card = cardWithListTitleFactory.build();
+    server.use(cardDetailOk(card), cardAuditLogsInvalidJson());
+    useCardModalStore.getState().open(card.id);
+
+    renderWithQuery(<CardModal />);
+
+    expect(await screen.findByTestId("card-header")).toBeInTheDocument();
+    expect(screen.getByText("Couldn't load activity")).toBeInTheDocument();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+  });
+
   test("shows an activity load error when only card audit logs are unauthorized", async () => {
     const card = cardWithListTitleFactory.build();
     server.use(cardDetailOk(card), cardAuditLogsUnauthorized());
