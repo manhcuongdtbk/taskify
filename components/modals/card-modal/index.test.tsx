@@ -119,7 +119,7 @@ describe("CardModal", () => {
     ]);
     const cardAuditLogs = new Map([
       [first.id, [firstAuditLog]],
-      [second.id, [secondAuditLog]],
+      [second.id, [secondAuditLog, firstAuditLog]],
     ]);
     server.use(
       http.get("/api/cards/:cardId", ({ params }) => {
@@ -146,11 +146,13 @@ describe("CardModal", () => {
     expect(await screen.findByTestId("card-header")).toHaveTextContent(
       first.title,
     );
+    expect(screen.getByTestId("card-activity")).toHaveTextContent("1");
 
     useCardModalStore.getState().open(second.id);
 
     await waitFor(() => {
       expect(screen.getByTestId("card-header")).toHaveTextContent(second.title);
+      expect(screen.getByTestId("card-activity")).toHaveTextContent("2");
     });
     expect(
       screen.getByRole("dialog", { name: second.title }),

@@ -94,7 +94,12 @@ const CardModalActivityStatus = ({
     return <CardModalLoadError>{cardActivityLoadErrorCopy}</CardModalLoadError>;
   }
 
-  return <CardModalActivity auditLogs={cardAuditLogsQuery.data} />;
+  return (
+    <CardModalActivity
+      key={cardQuery.data.id}
+      auditLogs={cardAuditLogsQuery.data}
+    />
+  );
 };
 
 export const CardModal = () => {
