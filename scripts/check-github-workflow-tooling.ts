@@ -6,11 +6,12 @@
  * `actions/setup-node` / `pnpm/action-setup` version pins.
  *
  * Marketplace `uses:` must be a **floating major tag** (`actions/checkout@v7`),
- * not an older documented floor, a patch pin, or a commit SHA — unless listed in
- * `ACTION_PIN_EXCEPTIONS` with a reason. A live GitHub major newer than the pin
- * **warns** (Dependabot bump) and does not fail this check. Latest major is the
- * highest `vN` tag (`/git/matching-refs/tags/v`), not `/releases/latest`.
- * Timeout; set `GITHUB_TOKEN` or `GH_TOKEN` in CI. Dependabot ignores
+ * not older than this repo’s floor (documented fallback raised by the highest
+ * major already pinned for that action), a patch pin, or a commit SHA — unless
+ * listed in `ACTION_PIN_EXCEPTIONS` with a reason. A live GitHub major newer
+ * than the pin **warns** (Dependabot bump) and does not fail this check.
+ * Latest major is the highest `vN` tag (`/git/matching-refs/tags/v`), not
+ * `/releases/latest`. Timeout; set `GITHUB_TOKEN` or `GH_TOKEN` in CI. Dependabot ignores
  * patch/minor so it does not rewrite `@v7` → `@v7.0.1`.
  * Docs: docs/conventions.md.
  *
@@ -24,6 +25,8 @@ import {
   FALLBACK_LATEST_MAJOR,
   evaluateMarketplacePin,
   latestMajorFromTagRefs,
+  majorFromRef,
+  pinFloorMajor,
 } from "./github-workflow-pins";
 
 const ROOT = process.cwd();
@@ -129,6 +132,20 @@ async function checkMarketplacePins(files: YamlFile[]): Promise<void> {
     uniq(pins.map((pin) => pin.repo)),
   );
 
+  const adoptedMajorsByRepo = new Map<string, number[]>();
+  for (const pin of pins) {
+    if (!/^v\d+$/.test(pin.ref)) {
+      continue;
+    }
+    const major = majorFromRef(pin.ref);
+    if (major == null) {
+      continue;
+    }
+    const adopted = adoptedMajorsByRepo.get(pin.repo) ?? [];
+    adopted.push(major);
+    adoptedMajorsByRepo.set(pin.repo, adopted);
+  }
+
   for (const pin of pins) {
     const spec = `${pin.repo}@${pin.ref}`;
     if (ACTION_PIN_EXCEPTIONS[spec]) {
@@ -140,7 +157,10 @@ async function checkMarketplacePins(files: YamlFile[]): Promise<void> {
       rel: pin.rel,
       ref: pin.ref,
       liveMajor: liveMajorByRepo.get(pin.repo) ?? null,
-      floorMajor: FALLBACK_LATEST_MAJOR[pin.repo],
+      floorMajor: pinFloorMajor(
+        FALLBACK_LATEST_MAJOR[pin.repo],
+        adoptedMajorsByRepo.get(pin.repo) ?? [],
+      ),
     });
 
     if (verdict.severity === "error") {

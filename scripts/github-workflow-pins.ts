@@ -12,6 +12,24 @@ export const FALLBACK_LATEST_MAJOR: Record<string, number> = {
   "jdx/mise-action": 4,
 };
 
+export const pinFloorMajor = (
+  fallbackMajor: number | undefined,
+  adoptedMajors: readonly number[],
+): number | undefined => {
+  const adopted =
+    adoptedMajors.length > 0 ? Math.max(...adoptedMajors) : undefined;
+
+  if (fallbackMajor == null) {
+    return adopted;
+  }
+
+  if (adopted == null) {
+    return fallbackMajor;
+  }
+
+  return Math.max(fallbackMajor, adopted);
+};
+
 export type MarketplacePinVerdict =
   | { severity: "ok" }
   | { severity: "error"; message: string }
@@ -44,8 +62,9 @@ export const latestMajorFromTagRefs = (body: unknown): number | null => {
 };
 
 /**
- * Fail on a pin older than this repo’s documented floor (`FALLBACK_LATEST_MAJOR`)
- * or a non-floating ref. A live GitHub major newer than the pin is a warning so
+ * Fail on a pin older than this repo’s floor (`FALLBACK_LATEST_MAJOR` raised
+ * by the highest floating major already used for that action) or a
+ * non-floating ref. A live GitHub major newer than the pin is a warning so
  * Dependabot can bump without turning every PR red.
  */
 export const evaluateMarketplacePin = ({

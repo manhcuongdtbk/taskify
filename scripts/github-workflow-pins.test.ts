@@ -4,6 +4,7 @@ import {
   evaluateMarketplacePin,
   latestMajorFromTagRefs,
   majorFromRef,
+  pinFloorMajor,
 } from "./github-workflow-pins";
 
 describe("majorFromRef", () => {
@@ -39,6 +40,24 @@ describe("latestMajorFromTagRefs", () => {
 
   test("returns null when there are no floating major tags", () => {
     expect(latestMajorFromTagRefs([{ ref: "refs/tags/v7.0.1" }])).toBeNull();
+  });
+});
+
+describe("pinFloorMajor", () => {
+  test("raises the documented floor to the highest major already pinned in the repo", () => {
+    expect(pinFloorMajor(7, [7, 8])).toBe(8);
+  });
+
+  test("keeps the documented floor when the repo has not adopted a newer major", () => {
+    expect(pinFloorMajor(7, [7])).toBe(7);
+  });
+
+  test("uses adopted majors when there is no documented floor", () => {
+    expect(pinFloorMajor(undefined, [2])).toBe(2);
+  });
+
+  test("uses the documented floor when no floating majors are adopted yet", () => {
+    expect(pinFloorMajor(7, [])).toBe(7);
   });
 });
 
@@ -122,6 +141,18 @@ describe("evaluateMarketplacePin", () => {
       message:
         ".github/workflows/ci.yml: actions/checkout@v7.0.1 must be the current major tag (e.g. @v7) unless listed in ACTION_PIN_EXCEPTIONS with a reason",
     });
+  });
+
+  test("errors when a pin is behind a major this repo already adopted", () => {
+    expect(
+      evaluateMarketplacePin({
+        spec: "actions/checkout@v7",
+        rel: ".github/workflows/ci.yml",
+        ref: "v7",
+        liveMajor: 8,
+        floorMajor: pinFloorMajor(7, [8]),
+      }),
+    ).toMatchObject({ severity: "error" });
   });
 
   test("still errors on a stale floor pin when GitHub’s API is unreachable", () => {
