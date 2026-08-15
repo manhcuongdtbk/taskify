@@ -7,6 +7,7 @@ import { server } from "../server";
 import { stillPending } from "./helpers/still-pending";
 import {
   cardAuditLogsInvalidJson,
+  cardAuditLogsNotFound,
   cardAuditLogsOk,
   cardAuditLogsPending,
   cardAuditLogsUnauthorized,
@@ -47,12 +48,17 @@ describe("card MSW handlers", () => {
 
   test("serves not found for a missing card", async () => {
     const card = cardWithListTitleFactory.build();
-    server.use(cardDetailNotFound());
+    server.use(cardDetailNotFound(), cardAuditLogsNotFound());
 
     const detail = await fetch(`/api/cards/${card.id}`);
+    const cardAuditLogsResponse = await fetch(
+      `/api/cards/${card.id}/audit-logs`,
+    );
 
     expect(detail.status).toBe(404);
     await expect(detail.text()).resolves.toBe("Not Found");
+    expect(cardAuditLogsResponse.status).toBe(404);
+    await expect(cardAuditLogsResponse.text()).resolves.toBe("Not Found");
   });
 
   test("serves unauthorized text responses", async () => {

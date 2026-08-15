@@ -27,7 +27,7 @@ export const FormPicker = ({
   const [images, setImages] = useState<AssetBasic[]>(defaultImages);
   const [isLoading, setIsLoading] = useState(true);
 
-  // TODO: Move this Unsplash read to TanStack Query (`lib/api/` factory) — client
+  // TODO: Move this Unsplash read to TanStack Query (`lib/tanstack-query/resources/` factory) — client
   // remote fetch belongs there (docs/data.md), not ad-hoc useEffect. Pick staleTime /
   // refetchOnMount deliberately: `/photos/random` is random; caching avoids reopen
   // spinner flash but keeps the same set until stale.

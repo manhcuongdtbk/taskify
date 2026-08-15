@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import * as z from "zod";
 
-import { fetcher } from "./fetcher";
+import { FetcherHttpError, fetcher } from "./fetcher";
 
 const CardIdJsonSchema = z.object({
   id: z.string().trim(),
@@ -33,11 +33,21 @@ describe("fetcher", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(fetcher("/api/missing", CardIdJsonSchema)).rejects.toThrow(
-      "Request failed: 404 Not Found",
+    const error = await fetcher("/api/missing", CardIdJsonSchema).then(
+      () => {
+        throw new Error("expected fetcher to reject");
+      },
+      (reason: unknown) => reason,
     );
+
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/missing");
     expect(json).not.toHaveBeenCalled();
+    expect(error).toBeInstanceOf(FetcherHttpError);
+    expect(error).toMatchObject({
+      status: 404,
+      statusText: "Not Found",
+      message: "Request failed: 404 Not Found",
+    });
   });
 
   test("throws when the JSON body fails the schema", async () => {

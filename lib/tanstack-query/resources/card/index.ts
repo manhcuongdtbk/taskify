@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import { fetcher } from "@/lib/fetcher";
+import { fetcher } from "@/lib/tanstack-query/fetcher";
 
 import {
   CardAuditLogsJsonSchema,
@@ -9,7 +9,7 @@ import {
 
 /**
  * Card remote-data factory for TanStack Query (client).
- * See docs/data.md (TanStack Query) — why lib/api vs app/api and queryOptions.
+ * See docs/data.md (TanStack Query) — lib/tanstack-query vs app/api and queryOptions.
  */
 export const cardQueries = {
   all: () => ["card"] as const,

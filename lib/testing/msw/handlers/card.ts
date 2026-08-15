@@ -12,7 +12,7 @@ import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
 
 import { pendingForever } from "./helpers/pending-forever";
 
-/** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/api/card`. */
+/** Relative paths match `fetcher(\`/api/cards/...\`)` in `lib/tanstack-query/resources/card`. */
 const cardDetailPath = "/api/cards/:cardId" as const;
 const cardAuditLogsPath = "/api/cards/:cardId/audit-logs" as const;
 
@@ -34,6 +34,13 @@ export const cardAuditLogsInvalidJson = () =>
 export const cardDetailNotFound = () =>
   http.get(
     cardDetailPath,
+    () => new HttpResponse("Not Found", { status: 404 }),
+  );
+
+/** Missing card — mirrors `app/api/cards/[cardId]/audit-logs` 404. */
+export const cardAuditLogsNotFound = () =>
+  http.get(
+    cardAuditLogsPath,
     () => new HttpResponse("Not Found", { status: 404 }),
   );
 

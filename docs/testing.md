@@ -167,7 +167,7 @@ Helpers that exist **only** to serve suites live in [`lib/testing/`](../lib/test
 
 ### MSW in this repo
 
-HTTP mocks for **Vitest** component + Query suites. Prefer MSW over ad-hoc `vi.stubGlobal("fetch", …)` when the UI under test goes through real `fetcher` / network (thin factory unit suites may still stub `fetch` — e.g. [`lib/api/card/index.test.ts`](../lib/api/card/index.test.ts)). Match the installed `msw` major — [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs).
+HTTP mocks for **Vitest** component + Query suites. Prefer MSW over ad-hoc `vi.stubGlobal("fetch", …)` when the UI under test goes through real `fetcher` / network (thin factory unit suites may still stub `fetch` — e.g. [`lib/tanstack-query/resources/card/index.test.ts`](../lib/tanstack-query/resources/card/index.test.ts)). Match the installed `msw` major — [`conventions.md` → Match installed official docs](./conventions.md#match-installed-official-docs).
 
 **Official entrypoints (version-matched):** [Quick start](https://mswjs.io/docs/quick-start/) · [Best practices](https://mswjs.io/docs/best-practices/) · [Structuring handlers](https://mswjs.io/docs/best-practices/structuring-handlers/) · [Avoid request assertions](https://mswjs.io/docs/best-practices/avoid-request-assertions/).
 
@@ -178,7 +178,7 @@ HTTP mocks for **Vitest** component + Query suites. Prefer MSW over ad-hoc `vi.s
 | Keep the Node server under [`lib/testing/msw/`](../lib/testing/msw/) (`server.ts`, [`handlers/`](../lib/testing/msw/handlers/) by resource)    | Invent a top-level `mocks/` / `src/mocks/` tree — tutorials often use that name; we avoid it ([`project-structure.md`](./project-structure.md))                                                                                                                                                      |
 | Lifecycle in [`vitest.setup.ts`](../vitest.setup.ts): `listen` → `resetHandlers` (with RTL `cleanup`) → `close`; `onUnhandledRequest: "error"` | Start a second `setupServer` per suite, or leave unhandled requests silent                                                                                                                                                                                                                           |
 | Override per test with `server.use(...)` (happy path vs error/pending)                                                                         | Assert that a particular request “was made” / spy MSW handlers as the main check — assert **UI** reaction ([Avoid request assertions](https://mswjs.io/docs/best-practices/avoid-request-assertions/)); house example: [`card-modal/index.test.tsx`](../components/modals/card-modal/index.test.tsx) |
-| Use MSW for our BFF / `fetcher` URLs (e.g. `/api/cards/...`)                                                                                   | Force MSW onto every remote — Unsplash goes through `unsplash-js` today; keep `vi.mock("@/lib/unsplash")` until that read moves to Query/`lib/api` ([`docs/data.md`](./data.md))                                                                                                                     |
+| Use MSW for our BFF / `fetcher` URLs (e.g. `/api/cards/...`)                                                                                   | Force MSW onto every remote — Unsplash goes through `unsplash-js` today; keep `vi.mock("@/lib/unsplash")` until that read moves to Query/`lib/tanstack-query/resources` ([`docs/data.md`](./data.md))                                                                                                |
 
 Default [`handlers`](../lib/testing/msw/handlers/index.ts) may stay empty; compose with `server.use` + one file per resource under [`handlers/`](../lib/testing/msw/handlers/) (MSW allows `setupServer()` with no base handlers; [Structuring handlers](https://mswjs.io/docs/best-practices/structuring-handlers/) mapped here instead of `mocks/handlers/`).
 
@@ -291,9 +291,9 @@ expect(warn).toHaveBeenCalledOnce();
 
 #### Calling `queryFn` from `queryOptions` in unit tests
 
-Resource **factories** ([`lib/api/card/`](../lib/api/card/); term: [`vocabulary.md`](./vocabulary.md)) build options with [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options). TanStack types `queryFn` as a function that takes a **`QueryFunctionContext`** (and the property may be optional). Our factories usually **ignore** that context — they close over `id` and call `fetcher` — so a unit test that invokes `queryFn` directly to assert the URL / payload hits a TypeScript mismatch: “expected 1 argument” / “possibly undefined.”
+Resource **factories** ([`lib/tanstack-query/resources/card/`](../lib/tanstack-query/resources/card/); term: [`vocabulary.md`](./vocabulary.md)) build options with [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options). TanStack types `queryFn` as a function that takes a **`QueryFunctionContext`** (and the property may be optional). Our factories usually **ignore** that context — they close over `id` and call `fetcher` — so a unit test that invokes `queryFn` directly to assert the URL / payload hits a TypeScript mismatch: “expected 1 argument” / “possibly undefined.”
 
-**Pattern** (example: [`lib/api/card/index.test.ts`](../lib/api/card/index.test.ts)):
+**Pattern** (example: [`lib/tanstack-query/resources/card/index.test.ts`](../lib/tanstack-query/resources/card/index.test.ts)):
 
 1. Stub `fetch` (or mock `fetcher`) so the call is hermetic.
 2. Assert `queryFn` is present if needed, then **cast only the call shape** so you can invoke with no args.
@@ -362,7 +362,7 @@ expect(result.current.isLoading).toBe(false);
 ```
 
 ```ts
-// lib/fetcher.test.ts — happy path
+// lib/tanstack-query/fetcher.test.ts — happy path
 const body = await fetcher("/api/cards/card_1", CardIdJsonSchema);
 
 expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
@@ -374,7 +374,7 @@ expect(body).toStrictEqual({ id: "card_1" });
 
 **When there is only one assert** (pure return, schema `safeParse` shape, store field), order is moot. **When several asserts span calls + state**, chronological order is required. Prefer `const result = await …` + ordered expects over `await expect(…).resolves…` then a mock assert that happened earlier — unless a single `rejects`/`resolves` is the whole test.
 
-Examples already following this: [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) · [`lib/fetcher.test.ts`](../lib/fetcher.test.ts) · [`lib/create-safe-action.test.ts`](../lib/create-safe-action.test.ts) · [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) · [`lib/api/card/index.test.ts`](../lib/api/card/index.test.ts).
+Examples already following this: [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) · [`lib/tanstack-query/fetcher.test.ts`](../lib/tanstack-query/fetcher.test.ts) · [`lib/create-safe-action.test.ts`](../lib/create-safe-action.test.ts) · [`lib/create-audit-log.test.ts`](../lib/create-audit-log.test.ts) · [`lib/tanstack-query/resources/card/index.test.ts`](../lib/tanstack-query/resources/card/index.test.ts).
 
 ### Vitest lint & config choices
 
@@ -525,17 +525,17 @@ Visual regression only? ──yes──► Playwright later
 
 ### Test types (vocabulary)
 
-| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                         | Typical files                | Examples                                                                                            |
-| --------------------------- | ------------------------------------------------------------ | ------------------------ | --------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                            | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/fetcher.ts`, `lib/paths.ts`, `lib/generate-audit-log-message.ts`        |
-| **Hook (`renderHook`)**     | Hook state/callbacks without mounting component JSX          | jsdom                    | **Vitest** + Testing Library                                          | `foo.test.ts` (match source) | [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) — **not** `.tsx` unless the suite has JSX |
-| **Component (static)**      | Given props, the right roles/text/structure appear           | jsdom                    | **Vitest** + Testing Library                                          | `foo.test.tsx`               | Modal header title, disabled submit, empty list copy                                                |
-| **Component (interactive)** | User events change UI or call callbacks                      | jsdom + synthetic events | **Vitest** + Testing Library + `user-event`                           | `foo.test.tsx`               | Type board title, open/close modal via store, toggle sidebar                                        |
-| **Component + HTTP**        | Query/UI with mocked network (not the real API)              | jsdom + MSW              | **Vitest** + MSW                                                      | `foo.test.tsx`               | Card modal fetch success/error with MSW handlers                                                    |
-| **E2E (end-to-end)**        | A real user journey through the deployed/dev app             | Real browser             | **Playwright** — **not added**; untested until then                   | `e2e/*.spec.ts`              | Sign-in → create board → add card → open billing                                                    |
-| **Visual regression**       | Pixels / layout look unchanged (or intentionally changed)    | Real browser             | **Playwright** later; Storybook/Chromatic only if workshop trigger    | `e2e/` or later stories      | Optional smoke screenshot of board canvas                                                           |
-| **Accessibility checks**    | Axe/roles issues on a unit of UI or a page                   | jsdom and/or browser     | **Vitest** for isolated components now; full pages wait on Playwright | colocated or later `e2e/`    | Form missing label; dashboard a11y smoke                                                            |
-| **Story / catalog**         | Document and browse UI states for humans                     | Storybook app            | **Storybook** (when needed)                                           | `foo.stories.tsx`            | All `CardModal` variants side by side — **not** a duplicate of the Vitest suite                     |
+| Test type                   | What you are checking                                        | Runs in                  | **Tool here**                                                         | Typical files                | Examples                                                                                                    |
+| --------------------------- | ------------------------------------------------------------ | ------------------------ | --------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Unit**                    | One function/module in isolation — inputs → outputs / throws | Node (Vitest)            | **Vitest**                                                            | `foo.test.ts` next to module | `actions/*/schema.ts`, `lib/tanstack-query/fetcher.ts`, `lib/paths.ts`, `lib/generate-audit-log-message.ts` |
+| **Hook (`renderHook`)**     | Hook state/callbacks without mounting component JSX          | jsdom                    | **Vitest** + Testing Library                                          | `foo.test.ts` (match source) | [`hooks/use-action.test.ts`](../hooks/use-action.test.ts) — **not** `.tsx` unless the suite has JSX         |
+| **Component (static)**      | Given props, the right roles/text/structure appear           | jsdom                    | **Vitest** + Testing Library                                          | `foo.test.tsx`               | Modal header title, disabled submit, empty list copy                                                        |
+| **Component (interactive)** | User events change UI or call callbacks                      | jsdom + synthetic events | **Vitest** + Testing Library + `user-event`                           | `foo.test.tsx`               | Type board title, open/close modal via store, toggle sidebar                                                |
+| **Component + HTTP**        | Query/UI with mocked network (not the real API)              | jsdom + MSW              | **Vitest** + MSW                                                      | `foo.test.tsx`               | Card modal fetch success/error with MSW handlers                                                            |
+| **E2E (end-to-end)**        | A real user journey through the deployed/dev app             | Real browser             | **Playwright** — **not added**; untested until then                   | `e2e/*.spec.ts`              | Sign-in → create board → add card → open billing                                                            |
+| **Visual regression**       | Pixels / layout look unchanged (or intentionally changed)    | Real browser             | **Playwright** later; Storybook/Chromatic only if workshop trigger    | `e2e/` or later stories      | Optional smoke screenshot of board canvas                                                                   |
+| **Accessibility checks**    | Axe/roles issues on a unit of UI or a page                   | jsdom and/or browser     | **Vitest** for isolated components now; full pages wait on Playwright | colocated or later `e2e/`    | Form missing label; dashboard a11y smoke                                                                    |
+| **Story / catalog**         | Document and browse UI states for humans                     | Storybook app            | **Storybook** (when needed)                                           | `foo.stories.tsx`            | All `CardModal` variants side by side — **not** a duplicate of the Vitest suite                             |
 
 **Not separate runners here:** “integration” is overloaded. A Vitest test that renders a component with MSW is still **Vitest** (component + HTTP). We do **not** add a third harness named integration.
 

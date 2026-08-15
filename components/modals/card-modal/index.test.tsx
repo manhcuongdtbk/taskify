@@ -1,10 +1,11 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import {
   cardAuditLogsInvalidJson,
+  cardAuditLogsNotFound,
   cardAuditLogsOk,
   cardAuditLogsPending,
   cardAuditLogsUnauthorized,
@@ -89,6 +90,9 @@ describe("CardModal", () => {
     expect(await screen.findByTestId("card-header")).toHaveTextContent(
       card.title,
     );
+    expect(
+      screen.getByRole("dialog", { name: "Card details" }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("card-description")).toHaveTextContent(card.id);
     expect(screen.getByTestId("card-actions")).toHaveTextContent(card.id);
     expect(screen.getByTestId("card-activity")).toHaveTextContent("1");
@@ -127,6 +131,29 @@ describe("CardModal", () => {
 
   test("shows a load error when the card is missing", async () => {
     const card = cardWithListTitleFactory.build();
+    server.use(cardDetailNotFound(), cardAuditLogsNotFound());
+    useCardModalStore.getState().open(card.id);
+
+    renderWithQuery(<CardModal />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't load this card",
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Card details" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("card-header-skeleton"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-activity")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Couldn't load activity"),
+    ).not.toBeInTheDocument();
+  });
+
+  test("hides activity when the card is missing even if card audit logs return", async () => {
+    const card = cardWithListTitleFactory.build();
     const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
     server.use(cardDetailNotFound(), cardAuditLogsOk([cardAuditLog]));
     useCardModalStore.getState().open(card.id);
@@ -136,17 +163,10 @@ describe("CardModal", () => {
     expect(
       await screen.findByText("Couldn't load this card"),
     ).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Couldn't load this card",
-    );
+    expect(screen.queryByTestId("card-activity")).not.toBeInTheDocument();
     expect(
-      screen.queryByTestId("card-header-skeleton"),
+      screen.queryByText("Couldn't load activity"),
     ).not.toBeInTheDocument();
-    expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
-    // Card audit logs can still resolve independently.
-    await waitFor(() => {
-      expect(screen.getByTestId("card-activity")).toHaveTextContent("1");
-    });
   });
 
   test("shows load errors when card fetches are unauthorized", async () => {
@@ -159,14 +179,28 @@ describe("CardModal", () => {
     expect(
       await screen.findByText("Couldn't load this card"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Couldn't load activity")).toBeInTheDocument();
-    expect(screen.getAllByRole("alert")).toHaveLength(2);
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(
+      screen.queryByText("Couldn't load activity"),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByTestId("card-header-skeleton"),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByTestId("card-activity-skeleton"),
     ).not.toBeInTheDocument();
+  });
+
+  test("shows an activity load error when only card audit logs are unauthorized", async () => {
+    const card = cardWithListTitleFactory.build();
+    server.use(cardDetailOk(card), cardAuditLogsUnauthorized());
+    useCardModalStore.getState().open(card.id);
+
+    renderWithQuery(<CardModal />);
+
+    expect(await screen.findByTestId("card-header")).toBeInTheDocument();
+    expect(screen.getByText("Couldn't load activity")).toBeInTheDocument();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
   });
 
   test("shows load errors when card JSON fails the Query schema", async () => {
@@ -178,8 +212,10 @@ describe("CardModal", () => {
     expect(
       await screen.findByText("Couldn't load this card"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Couldn't load activity")).toBeInTheDocument();
-    expect(screen.getAllByRole("alert")).toHaveLength(2);
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(
+      screen.queryByText("Couldn't load activity"),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
     expect(screen.queryByTestId("card-activity")).not.toBeInTheDocument();
   });

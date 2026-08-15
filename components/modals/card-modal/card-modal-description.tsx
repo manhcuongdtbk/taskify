@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
-import { cardQueries } from "@/lib/api/card";
+import { cardQueries } from "@/lib/tanstack-query/resources/card";
 import { formDataString } from "@/lib/form-data";
 
 const heading = "Description";
