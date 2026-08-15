@@ -18,13 +18,20 @@ export async function GET(
 
   const { cardId } = await params;
 
-  // Existence + logs in one round-trip. Missing card still 404s. docs/prisma.md
-  const [card, cardAuditLogs] = await prisma.$transaction([
-    prisma.card.findUnique({
+  // Existence then logs in one interactive transaction so a missing card
+  // (or other org) skips findMany. notFound() stays outside — a throw inside
+  // $transaction is a rollback, not a 404. docs/prisma.md · docs/data.md
+  const cardAuditLogs = await prisma.$transaction(async (tx) => {
+    const card = await tx.card.findUnique({
       where: { id: cardId, list: { board: { orgId } } },
       select: { id: true },
-    }),
-    prisma.auditLog.findMany({
+    });
+
+    if (!card) {
+      return null;
+    }
+
+    return tx.auditLog.findMany({
       where: {
         orgId,
         entityId: cardId,
@@ -34,10 +41,10 @@ export async function GET(
         createdAt: "desc",
       },
       take: 3,
-    }),
-  ]);
+    });
+  });
 
-  if (!card) {
+  if (!cardAuditLogs) {
     notFound();
   }
 
