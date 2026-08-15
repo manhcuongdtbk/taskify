@@ -63,12 +63,24 @@ describe("CardItem", () => {
   test("opens the card modal with Enter", async () => {
     const card = cardFactory.build();
     const user = userEvent.setup();
+    let enterDefaultPrevented: boolean | undefined;
+    const handleEnterKeyDown = (event: Event) => {
+      if (!(event instanceof KeyboardEvent) || event.key !== "Enter") {
+        return;
+      }
+
+      enterDefaultPrevented = event.defaultPrevented;
+    };
 
     render(<CardItem index={0} card={card} />);
 
-    screen.getByRole("button", { name: card.title }).focus();
+    const handle = screen.getByRole("button", { name: card.title });
+    document.addEventListener("keydown", handleEnterKeyDown);
+    handle.focus();
     await user.keyboard("{Enter}");
+    document.removeEventListener("keydown", handleEnterKeyDown);
 
+    expect(enterDefaultPrevented).toBe(true);
     expect(useCardModalStore.getState().id).toBe(card.id);
     expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(true);
   });
@@ -76,12 +88,24 @@ describe("CardItem", () => {
   test("does not open the card modal with Space", async () => {
     const card = cardFactory.build();
     const user = userEvent.setup();
+    let spaceDefaultPrevented: boolean | undefined;
+    const handleSpaceKeyDown = (event: Event) => {
+      if (!(event instanceof KeyboardEvent) || event.key !== " ") {
+        return;
+      }
+
+      spaceDefaultPrevented = event.defaultPrevented;
+    };
 
     render(<CardItem index={0} card={card} />);
 
-    screen.getByRole("button", { name: card.title }).focus();
+    const handle = screen.getByRole("button", { name: card.title });
+    document.addEventListener("keydown", handleSpaceKeyDown);
+    handle.focus();
     await user.keyboard(" ");
+    document.removeEventListener("keydown", handleSpaceKeyDown);
 
+    expect(spaceDefaultPrevented).toBe(false);
     expect(useCardModalStore.getState().id).toBeUndefined();
     expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(false);
   });
