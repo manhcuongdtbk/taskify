@@ -5,8 +5,7 @@ import { createQueryClient, retryQuery } from "@/lib/tanstack-query/client";
 import { FetcherHttpError } from "@/lib/tanstack-query/fetcher";
 import { cardQueries } from "@/lib/tanstack-query/resources/card";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
-
-const jsonBody = (value: unknown) => JSON.parse(JSON.stringify(value));
+import { jsonBody } from "@/lib/testing/json-body";
 
 const fetchQueryClient = () => {
   const queryClient = createQueryClient();

@@ -2,13 +2,12 @@ import { describe, expect, test } from "vitest";
 
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
+import { jsonBody } from "@/lib/testing/json-body";
 
 import {
   CardAuditLogsJsonSchema,
   CardWithListTitleJsonSchema,
 } from "./card.schema";
-
-const jsonBody = (value: unknown) => JSON.parse(JSON.stringify(value));
 
 describe("CardWithListTitleJsonSchema", () => {
   test("maps JSON ISO datetimes to Date", () => {

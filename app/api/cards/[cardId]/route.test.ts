@@ -6,6 +6,7 @@ import { describe, expect, test, vi } from "vitest";
 import prisma from "@/lib/prisma/client";
 import { cardWithListTitleArgs } from "@/lib/prisma/query-options/card";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
+import { jsonBody } from "@/lib/testing/json-body";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: {
@@ -39,8 +40,6 @@ const request = new NextRequest("http://localhost/api/cards/card_1");
 const contextFor = (cardId: string) => ({
   params: Promise.resolve({ cardId }),
 });
-
-const jsonBody = (value: unknown) => JSON.parse(JSON.stringify(value));
 
 describe("GET /api/cards/[cardId]", () => {
   test("returns 401 without querying when there is no session", async () => {

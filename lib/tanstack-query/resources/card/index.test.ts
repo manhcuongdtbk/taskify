@@ -4,10 +4,9 @@ import * as z from "zod";
 
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
+import { jsonBody } from "@/lib/testing/json-body";
 
 import { cardQueries } from "./index";
-
-const jsonBody = (value: unknown) => JSON.parse(JSON.stringify(value));
 
 describe("cardQueries", () => {
   test("all returns the card root key", () => {

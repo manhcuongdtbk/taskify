@@ -7,6 +7,7 @@ import { describe, expect, test, vi } from "vitest";
 import prisma from "@/lib/prisma/client";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardFactory } from "@/lib/testing/factories/card";
+import { jsonBody } from "@/lib/testing/json-body";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: {
@@ -42,8 +43,6 @@ const request = new NextRequest("http://localhost/api/cards/card_1/audit-logs");
 const contextFor = (cardId: string) => ({
   params: Promise.resolve({ cardId }),
 });
-
-const jsonBody = (value: unknown) => JSON.parse(JSON.stringify(value));
 
 const mockInteractiveTransaction = () => {
   transactionMock.mockImplementation(async (fn) => {
