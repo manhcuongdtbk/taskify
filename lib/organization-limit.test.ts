@@ -134,21 +134,16 @@ describe("decrementAvailableCount", () => {
     });
   });
 
-  test("creates a count of 1 when decrementing and no limit row exists", async () => {
+  test("does not create a limit row when decrementing and none exists", async () => {
     authMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(null);
-    createMock.mockResolvedValue(
-      organizationLimitFactory.build({ orgId: "org_1", count: 1 }),
-    );
 
     await decrementAvailableCount();
 
     expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
     });
-    expect(createMock).toHaveBeenCalledExactlyOnceWith({
-      data: { orgId: "org_1", count: 1 },
-    });
+    expect(createMock).not.toHaveBeenCalled();
     expect(updateMock).not.toHaveBeenCalled();
   });
 });

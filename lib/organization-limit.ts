@@ -47,23 +47,18 @@ export const decrementAvailableCount = async () => {
     },
   });
 
-  if (organizationLimit) {
-    await prisma.organizationLimit.update({
-      where: {
-        orgId,
-      },
-      data: {
-        count: organizationLimit.count > 0 ? organizationLimit.count - 1 : 0,
-      },
-    });
-  } else {
-    await prisma.organizationLimit.create({
-      data: {
-        orgId,
-        count: 1,
-      },
-    });
+  if (!organizationLimit) {
+    return;
   }
+
+  await prisma.organizationLimit.update({
+    where: {
+      orgId,
+    },
+    data: {
+      count: organizationLimit.count > 0 ? organizationLimit.count - 1 : 0,
+    },
+  });
 };
 
 export const hasAvailableCount = async () => {
