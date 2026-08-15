@@ -45,21 +45,23 @@ describe("cardQueries", () => {
     expect(body).toStrictEqual(card);
   });
 
-  // The route serves findUnique's result, so a deleted or cross-org card comes
-  // back as a 200 null body — fetcher does not throw, and null reaches the UI.
-  test("detail queryFn surfaces a null body for a missing card", async () => {
+  test("detail queryFn throws when the card is missing", async () => {
+    const json = vi.fn();
     const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue(null),
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      json,
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const { queryFn } = cardQueries.detail("card_1");
-    // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
-    const body = await (queryFn as () => Promise<unknown>)();
 
+    await expect((queryFn as () => Promise<unknown>)()).rejects.toThrow(
+      "Request failed: 404 Not Found",
+    );
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
-    expect(body).toBeNull();
+    expect(json).not.toHaveBeenCalled();
   });
 
   test("detail queryFn rejects a partial JSON card", async () => {

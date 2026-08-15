@@ -16,7 +16,7 @@ import { pendingForever } from "./helpers/pending-forever";
 const cardDetailPath = "/api/cards/:cardId" as const;
 const cardAuditLogsPath = "/api/cards/:cardId/audit-logs" as const;
 
-export const cardDetailOk = (card: CardWithListTitle | null) =>
+export const cardDetailOk = (card: CardWithListTitle) =>
   http.get(cardDetailPath, () => HttpResponse.json(card));
 
 export const cardAuditLogsOk = (cardAuditLogs: AuditLog[]) =>
@@ -29,6 +29,13 @@ export const cardDetailInvalidJson = () =>
 /** 200 JSON that is not card audit logs — `fetcher` schema.parse throws. */
 export const cardAuditLogsInvalidJson = () =>
   http.get(cardAuditLogsPath, () => HttpResponse.json([{ id: "auditLog_1" }]));
+
+/** Missing card — mirrors `app/api/cards/[cardId]` 404. */
+export const cardDetailNotFound = () =>
+  http.get(
+    cardDetailPath,
+    () => new HttpResponse("Not Found", { status: 404 }),
+  );
 
 export const cardDetailUnauthorized = () =>
   http.get(

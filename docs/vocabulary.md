@@ -198,8 +198,7 @@ export const cardQueries = {
   detail: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "detail"] as const,
-      queryFn: () =>
-        fetcher(`/api/cards/${id}`, CardWithListTitleJsonSchema.nullable()), // | null until route returns 404 — docs/data.md
+      queryFn: () => fetcher(`/api/cards/${id}`, CardWithListTitleJsonSchema),
       enabled: !!id,
     }),
 };

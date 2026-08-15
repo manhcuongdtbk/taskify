@@ -7,9 +7,11 @@
  *
  * Marketplace `uses:` must be the **current major tag** (`actions/checkout@v7`),
  * not an older major, a patch pin, or a commit SHA — unless listed in
- * `ACTION_PIN_EXCEPTIONS` with a reason. Latest-major lookup is
- * `/releases/latest` with a timeout; set `GITHUB_TOKEN` or `GH_TOKEN` in CI.
- * Dependabot ignores patch/minor so it does not rewrite `@v7` → `@v7.0.1`.
+ * `ACTION_PIN_EXCEPTIONS` with a reason. Latest major is the highest `vN`
+ * tag (`/git/matching-refs/tags/v`), not `/releases/latest` (that follows the
+ * newest GitHub Release, which can lag or skip a moving major tag). Timeout;
+ * set `GITHUB_TOKEN` or `GH_TOKEN` in CI. Dependabot ignores patch/minor so
+ * it does not rewrite `@v7` → `@v7.0.1`.
  * Docs: docs/conventions.md.
  *
  *   pnpm lint:workflows
@@ -57,7 +59,7 @@ const FALLBACK_LATEST_MAJOR: Record<string, number> = {
   "jdx/mise-action": 4,
 };
 
-const GITHUB_RELEASES_TIMEOUT_MS = 10_000;
+const GITHUB_API_TIMEOUT_MS = 10_000;
 const errors: string[] = [];
 
 void main().catch((reason: unknown) => {
@@ -194,7 +196,7 @@ async function resolveLatestMajors(
   );
 }
 
-async function fetchLatestMajor(repo: string): Promise<number | null> {
+function githubApiHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     "User-Agent": "taskify-lint-workflows",
@@ -204,23 +206,46 @@ async function fetchLatestMajor(repo: string): Promise<number | null> {
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
+  return headers;
+}
 
+/** Highest floating major tag (`v7`, not `v7.0.1`). */
+function latestMajorFromTagRefs(body: unknown): number | null {
+  if (!Array.isArray(body)) {
+    return null;
+  }
+
+  const majors: number[] = [];
+  for (const item of body) {
+    if (!isJSONObject(item) || typeof item.ref !== "string") {
+      continue;
+    }
+    const tag = item.ref.replace(/^refs\/tags\//u, "");
+    if (!/^v\d+$/u.test(tag)) {
+      continue;
+    }
+    const major = majorFromRef(tag);
+    if (major != null) {
+      majors.push(major);
+    }
+  }
+
+  return majors.length > 0 ? Math.max(...majors) : null;
+}
+
+async function fetchLatestMajor(repo: string): Promise<number | null> {
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${repo}/releases/latest`,
+      `https://api.github.com/repos/${repo}/git/matching-refs/tags/v`,
       {
-        headers,
-        signal: AbortSignal.timeout(GITHUB_RELEASES_TIMEOUT_MS),
+        headers: githubApiHeaders(),
+        signal: AbortSignal.timeout(GITHUB_API_TIMEOUT_MS),
       },
     );
     if (!response.ok) {
       return null;
     }
-    const body: unknown = await response.json();
-    if (!isJSONObject(body) || typeof body.tag_name !== "string") {
-      return null;
-    }
-    return majorFromRef(body.tag_name);
+    return latestMajorFromTagRefs(await response.json());
   } catch {
     return null;
   }

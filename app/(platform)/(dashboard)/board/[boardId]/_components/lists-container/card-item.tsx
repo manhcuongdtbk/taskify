@@ -36,10 +36,10 @@ export const CardItem = ({ index, card }: CardItemProps) => {
           {...provided.dragHandleProps}
           ref={provided.innerRef}
           onClick={handleActivate}
+          // After the spread so we add Enter-to-open without replacing
+          // role / tabIndex from dragHandleProps.
           onKeyDown={handleKeyDown}
           className="truncate rounded-md border-2 border-transparent bg-white px-3 py-2 text-sm shadow-sm hover:border-black"
-          role="button"
-          tabIndex={0}
         >
           {card.title}
         </div>

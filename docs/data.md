@@ -31,9 +31,9 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 
 - **Default read path** — Server Components + Prisma with `orgId` scoping
 - **Default write path** — Server Actions under `actions/` with Zod schemas; `createSafeAction` + `ActionState` (`SchemaActionErrors` ∩ `HandlerActionResult`: `fieldErrors` / `formErrors` from the schema, `serverError` / `data` from the handler) — [`conventions.md` → Action validation messages](./conventions.md#action-validation-messages-zod)
-- **Client read cache** — TanStack Query + `lib/fetcher.ts` for card modal (and similar client islands). Distinguish pending vs `isError` (do not leave failed fetches on skeletons)
+- **Client read cache** — TanStack Query + `lib/fetcher.ts` for card modal (and similar client islands). Keep the `useQuery` result object and branch `isPending` → `isError` → `data` ([Queries](https://tanstack.com/query/v5/docs/framework/react/guides/queries)); do not destructure those fields (loses the status union) or use `!data` as loading (failed fetches look like skeletons)
 - **Client Action helper** — `useAction` wrapping safe-action results (see TODO to align with `useActionState`)
-- **Route Handlers** — webhooks and client-facing JSON the modal needs; not the primary mutation style
+- **Route Handlers** — webhooks and client-facing JSON the modal needs; not the primary mutation style. Handler throws vs HTTP status: [`nextjs.md`](./nextjs.md)
 - **Transport picks** — REST → `fetch`; GraphQL → `graphql-request` only if we adopt GraphQL; mocks → MSW — [`testing.md`](./testing.md) · [`conventions.md`](./conventions.md)
 
 **Tip — `React.cache`:** request-scoped memoization for server helpers (same args → same Promise in one RSC render). It is **not** Redis and **not** Next’s Data Cache — see [Cache](#cache-means-different-things-traditional-be-vs-next-vs-client). Use when the same `auth()` / profile helper would otherwise hit Clerk/DB twice per request.
@@ -49,7 +49,7 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 - [ ] **Unsplash** — whether client + public key stays acceptable vs server-only fetch (production Unsplash app TODO in `lib/unsplash.ts`)
 - [ ] **Board image URL allowlist** — constrain `CreateBoardSchema.image` URLs to known Unsplash hosts (and related link hosts) after https-only + `cssUrl` ([`create-board/schema.ts`](../actions/create-board/schema.ts), [`cssUrl`](../lib/utils.ts))
 - [ ] **Server-verify Unsplash photo by id** — on create, fetch/confirm the photo server-side and persist those URLs so the client cannot spoof `thumbUrl` / `fullUrl` / attribution ([`create-board`](../actions/create-board/index.ts))
-- [ ] **404 instead of a 200 `null` body** — [`app/api/cards/[cardId]`](../app/api/cards/%5BcardId%5D/route.ts) returns `findUnique`’s result, so a deleted or cross-org card reads as an empty success. Fix the handler, then drop the `| null` workaround in [`lib/api/card/`](../lib/api/card/)
+- [x] **404 instead of a 200 `null` body** — [`app/api/cards/[cardId]`](../app/api/cards/%5BcardId%5D/route.ts) calls [`notFound()`](https://nextjs.org/docs/app/api-reference/functions/not-found) when `findUnique` is empty; [`lib/api/card/`](../lib/api/card/) parses a card object (not `| null`). The modal treats that as `isError` ([`card-modal`](../components/modals/card-modal/index.tsx))
 - [ ] **Stronger DAL / DTO** — only if authorization-near-data keeps getting duplicated; don’t invent `dal.ts` for fashion (see [DAL and DTO](#dal-and-dto-not-auth-only))
 
 ## Out of scope for now

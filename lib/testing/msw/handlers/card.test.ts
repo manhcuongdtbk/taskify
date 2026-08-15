@@ -11,6 +11,7 @@ import {
   cardAuditLogsPending,
   cardAuditLogsUnauthorized,
   cardDetailInvalidJson,
+  cardDetailNotFound,
   cardDetailOk,
   cardDetailPending,
   cardDetailUnauthorized,
@@ -44,14 +45,14 @@ describe("card MSW handlers", () => {
     ]);
   });
 
-  test("serves a null card body", async () => {
+  test("serves not found for a missing card", async () => {
     const card = cardWithListTitleFactory.build();
-    server.use(cardDetailOk(null));
+    server.use(cardDetailNotFound());
 
     const detail = await fetch(`/api/cards/${card.id}`);
 
-    expect(detail.ok).toBe(true);
-    await expect(detail.json()).resolves.toBeNull();
+    expect(detail.status).toBe(404);
+    await expect(detail.text()).resolves.toBe("Not Found");
   });
 
   test("serves unauthorized text responses", async () => {

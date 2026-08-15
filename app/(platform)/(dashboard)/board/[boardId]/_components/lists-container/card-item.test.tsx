@@ -10,6 +10,11 @@ import {
   useCardModalStore,
 } from "@/stores/use-card-modal-store";
 
+const dragHandle = vi.hoisted(() => ({
+  role: "button",
+  tabIndex: 0,
+}));
+
 vi.mock("@hello-pangea/dnd", () => ({
   Draggable: ({
     children,
@@ -25,8 +30,8 @@ vi.mock("@hello-pangea/dnd", () => ({
       dragHandleProps: {
         "data-rfd-drag-handle-draggable-id": "card",
         "data-rfd-drag-handle-context-id": "test",
-        role: "button",
-        tabIndex: 0,
+        role: dragHandle.role,
+        tabIndex: dragHandle.tabIndex,
         "aria-describedby": "drag-handle-instruction",
         draggable: true,
         onDragStart: () => {},
@@ -39,6 +44,8 @@ import { CardItem } from "./card-item";
 describe("CardItem", () => {
   afterEach(() => {
     useCardModalStore.getState().close();
+    dragHandle.role = "button";
+    dragHandle.tabIndex = 0;
   });
 
   test("opens the card modal on click", async () => {
@@ -90,5 +97,17 @@ describe("CardItem", () => {
 
     expect(useCardModalStore.getState().id).toBeUndefined();
     expect(selectCardModalIsOpen(useCardModalStore.getState())).toBe(false);
+  });
+
+  test("keeps dnd drag-handle role and tabIndex", () => {
+    const card = cardFactory.build();
+    dragHandle.role = "group";
+    dragHandle.tabIndex = -1;
+
+    render(<CardItem index={0} card={card} />);
+
+    const handle = screen.getByText(card.title);
+    expect(handle).toHaveAttribute("role", "group");
+    expect(handle).toHaveAttribute("tabindex", "-1");
   });
 });

@@ -9,6 +9,7 @@ import {
   cardAuditLogsPending,
   cardAuditLogsUnauthorized,
   cardDetailInvalidJson,
+  cardDetailNotFound,
   cardDetailOk,
   cardDetailPending,
   cardDetailUnauthorized,
@@ -124,19 +125,24 @@ describe("CardModal", () => {
     expect(screen.getByTestId("card-activity-skeleton")).toBeInTheDocument();
   });
 
-  test("stays on card skeletons when the detail body is null", async () => {
+  test("shows a load error when the card is missing", async () => {
     const card = cardWithListTitleFactory.build();
     const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
-    server.use(cardDetailOk(null), cardAuditLogsOk([cardAuditLog]));
+    server.use(cardDetailNotFound(), cardAuditLogsOk([cardAuditLog]));
     useCardModalStore.getState().open(card.id);
 
     renderWithQuery(<CardModal />);
 
     expect(
-      await screen.findByTestId("card-header-skeleton"),
+      await screen.findByText("Couldn't load this card"),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("card-description-skeleton")).toBeInTheDocument();
-    expect(screen.getByTestId("card-actions-skeleton")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Couldn't load this card",
+    );
+    expect(
+      screen.queryByTestId("card-header-skeleton"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
     // Card audit logs can still resolve independently.
     await waitFor(() => {
       expect(screen.getByTestId("card-activity")).toHaveTextContent("1");
