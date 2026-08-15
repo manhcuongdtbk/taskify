@@ -1,4 +1,3 @@
-import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, test, vi } from "vitest";
 import * as z from "zod";
 
@@ -7,11 +6,21 @@ import { FetcherHttpError } from "@/lib/tanstack-query/fetcher";
 import { cardQueries } from "@/lib/tanstack-query/resources/card";
 
 describe("retryQuery", () => {
-  test("does not retry HTTP 4xx from fetcher", () => {
+  test("does not retry HTTP 4xx from fetcher except 408 and 429", () => {
     expect(retryQuery(0, new FetcherHttpError(404, "Not Found"))).toBe(false);
     expect(retryQuery(0, new FetcherHttpError(401, "Unauthorized"))).toBe(
       false,
     );
+  });
+
+  test("retries HTTP 408 and 429 from fetcher up to three times", () => {
+    const requestTimeout = new FetcherHttpError(408, "Request Timeout");
+    const tooManyRequests = new FetcherHttpError(429, "Too Many Requests");
+
+    expect(retryQuery(0, requestTimeout)).toBe(true);
+    expect(retryQuery(3, requestTimeout)).toBe(false);
+    expect(retryQuery(0, tooManyRequests)).toBe(true);
+    expect(retryQuery(3, tooManyRequests)).toBe(false);
   });
 
   test("retries HTTP 5xx from fetcher up to three times", () => {
@@ -59,12 +68,11 @@ describe("createQueryClient", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: retryQuery,
-          retryDelay: 0,
-        },
+    const queryClient = createQueryClient();
+    queryClient.setDefaultOptions({
+      queries: {
+        ...queryClient.getDefaultOptions().queries,
+        retryDelay: 0,
       },
     });
     const error = await queryClient

@@ -124,7 +124,7 @@ Card JSON BFF: [`app/api/cards/[cardId]/route.ts`](../app/api/cards/%5BcardId%5D
 
 [`unauthorized()`](https://nextjs.org/docs/app/api-reference/functions/unauthorized) needs experimental [`authInterrupts`](https://nextjs.org/docs/app/api-reference/config/next-config-js/authInterrupts) (“not recommended for production”). We keep explicit 401 `NextResponse` until that is stable.
 
-Client Query does not distinguish 401 / 404 / 500 in the UI — `lib/tanstack-query/fetcher.ts` throws `FetcherHttpError` on any `!res.ok`. [`retryQuery`](../lib/tanstack-query/client.ts) does **not** retry 4xx (or Zod parse failures); 5xx / network still use Query’s default 3 retries.
+Client Query does not distinguish 401 / 404 / 500 in the UI — `lib/tanstack-query/fetcher.ts` throws `FetcherHttpError` on any `!res.ok`. [`retryQuery`](../lib/tanstack-query/client.ts) does **not** retry 4xx except 408/429, or Zod parse failures; 5xx / network still use Query’s default 3 retries.
 
 ## Typed routes and env
 

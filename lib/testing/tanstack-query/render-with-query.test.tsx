@@ -2,18 +2,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 
+import { retryQuery } from "@/lib/tanstack-query/client";
+
 import { renderWithQuery } from "./render-with-query";
 
 const Probe = () => {
   const queryClient = useQueryClient();
-  return <p>{queryClient ? "ready" : "missing"}</p>;
+  const retry = queryClient.getDefaultOptions().queries?.retry;
+  return <p>{retry === retryQuery ? "retryQuery" : "other"}</p>;
 };
 
 describe("renderWithQuery", () => {
-  test("provides a QueryClient and exposes an invalidateQueries spy", () => {
+  test("provides a QueryClient with retryQuery and exposes an invalidateQueries spy", () => {
     const { invalidateQueries } = renderWithQuery(<Probe />);
 
-    expect(screen.getByText("ready")).toBeInTheDocument();
+    expect(screen.getByText("retryQuery")).toBeInTheDocument();
     expect(invalidateQueries).not.toHaveBeenCalled();
   });
 });
