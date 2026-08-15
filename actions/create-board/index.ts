@@ -9,7 +9,8 @@ import { CreateBoardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import {
-  hasAvailableCount,
+  FREE_BOARD_LIMIT_SERVER_ERROR,
+  FreeBoardLimitReachedError,
   incrementAvailableCount,
 } from "@/lib/organization-limit";
 import { checkSubscription } from "@/lib/subscription";
@@ -23,46 +24,53 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
     };
   }
 
-  const canCreate = await hasAvailableCount();
   const isPro = await checkSubscription();
-
-  if (!canCreate && !isPro) {
-    return {
-      serverError:
-        "You have reached your limit of free boards. Please upgrade to create more.",
-    };
-  }
 
   let board;
 
   try {
-    board = await prisma.board.create({
-      data: {
-        title,
-        orgId,
-        imageId: image.id,
-        imageThumbUrl: image.thumbUrl,
-        imageFullUrl: image.fullUrl,
-        imageLinkHTML: image.linkHTML,
-        imageUserName: image.userName,
-      },
-    });
+    board = await prisma.$transaction(async (tx) => {
+      if (!isPro) {
+        const reserved = await incrementAvailableCount(tx);
+        if (!reserved) {
+          throw new FreeBoardLimitReachedError();
+        }
+      }
 
-    if (!isPro) {
-      await incrementAvailableCount();
+      return tx.board.create({
+        data: {
+          title,
+          orgId,
+          imageId: image.id,
+          imageThumbUrl: image.thumbUrl,
+          imageFullUrl: image.fullUrl,
+          imageLinkHTML: image.linkHTML,
+          imageUserName: image.userName,
+        },
+      });
+    });
+  } catch (reason) {
+    if (
+      reason instanceof FreeBoardLimitReachedError ||
+      (reason instanceof Error &&
+        reason.message === FREE_BOARD_LIMIT_SERVER_ERROR)
+    ) {
+      return {
+        serverError: FREE_BOARD_LIMIT_SERVER_ERROR,
+      };
     }
 
-    await createAuditLog({
-      entityId: board.id,
-      entityType: ENTITY_TYPE.BOARD,
-      entityTitle: board.title,
-      action: ACTION.CREATE,
-    });
-  } catch {
     return {
       serverError: "Failed to create.",
     };
   }
+
+  await createAuditLog({
+    entityId: board.id,
+    entityType: ENTITY_TYPE.BOARD,
+    entityTitle: board.title,
+    action: ACTION.CREATE,
+  });
 
   revalidatePath(`/board/${board.id}`);
 

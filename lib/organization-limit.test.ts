@@ -16,7 +16,7 @@ vi.mock("@/lib/prisma/client", () => ({
   default: {
     organizationLimit: {
       findUnique: vi.fn(),
-      upsert: vi.fn(),
+      create: vi.fn(),
       updateMany: vi.fn(),
     },
   },
@@ -28,7 +28,7 @@ vi.mock("@clerk/nextjs/server", () => ({
 
 const authMock = vi.mocked(auth);
 const findUniqueMock = vi.mocked(prisma.organizationLimit.findUnique);
-const upsertMock = vi.mocked(prisma.organizationLimit.upsert);
+const createMock = vi.mocked(prisma.organizationLimit.create);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
 
 const orgAuth = { orgId: "org_1" } as Awaited<ReturnType<typeof auth>>;
@@ -40,25 +40,76 @@ describe("incrementAvailableCount", () => {
     >);
 
     await expect(incrementAvailableCount()).rejects.toThrow("Unauthorized");
-    expect(upsertMock).not.toHaveBeenCalled();
+    expect(updateManyMock).not.toHaveBeenCalled();
+    expect(createMock).not.toHaveBeenCalled();
   });
 
-  test("upserts an atomic increment for the organization", async () => {
+  test("increments when the stored count is below the Free plan cap", async () => {
+    authMock.mockResolvedValue(orgAuth);
+    updateManyMock.mockResolvedValue({ count: 1 });
+
+    const reserved = await incrementAvailableCount();
+
+    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1", count: { lt: FREE_PLAN.maxBoards } },
+      data: { count: { increment: 1 } },
+    });
+    expect(createMock).not.toHaveBeenCalled();
+    expect(reserved).toBe(true);
+  });
+
+  test("creates a count of 1 when there is no limit row", async () => {
     const organizationLimit = organizationLimitFactory.build({
       orgId: "org_1",
-      count: 3,
+      count: 1,
     });
     authMock.mockResolvedValue(orgAuth);
-    upsertMock.mockResolvedValue(organizationLimit);
+    updateManyMock.mockResolvedValue({ count: 0 });
+    createMock.mockResolvedValue(organizationLimit);
 
-    await incrementAvailableCount();
+    const reserved = await incrementAvailableCount();
 
-    expect(upsertMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-      create: { orgId: "org_1", count: 1 },
-      update: { count: { increment: 1 } },
+    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1", count: { lt: FREE_PLAN.maxBoards } },
+      data: { count: { increment: 1 } },
     });
-    expect(findUniqueMock).not.toHaveBeenCalled();
+    expect(createMock).toHaveBeenCalledExactlyOnceWith({
+      data: { orgId: "org_1", count: 1 },
+    });
+    expect(reserved).toBe(true);
+  });
+
+  test("retries the cap increment when a concurrent create wins the row", async () => {
+    authMock.mockResolvedValue(orgAuth);
+    updateManyMock
+      .mockResolvedValueOnce({ count: 0 })
+      .mockResolvedValueOnce({ count: 1 });
+    createMock.mockRejectedValue({ code: "P2002" });
+
+    const reserved = await incrementAvailableCount();
+
+    expect(createMock).toHaveBeenCalledOnce();
+    expect(updateManyMock).toHaveBeenCalledTimes(2);
+    expect(reserved).toBe(true);
+  });
+
+  test("returns false when the Free plan cap is already reached", async () => {
+    authMock.mockResolvedValue(orgAuth);
+    updateManyMock.mockResolvedValue({ count: 0 });
+    createMock.mockRejectedValue({ code: "P2002" });
+
+    const reserved = await incrementAvailableCount();
+
+    expect(updateManyMock).toHaveBeenCalledTimes(2);
+    expect(reserved).toBe(false);
+  });
+
+  test("rethrows unexpected create errors", async () => {
+    authMock.mockResolvedValue(orgAuth);
+    updateManyMock.mockResolvedValue({ count: 0 });
+    createMock.mockRejectedValue(new Error("db down"));
+
+    await expect(incrementAvailableCount()).rejects.toThrow("db down");
   });
 });
 
