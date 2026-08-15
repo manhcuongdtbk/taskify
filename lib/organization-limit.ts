@@ -9,29 +9,22 @@ export const incrementAvailableCount = async () => {
     throw new Error("Unauthorized");
   }
 
-  const organizationLimit = await prisma.organizationLimit.findUnique({
+  // Atomic create-or-increment — Prisma `upsert` + `increment`. A read of
+  // `count` then `count + 1` lost concurrent board creates.
+  await prisma.organizationLimit.upsert({
     where: {
       orgId,
     },
+    create: {
+      orgId,
+      count: 1,
+    },
+    update: {
+      count: {
+        increment: 1,
+      },
+    },
   });
-
-  if (organizationLimit) {
-    await prisma.organizationLimit.update({
-      where: {
-        orgId,
-      },
-      data: {
-        count: organizationLimit.count + 1,
-      },
-    });
-  } else {
-    await prisma.organizationLimit.create({
-      data: {
-        orgId,
-        count: 1,
-      },
-    });
-  }
 };
 
 export const decrementAvailableCount = async () => {
@@ -41,22 +34,18 @@ export const decrementAvailableCount = async () => {
     throw new Error("Unauthorized");
   }
 
-  const organizationLimit = await prisma.organizationLimit.findUnique({
+  // Floor at 0 without a prior read. Missing rows match 0 updates.
+  await prisma.organizationLimit.updateMany({
     where: {
       orgId,
-    },
-  });
-
-  if (!organizationLimit) {
-    return;
-  }
-
-  await prisma.organizationLimit.update({
-    where: {
-      orgId,
+      count: {
+        gt: 0,
+      },
     },
     data: {
-      count: organizationLimit.count > 0 ? organizationLimit.count - 1 : 0,
+      count: {
+        decrement: 1,
+      },
     },
   });
 };

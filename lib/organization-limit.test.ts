@@ -16,8 +16,8 @@ vi.mock("@/lib/prisma/client", () => ({
   default: {
     organizationLimit: {
       findUnique: vi.fn(),
-      update: vi.fn(),
-      create: vi.fn(),
+      upsert: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -28,123 +28,61 @@ vi.mock("@clerk/nextjs/server", () => ({
 
 const authMock = vi.mocked(auth);
 const findUniqueMock = vi.mocked(prisma.organizationLimit.findUnique);
-const updateMock = vi.mocked(prisma.organizationLimit.update);
-const createMock = vi.mocked(prisma.organizationLimit.create);
+const upsertMock = vi.mocked(prisma.organizationLimit.upsert);
+const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
 
 const orgAuth = { orgId: "org_1" } as Awaited<ReturnType<typeof auth>>;
 
 describe("incrementAvailableCount", () => {
-  test("throws without querying when there is no orgId", async () => {
+  test("throws without writing when there is no orgId", async () => {
     authMock.mockResolvedValue({ orgId: null } as Awaited<
       ReturnType<typeof auth>
     >);
 
     await expect(incrementAvailableCount()).rejects.toThrow("Unauthorized");
-    expect(findUniqueMock).not.toHaveBeenCalled();
+    expect(upsertMock).not.toHaveBeenCalled();
   });
 
-  test("increments the existing organization limit count", async () => {
+  test("upserts an atomic increment for the organization", async () => {
     const organizationLimit = organizationLimitFactory.build({
       orgId: "org_1",
-      count: 2,
+      count: 3,
     });
     authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(organizationLimit);
-    updateMock.mockResolvedValue({ ...organizationLimit, count: 3 });
+    upsertMock.mockResolvedValue(organizationLimit);
 
     await incrementAvailableCount();
 
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(upsertMock).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
+      create: { orgId: "org_1", count: 1 },
+      update: { count: { increment: 1 } },
     });
-    expect(updateMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-      data: { count: 3 },
-    });
-    expect(createMock).not.toHaveBeenCalled();
-  });
-
-  test("creates a count of 1 when the organization has no limit row", async () => {
-    authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(null);
-    createMock.mockResolvedValue(
-      organizationLimitFactory.build({ orgId: "org_1", count: 1 }),
-    );
-
-    await incrementAvailableCount();
-
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-    });
-    expect(createMock).toHaveBeenCalledExactlyOnceWith({
-      data: { orgId: "org_1", count: 1 },
-    });
-    expect(updateMock).not.toHaveBeenCalled();
+    expect(findUniqueMock).not.toHaveBeenCalled();
   });
 });
 
 describe("decrementAvailableCount", () => {
-  test("throws without querying when there is no orgId", async () => {
+  test("throws without writing when there is no orgId", async () => {
     authMock.mockResolvedValue({ orgId: null } as Awaited<
       ReturnType<typeof auth>
     >);
 
     await expect(decrementAvailableCount()).rejects.toThrow("Unauthorized");
+    expect(updateManyMock).not.toHaveBeenCalled();
+  });
+
+  test("decrements only when the stored count is greater than 0", async () => {
+    authMock.mockResolvedValue(orgAuth);
+    updateManyMock.mockResolvedValue({ count: 1 });
+
+    await decrementAvailableCount();
+
+    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1", count: { gt: 0 } },
+      data: { count: { decrement: 1 } },
+    });
     expect(findUniqueMock).not.toHaveBeenCalled();
-  });
-
-  test("decrements the existing organization limit count", async () => {
-    const organizationLimit = organizationLimitFactory.build({
-      orgId: "org_1",
-      count: 2,
-    });
-    authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(organizationLimit);
-    updateMock.mockResolvedValue({ ...organizationLimit, count: 1 });
-
-    await decrementAvailableCount();
-
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-    });
-    expect(updateMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-      data: { count: 1 },
-    });
-    expect(createMock).not.toHaveBeenCalled();
-  });
-
-  test("keeps count at 0 when decrementing an already-zero row", async () => {
-    const organizationLimit = organizationLimitFactory.build({
-      orgId: "org_1",
-      count: 0,
-    });
-    authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(organizationLimit);
-    updateMock.mockResolvedValue(organizationLimit);
-
-    await decrementAvailableCount();
-
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-    });
-    expect(updateMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-      data: { count: 0 },
-    });
-  });
-
-  test("does not create a limit row when decrementing and none exists", async () => {
-    authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(null);
-
-    await decrementAvailableCount();
-
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-    });
-    expect(createMock).not.toHaveBeenCalled();
-    expect(updateMock).not.toHaveBeenCalled();
   });
 });
 
