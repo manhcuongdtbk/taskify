@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 import { cardQueries } from "@/lib/tanstack-query/resources/card";
@@ -99,5 +100,32 @@ describe("CardModalHeader", () => {
     renderWithQuery(<CardModalHeader card={card} />);
 
     expect(screen.getByText(card.list.title)).toBeInTheDocument();
+  });
+
+  test("shows the new card title when the card id changes", async () => {
+    const first = cardWithListTitleFactory.build({ title: "First card" });
+    const second = cardWithListTitleFactory.build({ title: "Second card" });
+    const user = userEvent.setup();
+    const Probe = () => {
+      const [card, setCard] = useState(first);
+
+      return (
+        <>
+          <button type="button" onClick={() => setCard(second)}>
+            next card
+          </button>
+          <CardModalHeader card={card} />
+        </>
+      );
+    };
+
+    renderWithQuery(<Probe />);
+
+    expect(screen.getByDisplayValue(first.title)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "next card" }));
+
+    expect(screen.getByDisplayValue(second.title)).toBeInTheDocument();
+    expect(screen.queryByDisplayValue(first.title)).not.toBeInTheDocument();
   });
 });

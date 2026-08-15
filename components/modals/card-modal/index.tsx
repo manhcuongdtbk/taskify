@@ -40,7 +40,7 @@ const CardModalHeaderStatus = ({
     return <CardModalLoadError>{cardLoadErrorCopy}</CardModalLoadError>;
   }
 
-  return <CardModalHeader card={cardQuery.data} />;
+  return <CardModalHeader key={cardQuery.data.id} card={cardQuery.data} />;
 };
 
 const CardModalDescriptionStatus = ({

@@ -39,6 +39,12 @@ export const CardModalHeader = ({ card }: CardModalHeaderProps) => {
   });
   const inputRef = useRef<ComponentRef<"input">>(null);
   const [title, setTitle] = useState(card.title);
+  const [cardId, setCardId] = useState(card.id);
+
+  if (card.id !== cardId) {
+    setCardId(card.id);
+    setTitle(card.title);
+  }
 
   const handleBlur = () => {
     inputRef.current?.form?.requestSubmit();
@@ -62,6 +68,7 @@ export const CardModalHeader = ({ card }: CardModalHeaderProps) => {
             ref={inputRef}
             onBlur={handleBlur}
             id="title"
+            key={card.id}
             defaultValue={title}
             className="relative -left-1.5 mb-0.5 w-[95%] truncate border-transparent bg-transparent px-1 text-xl font-semibold text-neutral-700 focus-visible:border-input focus-visible:bg-white"
           />
