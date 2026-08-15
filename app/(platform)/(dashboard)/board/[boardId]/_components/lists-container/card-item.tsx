@@ -18,6 +18,8 @@ export const CardItem = ({ index, card }: CardItemProps) => {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Space lifts the card in @hello-pangea/dnd's keyboard sensor. Do not
+    // treat Space as activate — that would open the modal and trap Tab.
     if (event.key !== "Enter") {
       return;
     }

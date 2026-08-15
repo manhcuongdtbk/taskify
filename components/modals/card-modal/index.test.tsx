@@ -4,9 +4,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import {
+  cardAuditLogsInvalidJson,
   cardAuditLogsOk,
   cardAuditLogsPending,
   cardAuditLogsUnauthorized,
+  cardDetailInvalidJson,
   cardDetailOk,
   cardDetailPending,
   cardDetailUnauthorized,
@@ -141,7 +143,7 @@ describe("CardModal", () => {
     });
   });
 
-  test("stays on skeletons when card fetches are unauthorized", async () => {
+  test("shows load errors when card fetches are unauthorized", async () => {
     const card = cardWithListTitleFactory.build();
     server.use(cardDetailUnauthorized(), cardAuditLogsUnauthorized());
     useCardModalStore.getState().open(card.id);
@@ -149,10 +151,30 @@ describe("CardModal", () => {
     renderWithQuery(<CardModal />);
 
     expect(
-      await screen.findByTestId("card-header-skeleton"),
+      await screen.findByText("Couldn't load this card"),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("card-description-skeleton")).toBeInTheDocument();
-    expect(screen.getByTestId("card-actions-skeleton")).toBeInTheDocument();
-    expect(screen.getByTestId("card-activity-skeleton")).toBeInTheDocument();
+    expect(screen.getByText("Couldn't load activity")).toBeInTheDocument();
+    expect(screen.getAllByRole("alert")).toHaveLength(2);
+    expect(
+      screen.queryByTestId("card-header-skeleton"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("card-activity-skeleton"),
+    ).not.toBeInTheDocument();
+  });
+
+  test("shows load errors when card JSON fails the Query schema", async () => {
+    server.use(cardDetailInvalidJson(), cardAuditLogsInvalidJson());
+    useCardModalStore.getState().open("card_1");
+
+    renderWithQuery(<CardModal />);
+
+    expect(
+      await screen.findByText("Couldn't load this card"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Couldn't load activity")).toBeInTheDocument();
+    expect(screen.getAllByRole("alert")).toHaveLength(2);
+    expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-activity")).not.toBeInTheDocument();
   });
 });

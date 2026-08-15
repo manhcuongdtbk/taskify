@@ -6,9 +6,11 @@ import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { server } from "../server";
 import { stillPending } from "./helpers/still-pending";
 import {
+  cardAuditLogsInvalidJson,
   cardAuditLogsOk,
   cardAuditLogsPending,
   cardAuditLogsUnauthorized,
+  cardDetailInvalidJson,
   cardDetailOk,
   cardDetailPending,
   cardDetailUnauthorized,
@@ -65,6 +67,20 @@ describe("card MSW handlers", () => {
     await expect(detail.text()).resolves.toBe("Unauthorized");
     expect(cardAuditLogsResponse.status).toBe(401);
     await expect(cardAuditLogsResponse.text()).resolves.toBe("Unauthorized");
+  });
+
+  test("serves 200 bodies that are not a card or card audit logs", async () => {
+    server.use(cardDetailInvalidJson(), cardAuditLogsInvalidJson());
+
+    const detail = await fetch("/api/cards/card_1");
+    const cardAuditLogsResponse = await fetch("/api/cards/card_1/audit-logs");
+
+    expect(detail.ok).toBe(true);
+    await expect(detail.json()).resolves.toStrictEqual({ id: "card_1" });
+    expect(cardAuditLogsResponse.ok).toBe(true);
+    await expect(cardAuditLogsResponse.json()).resolves.toStrictEqual([
+      { id: "auditLog_1" },
+    ]);
   });
 
   test("pending handlers never settle", async () => {

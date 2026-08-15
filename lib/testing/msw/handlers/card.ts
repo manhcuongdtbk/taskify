@@ -22,6 +22,14 @@ export const cardDetailOk = (card: CardWithListTitle | null) =>
 export const cardAuditLogsOk = (cardAuditLogs: AuditLog[]) =>
   http.get(cardAuditLogsPath, () => HttpResponse.json(cardAuditLogs));
 
+/** 200 JSON that is not a card — `fetcher` schema.parse throws. */
+export const cardDetailInvalidJson = () =>
+  http.get(cardDetailPath, () => HttpResponse.json({ id: "card_1" }));
+
+/** 200 JSON that is not card audit logs — `fetcher` schema.parse throws. */
+export const cardAuditLogsInvalidJson = () =>
+  http.get(cardAuditLogsPath, () => HttpResponse.json([{ id: "auditLog_1" }]));
+
 export const cardDetailUnauthorized = () =>
   http.get(
     cardDetailPath,

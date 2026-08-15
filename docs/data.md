@@ -31,7 +31,7 @@ How this App Router app **reads** and **writes** data — **what we use where**.
 
 - **Default read path** — Server Components + Prisma with `orgId` scoping
 - **Default write path** — Server Actions under `actions/` with Zod schemas; `createSafeAction` + `ActionState` (`SchemaActionErrors` ∩ `HandlerActionResult`: `fieldErrors` / `formErrors` from the schema, `serverError` / `data` from the handler) — [`conventions.md` → Action validation messages](./conventions.md#action-validation-messages-zod)
-- **Client read cache** — TanStack Query + `lib/fetcher.ts` for card modal (and similar client islands)
+- **Client read cache** — TanStack Query + `lib/fetcher.ts` for card modal (and similar client islands). Distinguish pending vs `isError` (do not leave failed fetches on skeletons)
 - **Client Action helper** — `useAction` wrapping safe-action results (see TODO to align with `useActionState`)
 - **Route Handlers** — webhooks and client-facing JSON the modal needs; not the primary mutation style
 - **Transport picks** — REST → `fetch`; GraphQL → `graphql-request` only if we adopt GraphQL; mocks → MSW — [`testing.md`](./testing.md) · [`conventions.md`](./conventions.md)

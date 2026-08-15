@@ -10,6 +10,12 @@ describe("JsonIsoDateTimeSchema", () => {
     expect(JsonIsoDateTimeSchema.parse(iso)).toStrictEqual(parseISO(iso));
   });
 
+  test("maps an ISO datetime with a numeric offset to a Date", () => {
+    const iso = "2020-01-01T06:15:00+00:00";
+
+    expect(JsonIsoDateTimeSchema.parse(iso)).toStrictEqual(parseISO(iso));
+  });
+
   test("rejects a non-datetime string", () => {
     expect(() => JsonIsoDateTimeSchema.parse("not-a-datetime")).toThrow();
   });
