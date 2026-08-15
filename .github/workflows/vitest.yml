@@ -13,5 +13,6 @@ jobs:
       - uses: ./.github/actions/setup-mise
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint:workflows
-      - run: pnpm test:run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm test:coverage

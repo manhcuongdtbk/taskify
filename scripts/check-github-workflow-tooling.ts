@@ -7,7 +7,10 @@
  *
  * Marketplace `uses:` must be the **current major tag** (`actions/checkout@v7`),
  * not an older major, a patch pin, or a commit SHA — unless listed in
- * `ACTION_PIN_EXCEPTIONS` with a reason. Docs: docs/conventions.md.
+ * `ACTION_PIN_EXCEPTIONS` with a reason. Latest-major lookup is
+ * `/releases/latest` with a timeout; set `GITHUB_TOKEN` or `GH_TOKEN` in CI.
+ * Dependabot ignores patch/minor so it does not rewrite `@v7` → `@v7.0.1`.
+ * Docs: docs/conventions.md.
  *
  *   pnpm lint:workflows
  */
@@ -54,6 +57,7 @@ const FALLBACK_LATEST_MAJOR: Record<string, number> = {
   "jdx/mise-action": 4,
 };
 
+const GITHUB_RELEASES_TIMEOUT_MS = 10_000;
 const errors: string[] = [];
 
 void main().catch((reason: unknown) => {
@@ -204,7 +208,10 @@ async function fetchLatestMajor(repo: string): Promise<number | null> {
   try {
     const response = await fetch(
       `https://api.github.com/repos/${repo}/releases/latest`,
-      { headers },
+      {
+        headers,
+        signal: AbortSignal.timeout(GITHUB_RELEASES_TIMEOUT_MS),
+      },
     );
     if (!response.ok) {
       return null;
