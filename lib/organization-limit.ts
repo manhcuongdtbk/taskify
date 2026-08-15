@@ -30,14 +30,14 @@ type OrganizationLimitWriter = {
 
 /**
  * Atomically take one Free-plan board slot (`count < maxBoards`, or create
- * `count: 1`). Pass the interactive-transaction client so a failed board
- * create rolls the increment back. docs/prisma.md
+ * `count: 1`). Callers pass `orgId` (already from `auth()`) and the
+ * interactive-transaction client so Clerk is not awaited while the row is
+ * locked. A failed board create rolls the increment back. docs/prisma.md
  */
 export const incrementAvailableCount = async (
+  orgId: string,
   db: OrganizationLimitWriter = prisma,
 ): Promise<boolean> => {
-  const { orgId } = await auth();
-
   if (!orgId) {
     throw new Error("Unauthorized");
   }

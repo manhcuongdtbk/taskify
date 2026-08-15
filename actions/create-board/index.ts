@@ -31,7 +31,7 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
   try {
     board = await prisma.$transaction(async (tx) => {
       if (!isPro) {
-        const reserved = await incrementAvailableCount(tx);
+        const reserved = await incrementAvailableCount(orgId, tx);
         if (!reserved) {
           throw new FreeBoardLimitReachedError();
         }
