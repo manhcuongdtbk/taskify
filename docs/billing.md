@@ -288,19 +288,19 @@ Paths change — treat this as a starting index, not a contract. Prefer searchin
 the repo (`checkSubscription`, `stripeRedirect`, `organizationSubscription`) when
 in doubt.
 
-| Piece                   | Path                                                | Role                                                                                                      |
-| ----------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Free-plan limit trigger | `components/form/form-popover.tsx`                  | Pro modal on the Free-plan limit error (not every create-board error); `canCreate={false}` skips the form |
-| Billing page            | `organization/[organizationId]/billing/`            | Shows plan via `Info` + `SubscriptionButton`                                                              |
-| Subscription CTA        | `billing/_components/subscription-button.tsx`       | **Free** plan → Pro modal; **Pro** → Customer Portal (`billingPortal`)                                    |
-| Modal store             | `stores/use-pro-modal-store.ts`                     | Client open/close state                                                                                   |
-| Upgrade UI              | `components/modals/pro-modal.tsx`                   | Calls `stripeRedirect`, navigates to Stripe URL                                                           |
-| Server action           | `actions/stripe-redirect/index.ts`                  | Checkout (new) or Customer Portal / billingPortal (existing)                                              |
-| Stripe client           | `lib/stripe.ts`                                     | SDK instance + `stripeTimestampToDate`                                                                    |
-| Webhook                 | `app/api/webhook/route.ts`                          | Verifies signature; creates/updates DB row                                                                |
-| Authentication gate     | `proxy.ts`                                          | `/api/webhook` is public (Stripe has no Clerk session)                                                    |
-| Plan access check       | `lib/subscription.ts`                               | `checkSubscription` / `isPro` — billing UI, board limits, organization pages                              |
-| Persistence             | `prisma/schema.prisma` → `OrganizationSubscription` | Links Clerk `orgId` ↔ Stripe IDs                                                                          |
+| Piece                   | Path                                                                           | Role                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Free-plan limit trigger | `components/form/form-popover.tsx` · `components/modals/pro-modal-trigger.tsx` | Limit error from create-board still opens Pro; at-cap tile uses ProModalTrigger instead of the create form |
+| Billing page            | `organization/[organizationId]/billing/`                                       | Shows plan via `Info` + `SubscriptionButton`                                                               |
+| Subscription CTA        | `billing/_components/subscription-button.tsx`                                  | **Free** plan → Pro modal; **Pro** → Customer Portal (`billingPortal`)                                     |
+| Modal store             | `stores/use-pro-modal-store.ts`                                                | Client open/close state                                                                                    |
+| Upgrade UI              | `components/modals/pro-modal.tsx`                                              | Calls `stripeRedirect`, navigates to Stripe URL                                                            |
+| Server action           | `actions/stripe-redirect/index.ts`                                             | Checkout (new) or Customer Portal / billingPortal (existing)                                               |
+| Stripe client           | `lib/stripe.ts`                                                                | SDK instance + `stripeTimestampToDate`                                                                     |
+| Webhook                 | `app/api/webhook/route.ts`                                                     | Verifies signature; creates/updates DB row                                                                 |
+| Authentication gate     | `proxy.ts`                                                                     | `/api/webhook` is public (Stripe has no Clerk session)                                                     |
+| Plan access check       | `lib/subscription.ts`                                                          | `checkSubscription` / `isPro` — billing UI, board limits, organization pages                               |
+| Persistence             | `prisma/schema.prisma` → `OrganizationSubscription`                            | Links Clerk `orgId` ↔ Stripe IDs                                                                           |
 
 ## Data we store
 
@@ -411,12 +411,12 @@ fidelity, and small UX polish. **Do this backlog before Opening more doors.**
 
 ### P2 — polish (same integration, not new doors)
 
-| Item                                  | Why                                                                             | Where                             |
-| ------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------- |
-| Board-list Hint                       | Still describes the Free-plan 5-board limit when the organization is on **Pro** | `board-list.tsx`                  |
-| Omit `payment_method_types: ["card"]` | Stripe prefers unset so Dashboard dynamic methods apply                         | `actions/stripe-redirect`         |
-| Pro modal external redirect           | Confirm Next.js-friendly navigation to Stripe URLs                              | `components/modals/pro-modal.tsx` |
-| Unused action `data`                  | Empty schema today; prefix `_` or use when Checkout needs input                 | `actions/stripe-redirect`         |
+| Item                                  | Why                                                                             | Where                              |
+| ------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------- |
+| Board-list Hint                       | Still describes the Free-plan 5-board limit when the organization is on **Pro** | `board-list/create-board-tile.tsx` |
+| Omit `payment_method_types: ["card"]` | Stripe prefers unset so Dashboard dynamic methods apply                         | `actions/stripe-redirect`          |
+| Pro modal external redirect           | Confirm Next.js-friendly navigation to Stripe URLs                              | `components/modals/pro-modal.tsx`  |
+| Unused action `data`                  | Empty schema today; prefix `_` or use when Checkout needs input                 | `actions/stripe-redirect`          |
 
 **Out of scope for this backlog** (growth / later): multi-plan, annual, trials, tax,
 seats, usage billing, embedded Checkout — see **Opening more doors**. Switching

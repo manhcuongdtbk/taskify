@@ -184,22 +184,6 @@ describe("FormPopover", () => {
     });
   });
 
-  test("opens the pro modal without the create form when the Free plan is at cap", async () => {
-    const user = userEvent.setup();
-
-    render(
-      <FormPopover canCreate={false}>
-        <Button>Open create board</Button>
-      </FormPopover>,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Open create board" }));
-
-    expect(useProModalStore.getState().isOpen).toBe(true);
-    expect(createBoard).not.toHaveBeenCalled();
-    expect(screen.queryByText("Create board")).not.toBeInTheDocument();
-  });
-
   test("clears title and image selection when the popover closes", async () => {
     createBoard.mockResolvedValue({
       fieldErrors: { image: ["Missing Image"] },

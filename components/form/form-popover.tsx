@@ -19,7 +19,6 @@ import {
   type ComponentProps,
   type ComponentRef,
   type ReactElement,
-  cloneElement,
   useRef,
   useState,
 } from "react";
@@ -33,8 +32,6 @@ type FormPopoverProps = {
     ComponentProps<typeof PopoverTrigger>["render"],
     ReactElement
   >;
-  /** False when Free-plan remaining is 0 — skip the form, open Pro. */
-  canCreate?: boolean;
 } & Pick<
   ComponentProps<typeof PopoverContent>,
   "side" | "align" | "sideOffset"
@@ -45,7 +42,6 @@ export const FormPopover = ({
   side = "bottom",
   align,
   sideOffset = 0,
-  canCreate = true,
 }: FormPopoverProps) => {
   const openProModal = useProModalStore((state) => state.open);
   const router = useRouter();
@@ -96,12 +92,6 @@ export const FormPopover = ({
       image: selectedImage as BoardImageInput,
     });
   };
-
-  if (!canCreate) {
-    return cloneElement(children, {
-      onClick: openProModal,
-    });
-  }
 
   return (
     <Popover onOpenChange={handleOpenChange}>
