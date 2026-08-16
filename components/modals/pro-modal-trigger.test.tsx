@@ -24,4 +24,15 @@ describe("ProModalTrigger", () => {
 
     expect(useProModalStore.getState().isOpen).toBe(true);
   });
+
+  test("is a single native button wrapping its children", () => {
+    render(
+      <ProModalTrigger>
+        <span>Upgrade</span>
+      </ProModalTrigger>,
+    );
+
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Upgrade" })).toBeInTheDocument();
+  });
 });
