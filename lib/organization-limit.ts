@@ -1,25 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma/client";
+import { isUniqueConstraintError } from "@/lib/prisma/errors/unique-constraint";
 import { FREE_PLAN } from "@/constants/pricing-plans";
-
-const UNIQUE_CONSTRAINT_ERROR = "P2002";
-
-const isUniqueConstraintError = (error: unknown) =>
-  typeof error === "object" &&
-  error !== null &&
-  "code" in error &&
-  error.code === UNIQUE_CONSTRAINT_ERROR;
-
-export const FREE_BOARD_LIMIT_SERVER_ERROR =
-  "You have reached your limit of free boards. Please upgrade to create more.";
-
-export class FreeBoardLimitReachedError extends Error {
-  override name = "FreeBoardLimitReachedError";
-
-  constructor() {
-    super(FREE_BOARD_LIMIT_SERVER_ERROR);
-  }
-}
 
 type OrganizationLimitWriter = {
   organizationLimit: Pick<
@@ -107,25 +89,9 @@ export const decrementAvailableCount = async () => {
   });
 };
 
-export const hasAvailableCount = async () => {
-  const { orgId } = await auth();
-
-  if (!orgId) {
-    throw new Error("Unauthorized");
-  }
-
-  const organizationLimit = await prisma.organizationLimit.findUnique({
-    where: {
-      orgId,
-    },
-  });
-
-  if (!organizationLimit || organizationLimit.count < FREE_PLAN.maxBoards) {
-    return true;
-  }
-
-  return false;
-};
+/** Read-side Free-plan room. Creates still go through `incrementAvailableCount`. */
+export const isBelowFreeBoardCap = (count: number) =>
+  count < FREE_PLAN.maxBoards;
 
 export const getAvailableCount = async () => {
   const { orgId } = await auth();

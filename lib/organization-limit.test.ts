@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { auth } from "@clerk/nextjs/server";
 
+import { Prisma } from "@/app/generated/prisma/client";
 import { FREE_PLAN } from "@/constants/pricing-plans";
 import prisma from "@/lib/prisma/client";
 import { organizationLimitFactory } from "@/lib/testing/factories/organization-limit";
@@ -8,8 +9,8 @@ import { organizationLimitFactory } from "@/lib/testing/factories/organization-l
 import {
   decrementAvailableCount,
   getAvailableCount,
-  hasAvailableCount,
   incrementAvailableCount,
+  isBelowFreeBoardCap,
 } from "./organization-limit";
 
 vi.mock("@/lib/prisma/client", () => ({
@@ -32,6 +33,12 @@ const createMock = vi.mocked(prisma.organizationLimit.create);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
 
 const orgAuth = { orgId: "org_1" } as Awaited<ReturnType<typeof auth>>;
+
+const uniqueConstraintError = () =>
+  new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+    code: "P2002",
+    clientVersion: "0",
+  });
 
 describe("incrementAvailableCount", () => {
   test("throws without writing when orgId is empty", async () => {
@@ -79,7 +86,7 @@ describe("incrementAvailableCount", () => {
     updateManyMock
       .mockResolvedValueOnce({ count: 0 })
       .mockResolvedValueOnce({ count: 1 });
-    createMock.mockRejectedValue({ code: "P2002" });
+    createMock.mockRejectedValue(uniqueConstraintError());
 
     const reserved = await incrementAvailableCount("org_1");
 
@@ -90,7 +97,7 @@ describe("incrementAvailableCount", () => {
 
   test("returns false when the Free plan cap is already reached", async () => {
     updateManyMock.mockResolvedValue({ count: 0 });
-    createMock.mockRejectedValue({ code: "P2002" });
+    createMock.mockRejectedValue(uniqueConstraintError());
 
     const reserved = await incrementAvailableCount("org_1");
 
@@ -130,60 +137,13 @@ describe("decrementAvailableCount", () => {
   });
 });
 
-describe("hasAvailableCount", () => {
-  test("throws without querying when there is no orgId", async () => {
-    authMock.mockResolvedValue({ orgId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    await expect(hasAvailableCount()).rejects.toThrow("Unauthorized");
-    expect(findUniqueMock).not.toHaveBeenCalled();
+describe("isBelowFreeBoardCap", () => {
+  test("is true when the stored count is below the Free plan cap", () => {
+    expect(isBelowFreeBoardCap(FREE_PLAN.maxBoards - 1)).toBe(true);
   });
 
-  test("returns true when the organization has no limit row", async () => {
-    authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(null);
-
-    const result = await hasAvailableCount();
-
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-    });
-    expect(result).toBe(true);
-  });
-
-  test("returns true when the board count is below the Free plan cap", async () => {
-    authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(
-      organizationLimitFactory.build({
-        orgId: "org_1",
-        count: FREE_PLAN.maxBoards - 1,
-      }),
-    );
-
-    const result = await hasAvailableCount();
-
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-    });
-    expect(result).toBe(true);
-  });
-
-  test("returns false when the board count has reached the Free plan cap", async () => {
-    authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(
-      organizationLimitFactory.build({
-        orgId: "org_1",
-        count: FREE_PLAN.maxBoards,
-      }),
-    );
-
-    const result = await hasAvailableCount();
-
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-    });
-    expect(result).toBe(false);
+  test("is false when the stored count has reached the Free plan cap", () => {
+    expect(isBelowFreeBoardCap(FREE_PLAN.maxBoards)).toBe(false);
   });
 });
 

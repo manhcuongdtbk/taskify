@@ -19,18 +19,22 @@ import {
   type ComponentProps,
   type ComponentRef,
   type ReactElement,
+  cloneElement,
   useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/errors/free-board-limit";
 
 type FormPopoverProps = {
   children: Extract<
     ComponentProps<typeof PopoverTrigger>["render"],
     ReactElement
   >;
+  /** False when Free-plan remaining is 0 — skip the form, open Pro. */
+  canCreate?: boolean;
 } & Pick<
   ComponentProps<typeof PopoverContent>,
   "side" | "align" | "sideOffset"
@@ -41,6 +45,7 @@ export const FormPopover = ({
   side = "bottom",
   align,
   sideOffset = 0,
+  canCreate = true,
 }: FormPopoverProps) => {
   const openProModal = useProModalStore((state) => state.open);
   const router = useRouter();
@@ -62,8 +67,12 @@ export const FormPopover = ({
         type: "error",
         title: error,
       });
-      // Free board limit (or similar) → open Pro upgrade modal (Stripe Checkout).
+      if (error !== FREE_BOARD_LIMIT_SERVER_ERROR) {
+        return;
+      }
+      closeRef.current?.click();
       openProModal();
+      router.refresh();
     },
   });
 
@@ -87,6 +96,12 @@ export const FormPopover = ({
       image: selectedImage as BoardImageInput,
     });
   };
+
+  if (!canCreate) {
+    return cloneElement(children, {
+      onClick: openProModal,
+    });
+  }
 
   return (
     <Popover onOpenChange={handleOpenChange}>

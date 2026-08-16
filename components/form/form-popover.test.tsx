@@ -13,6 +13,7 @@ import {
 
 const createBoard = vi.hoisted(() => vi.fn());
 const push = vi.hoisted(() => vi.fn());
+const refresh = vi.hoisted(() => vi.fn());
 const toastAdd = vi.hoisted(() => vi.fn());
 const unsplashGet = vi.hoisted(() =>
   vi.fn(async (): Promise<UnsplashGetMockResult> => unsplashGetNetworkError),
@@ -23,7 +24,7 @@ vi.mock("@/actions/create-board", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ push, refresh }),
 }));
 
 vi.mock("@/components/ui/toast", () => ({
@@ -37,6 +38,7 @@ vi.mock("@/lib/unsplash", () => ({
 vi.mock("next/image", () => import("@/lib/testing/next/image"));
 
 import { FormPopover } from "./form-popover";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/errors/free-board-limit";
 
 const firstImage = defaultImages[0]!;
 const firstTileName = firstImage.description || "Unsplash Image";
@@ -129,8 +131,8 @@ describe("FormPopover", () => {
     });
   });
 
-  test("toasts and opens the pro modal on server error", async () => {
-    createBoard.mockResolvedValue({ serverError: "Board limit reached" });
+  test("toasts without opening the pro modal on other server errors", async () => {
+    createBoard.mockResolvedValue({ serverError: "Failed to create." });
     const user = userEvent.setup();
 
     render(
@@ -146,10 +148,56 @@ describe("FormPopover", () => {
     await waitFor(() => {
       expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
         type: "error",
-        title: "Board limit reached",
+        title: "Failed to create.",
+      });
+    });
+    expect(useProModalStore.getState().isOpen).toBe(false);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  test("toasts, closes, refreshes, and opens the pro modal on the Free-plan limit", async () => {
+    createBoard.mockResolvedValue({
+      serverError: FREE_BOARD_LIMIT_SERVER_ERROR,
+    });
+    const user = userEvent.setup();
+
+    render(
+      <FormPopover>
+        <Button>Open create board</Button>
+      </FormPopover>,
+    );
+
+    await openPopover(user);
+    await user.type(screen.getByLabelText("Board title"), "Roadmap");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() => {
+      expect(toastAdd).toHaveBeenCalledExactlyOnceWith({
+        type: "error",
+        title: FREE_BOARD_LIMIT_SERVER_ERROR,
       });
     });
     expect(useProModalStore.getState().isOpen).toBe(true);
+    expect(refresh).toHaveBeenCalledOnce();
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  test("opens the pro modal without the create form when the Free plan is at cap", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <FormPopover canCreate={false}>
+        <Button>Open create board</Button>
+      </FormPopover>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Open create board" }));
+
+    expect(useProModalStore.getState().isOpen).toBe(true);
+    expect(createBoard).not.toHaveBeenCalled();
+    expect(screen.queryByText("Create board")).not.toBeInTheDocument();
   });
 
   test("clears title and image selection when the popover closes", async () => {

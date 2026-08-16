@@ -11,8 +11,8 @@ import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import {
   FREE_BOARD_LIMIT_SERVER_ERROR,
   FreeBoardLimitReachedError,
-  incrementAvailableCount,
-} from "@/lib/organization-limit";
+} from "@/lib/errors/free-board-limit";
+import { incrementAvailableCount } from "@/lib/organization-limit";
 import { checkSubscription } from "@/lib/subscription";
 
 const handler = async ({ title, image }: InputType): Promise<ReturnType> => {

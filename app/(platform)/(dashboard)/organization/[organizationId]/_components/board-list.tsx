@@ -7,7 +7,10 @@ import prisma from "@/lib/prisma/client";
 import Link from "next/link";
 import { SkeletonStatus } from "@/components/skeleton-status";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getAvailableCount } from "@/lib/organization-limit";
+import {
+  getAvailableCount,
+  isBelowFreeBoardCap,
+} from "@/lib/organization-limit";
 import {
   FREE_PLAN,
   PRO_PLAN,
@@ -40,6 +43,7 @@ export const BoardList = async () => {
     isPro && hasUnlimitedBoards(PRO_PLAN)
       ? "Unlimited"
       : FREE_PLAN.maxBoards - availableCount;
+  const canCreate = isPro || isBelowFreeBoardCap(availableCount);
 
   return (
     <div className="space-y-4">
@@ -59,7 +63,7 @@ export const BoardList = async () => {
             <p className="relative font-semibold text-white">{board.title}</p>
           </Link>
         ))}
-        <FormPopover sideOffset={10} side="right">
+        <FormPopover canCreate={canCreate} sideOffset={10} side="right">
           <div
             role="button"
             className="relative flex aspect-video h-full w-full flex-col items-center justify-center gap-y-1 rounded-xs bg-muted transition hover:opacity-75"

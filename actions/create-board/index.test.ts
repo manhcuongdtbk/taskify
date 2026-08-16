@@ -3,7 +3,8 @@ import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
-import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/organization-limit";
+import { Prisma } from "@/app/generated/prisma/client";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/errors/free-board-limit";
 import prisma from "@/lib/prisma/client";
 import { checkSubscription } from "@/lib/subscription";
 import { FREE_PLAN } from "@/constants/pricing-plans";
@@ -147,9 +148,12 @@ describe("createBoard", () => {
     authMock.mockResolvedValue(orgAuth);
     checkSubscriptionMock.mockResolvedValue(false);
     updateManyMock.mockResolvedValue({ count: 0 });
-    vi.mocked(prisma.organizationLimit.create).mockRejectedValue({
-      code: "P2002",
-    });
+    vi.mocked(prisma.organizationLimit.create).mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "0",
+      }),
+    );
 
     const result = await createBoard({ title: "Roadmap", image });
 
