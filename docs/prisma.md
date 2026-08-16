@@ -136,6 +136,7 @@ Check items off when the app (and this doc) match current Prisma guidance. Prefe
 - [ ] **Document migration workflow** for contributors (`prisma migrate` / `db push` policy for local vs prod) using current Prisma CLI docs — keep one short “how we run migrations” note here when decided
 - [ ] **Review indexes** for hot paths (`orgId`, `boardId`, order columns, Stripe id lookups) against real query patterns
 - [ ] **Error handling** — map Prisma errors (e.g. unique violations on `OrganizationSubscription.orgId`) to safe action/`{ error }` responses where users can hit them (aligns with [`nextjs.md`](./nextjs.md) expected-error TODO)
+- [ ] **Real-DB: Free board-slot `createMany` `skipDuplicates` inside `$transaction`** — mocked Client proves the JS branches; Postgres `ON CONFLICT DO NOTHING` without aborting the interactive transaction waits on a Prisma integration suite ([`testing.md`](./testing.md))
 
 When closing a TODO, update this list; add a one-line note under **Already following** if it teaches a lasting pattern.
 

@@ -48,9 +48,24 @@ import { CreateBoardTile } from "./create-board-tile";
 const getAvailableCountMock = vi.mocked(getAvailableCount);
 const checkSubscriptionMock = vi.mocked(checkSubscription);
 
+const boardLimitHintLabel = `${FREE_PLAN.name} plan board limit`;
+
 const renderTile = async () => {
   const tile = await CreateBoardTile();
   return render(<TooltipProvider delay={0}>{tile}</TooltipProvider>);
+};
+
+const expectCreateTileWithSiblingHint = () => {
+  const createButton = screen.getByRole("button", {
+    name: /create new board/i,
+  });
+  const hintButton = screen.getByRole("button", { name: boardLimitHintLabel });
+
+  expect(hintButton).toBeInTheDocument();
+  expect(createButton).not.toContainElement(hintButton);
+  expect(createButton).toHaveClass("appearance-none", "border-0", "p-0");
+
+  return createButton;
 };
 
 describe("CreateBoardTile", () => {
@@ -67,9 +82,7 @@ describe("CreateBoardTile", () => {
 
     await renderTile();
 
-    const createButton = screen.getByRole("button", {
-      name: /create new board/i,
-    });
+    const createButton = expectCreateTileWithSiblingHint();
     expect(screen.getByText("5 remaining")).toBeInTheDocument();
 
     await user.click(createButton);
@@ -85,9 +98,7 @@ describe("CreateBoardTile", () => {
 
     await renderTile();
 
-    const createButton = screen.getByRole("button", {
-      name: /create new board/i,
-    });
+    const createButton = expectCreateTileWithSiblingHint();
     expect(screen.getByText("0 remaining")).toBeInTheDocument();
 
     await user.click(createButton);
@@ -105,11 +116,32 @@ describe("CreateBoardTile", () => {
 
     await renderTile();
 
+    expectCreateTileWithSiblingHint();
     expect(screen.getByText("Unlimited remaining")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /create new board/i }));
 
     expect(await screen.findByText("Create board")).toBeInTheDocument();
     expect(useProModalStore.getState().isOpen).toBe(false);
+  });
+
+  test("names the board-limit hint and keeps it outside the create control", async () => {
+    getAvailableCountMock.mockResolvedValue(0);
+    checkSubscriptionMock.mockResolvedValue(false);
+    const user = userEvent.setup();
+
+    await renderTile();
+
+    const createButton = expectCreateTileWithSiblingHint();
+
+    await user.hover(screen.getByRole("button", { name: boardLimitHintLabel }));
+
+    expect(
+      await screen.findByText(
+        `${FREE_PLAN.name} Workspaces can have up to ${FREE_PLAN.maxBoards} open boards. For unlimited boards, upgrade this workspace.`,
+      ),
+    ).toBeInTheDocument();
+    expect(useProModalStore.getState().isOpen).toBe(false);
+    expect(createButton).toBeInTheDocument();
   });
 });
