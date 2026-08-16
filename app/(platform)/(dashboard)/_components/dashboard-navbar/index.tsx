@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import { MobileSidebar } from "./mobile-sidebar";
 import { ThemeToggler } from "./theme-toggler";
-import { FormPopover } from "@/components/form/form-popover";
+import { CreateBoardTrigger } from "@/components/create-board-trigger";
 
 export const DashboardNavbar = () => {
   return (
@@ -14,19 +14,23 @@ export const DashboardNavbar = () => {
         <div className="hidden md:flex">
           <Logo />
         </div>
-        <FormPopover align="start" side="bottom" sideOffset={18}>
+        <CreateBoardTrigger align="start" side="bottom" sideOffset={18}>
           <Button
             size="sm"
             className="hidden h-auto rounded-xs px-2 py-1.5 md:block"
           >
             Create
           </Button>
-        </FormPopover>
-        <FormPopover>
-          <Button size="sm" className="block rounded-xs md:hidden">
+        </CreateBoardTrigger>
+        <CreateBoardTrigger>
+          <Button
+            size="sm"
+            className="block rounded-xs md:hidden"
+            aria-label="Create board"
+          >
             <Plus className="h-4 w-4" />
           </Button>
-        </FormPopover>
+        </CreateBoardTrigger>
       </div>
       <div className="ml-auto flex items-center gap-x-2">
         <ThemeToggler />

@@ -16,7 +16,7 @@ describe("ProModalTrigger", () => {
 
     render(
       <ProModalTrigger>
-        <span>Upgrade</span>
+        <button type="button">Upgrade</button>
       </ProModalTrigger>,
     );
 
@@ -25,10 +25,10 @@ describe("ProModalTrigger", () => {
     expect(useProModalStore.getState().isOpen).toBe(true);
   });
 
-  test("is a single native button wrapping its children", () => {
+  test("is the trigger element, not a wrapping button", () => {
     render(
       <ProModalTrigger>
-        <span>Upgrade</span>
+        <button type="button">Upgrade</button>
       </ProModalTrigger>,
     );
 

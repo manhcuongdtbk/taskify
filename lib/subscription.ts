@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma/client";
 import { addDays, isFuture } from "date-fns";
@@ -8,8 +9,12 @@ import { addDays, isFuture } from "date-fns";
  *
  * Allows a 1-day grace past stripeCurrentPeriodEnd for webhook / clock skew.
  * Cancel in Customer Portal does not clear this instantly — see `docs/billing.md`.
+ *
+ * React `cache` is request-scoped memoization (page + create-board UI in one
+ * RSC render). Not Redis / Data Cache. Server Actions are a new request.
+ * docs/data.md
  */
-export const checkSubscription = async () => {
+export const checkSubscription = cache(async () => {
   const { orgId } = await auth();
 
   if (!orgId) {
@@ -43,4 +48,4 @@ export const checkSubscription = async () => {
     isFuture(addDays(stripeCurrentPeriodEnd, 1));
 
   return !!isValid;
-};
+});

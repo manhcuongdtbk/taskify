@@ -46,6 +46,7 @@ export default defineConfig({
         "**/*.types.ts", // lib/create-safe-action.types.ts
         "**/types.ts", // actions/<name>/types.ts — docs/conventions.md
         "actions/**/index.ts", // handlers — drop this exclude when mocked Vitest suites land
+        "components/create-board-trigger.tsx", // async RSC — Playwright; docs/testing.md
         "lib/prisma/client.ts",
         "lib/prisma/query-options/**", // shapes only — docs/prisma.md
         "lib/unsplash.ts",

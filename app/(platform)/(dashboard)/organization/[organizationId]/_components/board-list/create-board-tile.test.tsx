@@ -1,126 +1,52 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { type ReactNode } from "react";
+import { describe, expect, test, vi } from "vitest";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FREE_PLAN } from "@/constants/pricing-plans";
-import { getAvailableCount } from "@/lib/organization-limit";
-import { checkSubscription } from "@/lib/subscription";
-import { useProModalStore } from "@/stores/use-pro-modal-store";
-import {
-  type UnsplashGetMockResult,
-  unsplashGetNetworkError,
-} from "@/lib/testing/unsplash/get-mock-result";
 
-const unsplashGet = vi.hoisted(() =>
-  vi.fn(async (): Promise<UnsplashGetMockResult> => unsplashGetNetworkError),
-);
-
-vi.mock("@/lib/organization-limit", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@/lib/organization-limit")>();
-  return {
-    ...actual,
-    getAvailableCount: vi.fn(),
-  };
-});
-
-vi.mock("@/lib/subscription", () => ({
-  checkSubscription: vi.fn(),
+vi.mock("@/components/create-board-trigger", () => ({
+  CreateBoardTrigger: ({ children }: { children: ReactNode }) => children,
 }));
 
-vi.mock("@/actions/create-board", () => ({
-  createBoard: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-}));
-
-vi.mock("@/lib/unsplash", () => ({
-  unsplash: { GET: unsplashGet },
-}));
-
-vi.mock("next/image", () => import("@/lib/testing/next/image"));
-
-import { CreateBoardTile } from "./create-board-tile";
-
-const getAvailableCountMock = vi.mocked(getAvailableCount);
-const checkSubscriptionMock = vi.mocked(checkSubscription);
+import { CreateBoardTileView } from "./create-board-tile";
 
 const boardLimitHintLabel = `${FREE_PLAN.name} plan board limit`;
 
-const renderTile = async () => {
-  const tile = await CreateBoardTile();
-  return render(<TooltipProvider delay={0}>{tile}</TooltipProvider>);
-};
+const renderTile = (availableCount: number, isPro: boolean) =>
+  render(
+    <TooltipProvider delay={0}>
+      <CreateBoardTileView availableCount={availableCount} isPro={isPro} />
+    </TooltipProvider>,
+  );
 
-describe("CreateBoardTile", () => {
-  beforeEach(() => {
-    useProModalStore.getState().close();
-    unsplashGet.mockResolvedValue(unsplashGetNetworkError);
-    vi.spyOn(console, "error").mockImplementation(() => {});
-  });
+describe("CreateBoardTileView", () => {
+  test("shows remaining boards when the Free plan is below the cap", () => {
+    renderTile(0, false);
 
-  test("opens the create-board popover when the Free plan is below the cap", async () => {
-    getAvailableCountMock.mockResolvedValue(0);
-    checkSubscriptionMock.mockResolvedValue(false);
-    const user = userEvent.setup();
-
-    await renderTile();
-
-    const createButton = screen.getByRole("button", {
-      name: /create new board/i,
-    });
+    expect(
+      screen.getByRole("button", { name: /create new board/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText("5 remaining")).toBeInTheDocument();
-
-    await user.click(createButton);
-
-    expect(await screen.findByText("Create board")).toBeInTheDocument();
-    expect(useProModalStore.getState().isOpen).toBe(false);
   });
 
-  test("opens the pro modal from a single button when the Free plan is at cap", async () => {
-    getAvailableCountMock.mockResolvedValue(FREE_PLAN.maxBoards);
-    checkSubscriptionMock.mockResolvedValue(false);
-    const user = userEvent.setup();
+  test("shows zero remaining when the Free plan is at cap", () => {
+    renderTile(FREE_PLAN.maxBoards, false);
 
-    await renderTile();
-
-    const createButton = screen.getByRole("button", {
-      name: /create new board/i,
-    });
     expect(screen.getByText("0 remaining")).toBeInTheDocument();
-
-    await user.click(createButton);
-
-    expect(useProModalStore.getState().isOpen).toBe(true);
-    await waitFor(() => {
-      expect(screen.queryByText("Create board")).not.toBeInTheDocument();
-    });
   });
 
-  test("shows unlimited remaining and still opens create when the organization is Pro", async () => {
-    getAvailableCountMock.mockResolvedValue(FREE_PLAN.maxBoards);
-    checkSubscriptionMock.mockResolvedValue(true);
-    const user = userEvent.setup();
-
-    await renderTile();
+  test("shows unlimited remaining when the organization is Pro", () => {
+    renderTile(FREE_PLAN.maxBoards, true);
 
     expect(screen.getByText("Unlimited remaining")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /create new board/i }));
-
-    expect(await screen.findByText("Create board")).toBeInTheDocument();
-    expect(useProModalStore.getState().isOpen).toBe(false);
   });
 
   test("names the board-limit hint and keeps it outside the create control", async () => {
-    getAvailableCountMock.mockResolvedValue(0);
-    checkSubscriptionMock.mockResolvedValue(false);
     const user = userEvent.setup();
 
-    await renderTile();
+    renderTile(0, false);
 
     const createButton = screen.getByRole("button", {
       name: /create new board/i,
@@ -141,6 +67,5 @@ describe("CreateBoardTile", () => {
         `${FREE_PLAN.name} Workspaces can have up to ${FREE_PLAN.maxBoards} open boards. For unlimited boards, upgrade this workspace.`,
       ),
     ).toBeInTheDocument();
-    expect(useProModalStore.getState().isOpen).toBe(false);
   });
 });

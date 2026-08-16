@@ -1,17 +1,12 @@
-import { FormPopover } from "@/components/form/form-popover";
 import { Hint } from "@/components/hint";
 import { HelpCircle } from "lucide-react";
-import {
-  getAvailableCount,
-  isBelowFreeBoardCap,
-} from "@/lib/organization-limit";
+import { getBoardCreateAccess } from "@/lib/organization-limit";
 import {
   FREE_PLAN,
   PRO_PLAN,
   hasUnlimitedBoards,
 } from "@/constants/pricing-plans";
-import { checkSubscription } from "@/lib/subscription";
-import { ProModalTrigger } from "@/components/modals/pro-modal-trigger";
+import { CreateBoardTrigger } from "@/components/create-board-trigger";
 
 /** Strip UA button chrome so the tile matches the old muted `div` face. */
 const tileClassName =
@@ -21,14 +16,20 @@ const boardLimitHintDescription = `${FREE_PLAN.name} Workspaces can have up to $
 
 const boardLimitHintLabel = `${FREE_PLAN.name} plan board limit`;
 
-export const CreateBoardTile = async () => {
-  const availableCount = await getAvailableCount();
-  const isPro = await checkSubscription();
+type CreateBoardTileViewProps = {
+  availableCount: number;
+  isPro: boolean;
+};
+
+/** Sync chrome (remaining copy + hint). Async load + create gate: Playwright. docs/testing.md */
+export const CreateBoardTileView = ({
+  availableCount,
+  isPro,
+}: CreateBoardTileViewProps) => {
   const remainingLabel =
     isPro && hasUnlimitedBoards(PRO_PLAN)
       ? "Unlimited"
       : FREE_PLAN.maxBoards - availableCount;
-  const canCreate = isPro || isBelowFreeBoardCap(availableCount);
 
   const label = (
     <>
@@ -37,19 +38,13 @@ export const CreateBoardTile = async () => {
     </>
   );
 
-  const tile = canCreate ? (
-    <FormPopover sideOffset={10} side="right">
-      <button type="button" className={tileClassName}>
-        {label}
-      </button>
-    </FormPopover>
-  ) : (
-    <ProModalTrigger className={tileClassName}>{label}</ProModalTrigger>
-  );
-
   return (
     <div className="relative aspect-video h-full w-full">
-      {tile}
+      <CreateBoardTrigger sideOffset={10} side="right">
+        <button type="button" className={tileClassName}>
+          {label}
+        </button>
+      </CreateBoardTrigger>
       {/* TODO (P2 — docs/billing.md): Hint
                 always describes the Free plan board limit even when isPro shows
                 "Unlimited". Hide the Hint for Pro, or change the copy by plan. */}
@@ -66,4 +61,9 @@ export const CreateBoardTile = async () => {
       </div>
     </div>
   );
+};
+
+export const CreateBoardTile = async () => {
+  const { availableCount, isPro } = await getBoardCreateAccess();
+  return <CreateBoardTileView availableCount={availableCount} isPro={isPro} />;
 };

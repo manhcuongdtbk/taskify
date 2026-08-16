@@ -6,11 +6,14 @@ import prisma from "@/lib/prisma/client";
 import { organizationLimitFactory } from "@/lib/testing/factories/organization-limit";
 
 import {
+  canCreateBoard,
   decrementAvailableCount,
   getAvailableCount,
+  getBoardCreateAccess,
   incrementAvailableCount,
   isBelowFreeBoardCap,
 } from "./organization-limit";
+import { checkSubscription } from "@/lib/subscription";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: {
@@ -26,7 +29,12 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+vi.mock("@/lib/subscription", () => ({
+  checkSubscription: vi.fn(),
+}));
+
 const authMock = vi.mocked(auth);
+const checkSubscriptionMock = vi.mocked(checkSubscription);
 const findUniqueMock = vi.mocked(prisma.organizationLimit.findUnique);
 const createManyMock = vi.mocked(prisma.organizationLimit.createMany);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
@@ -138,6 +146,20 @@ describe("isBelowFreeBoardCap", () => {
   });
 });
 
+describe("canCreateBoard", () => {
+  test("is true for Pro even when the stored count is at the Free plan cap", () => {
+    expect(canCreateBoard(true, FREE_PLAN.maxBoards)).toBe(true);
+  });
+
+  test("is false for Free when the stored count is at the Free plan cap", () => {
+    expect(canCreateBoard(false, FREE_PLAN.maxBoards)).toBe(false);
+  });
+
+  test("is true for Free when the stored count is below the Free plan cap", () => {
+    expect(canCreateBoard(false, 0)).toBe(true);
+  });
+});
+
 describe("getAvailableCount", () => {
   test("returns 0 without querying when there is no orgId", async () => {
     authMock.mockResolvedValue({ orgId: null } as Awaited<
@@ -174,5 +196,24 @@ describe("getAvailableCount", () => {
       where: { orgId: "org_1" },
     });
     expect(result).toBe(3);
+  });
+});
+
+describe("getBoardCreateAccess", () => {
+  test("returns the stored count, plan, and create gate", async () => {
+    authMock.mockResolvedValue(orgAuth);
+    findUniqueMock.mockResolvedValue(
+      organizationLimitFactory.build({ orgId: "org_1", count: 3 }),
+    );
+    checkSubscriptionMock.mockResolvedValue(false);
+
+    const access = await getBoardCreateAccess();
+
+    expect(checkSubscriptionMock).toHaveBeenCalledOnce();
+    expect(access).toStrictEqual({
+      availableCount: 3,
+      isPro: false,
+      canCreate: true,
+    });
   });
 });

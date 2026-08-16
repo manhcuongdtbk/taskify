@@ -23,7 +23,7 @@ User-facing capabilities (shipped):
 | Activity                       | Organization audit / activity feed                                                   | `…/organization/[organizationId]/activity/`, `AuditLog`, `lib/create-audit-log.ts`                                                                  |
 | Organization settings          | Clerk organization profile UI                                                        | `…/organization/[organizationId]/settings/`                                                                                                         |
 | Billing                        | Upgrade to **Pro**, manage subscription, gate capabilities by plan                   | `…/organization/[organizationId]/billing/`, [`billing.md`](./billing.md)                                                                            |
-| Free-plan limits               | Cap boards on the **Free** plan; nudge toward **Pro**                                | `lib/organization-limit.ts`, `lib/subscription.ts`, create-board action, pro modal / form popover                                                   |
+| Free-plan limits               | Cap boards on the **Free** plan; nudge toward **Pro**                                | `lib/organization-limit.ts`, `lib/subscription.ts`, create-board action, `CreateBoardTrigger` (navbar + board tile), pro modal / form popover       |
 
 ### Pricing plans (today)
 
