@@ -8,7 +8,9 @@ const isP2002Code = (error: object): boolean =>
 
 /**
  * Unique-constraint failures (`P2002`), including wrappers that nest
- * `PrismaClientKnownRequestError` on `cause`. docs/prisma.md
+ * `PrismaClientKnownRequestError` on `cause`. Official `instanceof` +
+ * code check, catch-and-retry races, and what Prisma does not document:
+ * docs/prisma.md
  */
 export const isUniqueConstraintError = (error: unknown): boolean => {
   let current: unknown = error;
