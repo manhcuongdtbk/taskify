@@ -108,21 +108,18 @@ describe("incrementAvailableCount", () => {
 });
 
 describe("decrementAvailableCount", () => {
-  test("throws without writing when there is no orgId", async () => {
-    authMock.mockResolvedValue({ orgId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    await expect(decrementAvailableCount()).rejects.toThrow("Unauthorized");
+  test("throws without writing when orgId is empty", async () => {
+    await expect(decrementAvailableCount("")).rejects.toThrow("Unauthorized");
     expect(updateManyMock).not.toHaveBeenCalled();
+    expect(authMock).not.toHaveBeenCalled();
   });
 
   test("decrements only when the stored count is greater than 0", async () => {
-    authMock.mockResolvedValue(orgAuth);
     updateManyMock.mockResolvedValue({ count: 1 });
 
-    await decrementAvailableCount();
+    await decrementAvailableCount("org_1");
 
+    expect(authMock).not.toHaveBeenCalled();
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1", count: { gt: 0 } },
       data: { count: { decrement: 1 } },

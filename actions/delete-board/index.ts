@@ -27,13 +27,17 @@ const handler = async ({ id }: InputType): Promise<ReturnType> => {
   let board;
 
   try {
-    board = await prisma.board.delete({
-      where: { id, orgId },
-    });
+    board = await prisma.$transaction(async (tx) => {
+      const deleted = await tx.board.delete({
+        where: { id, orgId },
+      });
 
-    if (!isPro) {
-      await decrementAvailableCount();
-    }
+      if (!isPro) {
+        await decrementAvailableCount(orgId, tx);
+      }
+
+      return deleted;
+    });
 
     await createAuditLog({
       entityId: board.id,

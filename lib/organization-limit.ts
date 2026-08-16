@@ -65,15 +65,22 @@ export const incrementAvailableCount = async (
   return retried.count > 0;
 };
 
-export const decrementAvailableCount = async () => {
-  const { orgId } = await auth();
-
+/**
+ * Free one Free-plan board slot (`count > 0`). Callers pass `orgId` (already
+ * from `auth()`) and the interactive-transaction client so Clerk is not
+ * awaited while the row is locked. A failed board delete rolls the decrement
+ * back. docs/prisma.md
+ */
+export const decrementAvailableCount = async (
+  orgId: string,
+  db: OrganizationLimitWriter = prisma,
+) => {
   if (!orgId) {
     throw new Error("Unauthorized");
   }
 
   // Floor at 0 without a prior read. Missing rows match 0 updates.
-  await prisma.organizationLimit.updateMany({
+  await db.organizationLimit.updateMany({
     where: {
       orgId,
       count: {
