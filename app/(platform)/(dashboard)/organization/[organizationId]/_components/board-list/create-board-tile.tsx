@@ -58,9 +58,9 @@ export const CreateBoardTile = async () => {
           <button
             type="button"
             aria-label={boardLimitHintLabel}
-            className="font-inherit appearance-none border-0 bg-transparent p-0 text-inherit shadow-none outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="font-inherit flex size-6 appearance-none items-center justify-center border-0 bg-transparent p-0 text-inherit shadow-none outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            <HelpCircle className="h-3.5 w-3.5" />
+            <HelpCircle aria-hidden className="h-3.5 w-3.5" />
           </button>
         </Hint>
       </div>

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -55,19 +55,6 @@ const renderTile = async () => {
   return render(<TooltipProvider delay={0}>{tile}</TooltipProvider>);
 };
 
-const expectCreateTileWithSiblingHint = () => {
-  const createButton = screen.getByRole("button", {
-    name: /create new board/i,
-  });
-  const hintButton = screen.getByRole("button", { name: boardLimitHintLabel });
-
-  expect(hintButton).toBeInTheDocument();
-  expect(createButton).not.toContainElement(hintButton);
-  expect(createButton).toHaveClass("appearance-none", "border-0", "p-0");
-
-  return createButton;
-};
-
 describe("CreateBoardTile", () => {
   beforeEach(() => {
     useProModalStore.getState().close();
@@ -82,7 +69,9 @@ describe("CreateBoardTile", () => {
 
     await renderTile();
 
-    const createButton = expectCreateTileWithSiblingHint();
+    const createButton = screen.getByRole("button", {
+      name: /create new board/i,
+    });
     expect(screen.getByText("5 remaining")).toBeInTheDocument();
 
     await user.click(createButton);
@@ -98,7 +87,9 @@ describe("CreateBoardTile", () => {
 
     await renderTile();
 
-    const createButton = expectCreateTileWithSiblingHint();
+    const createButton = screen.getByRole("button", {
+      name: /create new board/i,
+    });
     expect(screen.getByText("0 remaining")).toBeInTheDocument();
 
     await user.click(createButton);
@@ -116,7 +107,6 @@ describe("CreateBoardTile", () => {
 
     await renderTile();
 
-    expectCreateTileWithSiblingHint();
     expect(screen.getByText("Unlimited remaining")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /create new board/i }));
@@ -132,9 +122,19 @@ describe("CreateBoardTile", () => {
 
     await renderTile();
 
-    const createButton = expectCreateTileWithSiblingHint();
+    const createButton = screen.getByRole("button", {
+      name: /create new board/i,
+    });
+    const hintButton = screen.getByRole("button", {
+      name: boardLimitHintLabel,
+    });
 
-    await user.hover(screen.getByRole("button", { name: boardLimitHintLabel }));
+    expect(createButton).not.toContainElement(hintButton);
+    expect(createButton).toHaveClass("appearance-none", "border-0", "p-0");
+    expect(hintButton).toHaveClass("size-6");
+    expect(within(hintButton).queryByRole("img")).not.toBeInTheDocument();
+
+    await user.hover(hintButton);
 
     expect(
       await screen.findByText(
@@ -142,6 +142,5 @@ describe("CreateBoardTile", () => {
       ),
     ).toBeInTheDocument();
     expect(useProModalStore.getState().isOpen).toBe(false);
-    expect(createButton).toBeInTheDocument();
   });
 });
