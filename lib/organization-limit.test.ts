@@ -1,7 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { auth } from "@clerk/nextjs/server";
 
-import { Prisma } from "@/app/generated/prisma/client";
 import { FREE_PLAN } from "@/constants/pricing-plans";
 import prisma from "@/lib/prisma/client";
 import { organizationLimitFactory } from "@/lib/testing/factories/organization-limit";
@@ -17,7 +16,7 @@ vi.mock("@/lib/prisma/client", () => ({
   default: {
     organizationLimit: {
       findUnique: vi.fn(),
-      create: vi.fn(),
+      createMany: vi.fn(),
       updateMany: vi.fn(),
     },
   },
@@ -29,22 +28,16 @@ vi.mock("@clerk/nextjs/server", () => ({
 
 const authMock = vi.mocked(auth);
 const findUniqueMock = vi.mocked(prisma.organizationLimit.findUnique);
-const createMock = vi.mocked(prisma.organizationLimit.create);
+const createManyMock = vi.mocked(prisma.organizationLimit.createMany);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
 
 const orgAuth = { orgId: "org_1" } as Awaited<ReturnType<typeof auth>>;
-
-const uniqueConstraintError = () =>
-  new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
-    code: "P2002",
-    clientVersion: "0",
-  });
 
 describe("incrementAvailableCount", () => {
   test("throws without writing when orgId is empty", async () => {
     await expect(incrementAvailableCount("")).rejects.toThrow("Unauthorized");
     expect(updateManyMock).not.toHaveBeenCalled();
-    expect(createMock).not.toHaveBeenCalled();
+    expect(createManyMock).not.toHaveBeenCalled();
     expect(authMock).not.toHaveBeenCalled();
   });
 
@@ -58,17 +51,13 @@ describe("incrementAvailableCount", () => {
       where: { orgId: "org_1", count: { lt: FREE_PLAN.maxBoards } },
       data: { count: { increment: 1 } },
     });
-    expect(createMock).not.toHaveBeenCalled();
+    expect(createManyMock).not.toHaveBeenCalled();
     expect(reserved).toBe(true);
   });
 
   test("creates a count of 1 when there is no limit row", async () => {
-    const organizationLimit = organizationLimitFactory.build({
-      orgId: "org_1",
-      count: 1,
-    });
     updateManyMock.mockResolvedValue({ count: 0 });
-    createMock.mockResolvedValue(organizationLimit);
+    createManyMock.mockResolvedValue({ count: 1 });
 
     const reserved = await incrementAvailableCount("org_1");
 
@@ -76,38 +65,43 @@ describe("incrementAvailableCount", () => {
       where: { orgId: "org_1", count: { lt: FREE_PLAN.maxBoards } },
       data: { count: { increment: 1 } },
     });
-    expect(createMock).toHaveBeenCalledExactlyOnceWith({
+    expect(createManyMock).toHaveBeenCalledExactlyOnceWith({
       data: { orgId: "org_1", count: 1 },
+      skipDuplicates: true,
     });
     expect(reserved).toBe(true);
   });
 
-  test("retries the cap increment when a concurrent create wins the row", async () => {
+  test("retries the cap increment when a concurrent insert wins the row", async () => {
     updateManyMock
       .mockResolvedValueOnce({ count: 0 })
       .mockResolvedValueOnce({ count: 1 });
-    createMock.mockRejectedValue(uniqueConstraintError());
+    createManyMock.mockResolvedValue({ count: 0 });
 
     const reserved = await incrementAvailableCount("org_1");
 
-    expect(createMock).toHaveBeenCalledOnce();
+    expect(createManyMock).toHaveBeenCalledExactlyOnceWith({
+      data: { orgId: "org_1", count: 1 },
+      skipDuplicates: true,
+    });
     expect(updateManyMock).toHaveBeenCalledTimes(2);
     expect(reserved).toBe(true);
   });
 
   test("returns false when the Free plan cap is already reached", async () => {
     updateManyMock.mockResolvedValue({ count: 0 });
-    createMock.mockRejectedValue(uniqueConstraintError());
+    createManyMock.mockResolvedValue({ count: 0 });
 
     const reserved = await incrementAvailableCount("org_1");
 
     expect(updateManyMock).toHaveBeenCalledTimes(2);
+    expect(createManyMock).toHaveBeenCalledOnce();
     expect(reserved).toBe(false);
   });
 
-  test("rethrows unexpected create errors", async () => {
+  test("rethrows unexpected insert errors", async () => {
     updateManyMock.mockResolvedValue({ count: 0 });
-    createMock.mockRejectedValue(new Error("db down"));
+    createManyMock.mockRejectedValue(new Error("db down"));
 
     await expect(incrementAvailableCount("org_1")).rejects.toThrow("db down");
   });

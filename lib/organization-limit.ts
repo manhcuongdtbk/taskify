@@ -1,20 +1,21 @@
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma/client";
-import { isUniqueConstraintError } from "@/lib/prisma/errors/unique-constraint";
 import { FREE_PLAN } from "@/constants/pricing-plans";
 
 type OrganizationLimitWriter = {
   organizationLimit: Pick<
     typeof prisma.organizationLimit,
-    "updateMany" | "create"
+    "updateMany" | "createMany"
   >;
 };
 
 /**
- * Atomically take one Free-plan board slot (`count < maxBoards`, or create
- * `count: 1`). Callers pass `orgId` (already from `auth()`) and the
- * interactive-transaction client so Clerk is not awaited while the row is
- * locked. A failed board create rolls the increment back. docs/prisma.md
+ * Atomically take one Free-plan board slot (`count < maxBoards`, or insert
+ * `count: 1` with `createMany` `skipDuplicates`). Callers pass `orgId`
+ * (already from `auth()`) and the interactive-transaction client so Clerk is
+ * not awaited while the row is locked. A unique collision must not throw
+ * `P2002` inside that transaction — Postgres would abort it. A failed board
+ * create rolls the increment back. docs/prisma.md
  */
 export const incrementAvailableCount = async (
   orgId: string,
@@ -45,25 +46,23 @@ export const incrementAvailableCount = async (
     return true;
   }
 
-  try {
-    await db.organizationLimit.create({
-      data: {
-        orgId,
-        count: 1,
-      },
-    });
-    return true;
-  } catch (reason) {
-    if (!isUniqueConstraintError(reason)) {
-      throw reason;
-    }
+  const inserted = await db.organizationLimit.createMany({
+    data: {
+      orgId,
+      count: 1,
+    },
+    skipDuplicates: true,
+  });
 
-    const retried = await db.organizationLimit.updateMany({
-      where: whereUnderCap,
-      data: increment,
-    });
-    return retried.count > 0;
+  if (inserted.count > 0) {
+    return true;
   }
+
+  const retried = await db.organizationLimit.updateMany({
+    where: whereUnderCap,
+    data: increment,
+  });
+  return retried.count > 0;
 };
 
 export const decrementAvailableCount = async () => {
