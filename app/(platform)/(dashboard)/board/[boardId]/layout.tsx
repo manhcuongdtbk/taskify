@@ -20,6 +20,7 @@ export async function generateMetadata({
   const board = await prisma.board.findUnique({
     where: {
       id: boardId,
+      orgId,
     },
   });
 

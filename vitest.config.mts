@@ -45,7 +45,7 @@ export default defineConfig({
         "**/*.{test,spec}.{ts,tsx}",
         "**/*.types.ts", // lib/create-safe-action.types.ts
         "**/types.ts", // actions/<name>/types.ts — docs/conventions.md
-        "actions/!(create-board|delete-board)/index.ts", // untested handlers
+        "actions/!(create-board|delete-board|delete-list|update-card-order|create-card|copy-card|update-list-order|update-card|delete-card)/index.ts", // untested handlers
         "lib/prisma/client.ts",
         "lib/prisma/query-options/**", // shapes only — docs/prisma.md
         "lib/unsplash.ts",

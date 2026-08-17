@@ -19,9 +19,25 @@ const handler = async ({ items, boardId }: InputType): Promise<ReturnType> => {
   let updatedCards;
 
   try {
+    const destinationListIds = [...new Set(items.map((card) => card.listId))];
+
+    if (destinationListIds.length > 0) {
+      const destinationCount = await prisma.list.count({
+        where: {
+          id: { in: destinationListIds },
+          boardId,
+          board: { orgId },
+        },
+      });
+
+      if (destinationCount !== destinationListIds.length) {
+        return { serverError: "Failed to reorder." };
+      }
+    }
+
     const transaction = items.map((card) =>
       prisma.card.update({
-        where: { id: card.id, list: { board: { orgId } } },
+        where: { id: card.id, list: { boardId, board: { orgId } } },
         data: { order: card.order, listId: card.listId },
       }),
     );

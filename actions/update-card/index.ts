@@ -26,7 +26,7 @@ const handler = async ({
 
   try {
     card = await prisma.card.update({
-      where: { id, list: { board: { orgId } } },
+      where: { id, list: { boardId, board: { orgId } } },
       data: { ...values },
     });
 

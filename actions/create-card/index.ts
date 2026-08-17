@@ -26,7 +26,7 @@ const handler = async ({
 
   try {
     const list = await prisma.list.findUnique({
-      where: { id: listId, board: { orgId } },
+      where: { id: listId, boardId, board: { orgId } },
     });
 
     if (!list) {

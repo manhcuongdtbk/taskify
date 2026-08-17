@@ -21,7 +21,7 @@ const handler = async ({ boardId, items }: InputType): Promise<ReturnType> => {
   try {
     const transaction = items.map((list) =>
       prisma.list.update({
-        where: { id: list.id, board: { orgId } },
+        where: { id: list.id, boardId, board: { orgId } },
         data: { order: list.order },
       }),
     );

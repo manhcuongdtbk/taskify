@@ -22,7 +22,7 @@ const handler = async ({ id, boardId }: InputType): Promise<ReturnType> => {
 
   try {
     card = await prisma.card.delete({
-      where: { id, list: { board: { orgId } } },
+      where: { id, list: { boardId, board: { orgId } } },
     });
 
     await createAuditLog({

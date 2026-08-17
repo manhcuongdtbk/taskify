@@ -22,7 +22,7 @@ const handler = async ({ id, boardId }: InputType): Promise<ReturnType> => {
 
   try {
     const cardToCopy = await prisma.card.findUnique({
-      where: { id, list: { board: { orgId } } },
+      where: { id, list: { boardId, board: { orgId } } },
     });
 
     if (!cardToCopy) {
