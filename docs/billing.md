@@ -16,6 +16,7 @@ Index: [`README.md`](./README.md). Terms: [`vocabulary.md`](./vocabulary.md). Pr
 - **Happy path** — Checkout → webhook create → renewals update → Customer Portal → `checkSubscription` gates Pro ([Happy path](#happy-path--first-upgrade), [Returning customer](#returning-customer--manage-billing))
 - **Tenant link** — Checkout `metadata.orgId` (Clerk) ↔ `OrganizationSubscription` ↔ Stripe Customer / Subscription / Price
 - **UI entry** — organization billing page + Pro modal; Server Action `stripe-redirect`; webhook at `/api/webhook`
+- **Create vs Pro** — navbar + tile always open the create form; the Action is the Free cap; the limit error opens Pro ([Create does not gate on click](#create-does-not-gate-on-click))
 - **Plan constants** — Free / Pro in [`constants/pricing-plans.ts`](../constants/pricing-plans.ts)
 
 Do **not** add a parallel billing stack without an explicit product decision — finish the hardening backlog first.
@@ -225,8 +226,8 @@ flowchart TD
 
 ## Happy path — first upgrade
 
-Entry points: Free-plan board limit (`form-popover`) or Billing page **Upgrade to Pro**
-(`SubscriptionButton` → Pro modal).
+Entry points: create-board **limit error** from `FormPopover` (navbar Create or the org
+tile) or Billing page **Upgrade to Pro** (`SubscriptionButton` → Pro modal).
 
 ```mermaid
 sequenceDiagram
@@ -239,7 +240,7 @@ sequenceDiagram
   participant Webhook as /api/webhook
   participant DB as organizationSubscription
 
-  User->>UI: Hit free limit (tile/navbar at cap or create-board limit error)
+  User->>UI: Create-board Action returns the Free-plan limit error
   UI->>Modal: proModal.open()
   User->>Modal: Click Upgrade
   Modal->>Action: stripeRedirect()
@@ -288,19 +289,19 @@ Paths change — treat this as a starting index, not a contract. Prefer searchin
 the repo (`checkSubscription`, `stripeRedirect`, `organizationSubscription`) when
 in doubt.
 
-| Piece                   | Path                                                                                                                                                                             | Role                                                                                                                                                                                                                                                                               |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Free-plan limit trigger | `components/form/form-popover.tsx` · `components/create-board-trigger.tsx` · `components/modals/pro-modal-trigger.tsx` · `board-list/create-board-tile.tsx` · `dashboard-navbar` | Limit error from create-board still opens Pro; at-cap Create (tile + navbar) uses `CreateBoardTrigger` → `ProModalTrigger` on the same button, with the tile Hint as a sibling control. Async `CreateBoardTrigger` in the running app is Playwright — [`testing.md`](./testing.md) |
-| Billing page            | `organization/[organizationId]/billing/`                                                                                                                                         | Shows plan via `Info` + `SubscriptionButton`                                                                                                                                                                                                                                       |
-| Subscription CTA        | `billing/_components/subscription-button.tsx`                                                                                                                                    | **Free** plan → Pro modal; **Pro** → Customer Portal (`billingPortal`)                                                                                                                                                                                                             |
-| Modal store             | `stores/use-pro-modal-store.ts`                                                                                                                                                  | Client open/close state                                                                                                                                                                                                                                                            |
-| Upgrade UI              | `components/modals/pro-modal.tsx`                                                                                                                                                | Calls `stripeRedirect`, navigates to Stripe URL                                                                                                                                                                                                                                    |
-| Server action           | `actions/stripe-redirect/index.ts`                                                                                                                                               | Checkout (new) or Customer Portal / billingPortal (existing)                                                                                                                                                                                                                       |
-| Stripe client           | `lib/stripe.ts`                                                                                                                                                                  | SDK instance + `stripeTimestampToDate`                                                                                                                                                                                                                                             |
-| Webhook                 | `app/api/webhook/route.ts`                                                                                                                                                       | Verifies signature; creates/updates DB row                                                                                                                                                                                                                                         |
-| Authentication gate     | `proxy.ts`                                                                                                                                                                       | `/api/webhook` is public (Stripe has no Clerk session)                                                                                                                                                                                                                             |
-| Plan access check       | `lib/subscription.ts`                                                                                                                                                            | `checkSubscription` / `isPro` — billing UI, board limits, organization pages. React `cache` on the helper is request-scoped RSC memoization ([`data.md`](./data.md)); mutations still re-read.                                                                                     |
-| Persistence             | `prisma/schema.prisma` → `OrganizationSubscription`                                                                                                                              | Links Clerk `orgId` ↔ Stripe IDs                                                                                                                                                                                                                                                   |
+| Piece                   | Path                                                                                         | Role                                                                                                                                                                                                                                                                                                     |
+| ----------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free-plan limit trigger | `components/form/form-popover.tsx` · `board-list/create-board-tile.tsx` · `dashboard-navbar` | Create always opens the form; the Action enforces the cap; the limit error opens Pro. Remaining copy + `?` Hint are tile-only (navbar is Create / plus). Why no click gate: [Create does not gate on click](#create-does-not-gate-on-click). Tile remaining is Playwright — [`testing.md`](./testing.md) |
+| Billing page            | `organization/[organizationId]/billing/`                                                     | Shows plan via `Info` + `SubscriptionButton`                                                                                                                                                                                                                                                             |
+| Subscription CTA        | `billing/_components/subscription-button.tsx`                                                | **Free** plan → Pro modal; **Pro** → Customer Portal (`billingPortal`)                                                                                                                                                                                                                                   |
+| Modal store             | `stores/use-pro-modal-store.ts`                                                              | Client open/close state                                                                                                                                                                                                                                                                                  |
+| Upgrade UI              | `components/modals/pro-modal.tsx`                                                            | Calls `stripeRedirect`, navigates to Stripe URL                                                                                                                                                                                                                                                          |
+| Server action           | `actions/stripe-redirect/index.ts`                                                           | Checkout (new) or Customer Portal / billingPortal (existing)                                                                                                                                                                                                                                             |
+| Stripe client           | `lib/stripe.ts`                                                                              | SDK instance + `stripeTimestampToDate`                                                                                                                                                                                                                                                                   |
+| Webhook                 | `app/api/webhook/route.ts`                                                                   | Verifies signature; creates/updates DB row                                                                                                                                                                                                                                                               |
+| Authentication gate     | `proxy.ts`                                                                                   | `/api/webhook` is public (Stripe has no Clerk session)                                                                                                                                                                                                                                                   |
+| Plan access check       | `lib/subscription.ts`                                                                        | `checkSubscription` (RSC, React `cache`) / `isProOrganization` (Actions, pass `tx`) — billing UI, board limits. Mutations re-read Pro inside `$transaction`. [`data.md`](./data.md)                                                                                                                      |
+| Persistence             | `prisma/schema.prisma` → `OrganizationSubscription`                                          | Links Clerk `orgId` ↔ Stripe IDs                                                                                                                                                                                                                                                                         |
 
 ## Data we store
 
@@ -327,12 +328,22 @@ Put the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET` (CLI secret ≠ Dashboa
 
 ## Gotchas in this project
 
+### Create does not gate on click
+
+Navbar Create and the org create-tile always open [`FormPopover`](../components/form/form-popover.tsx). There is no “at cap → Pro modal” branch on click.
+
+The Free cap is the create-board Action (`isProOrganization` + slot reserve inside `$transaction`). On the limit error, `FormPopover` toasts, closes, and opens the Pro modal.
+
+That is the Create instance of the repo rule: **UI may be stale; writes re-check** — [`data.md`](./data.md). At the cap, the user can fill the form and only then see Pro. We do not pre-check access in the UI (RSC render or a click-time Server Function). Those guesses went stale in the dashboard **layout** navbar — it survives org switches and board navigation — and opened Pro when create would still succeed (or the reverse).
+
+Navbar is only Create / plus — no remaining count, no `?` Hint. The org tile shows remaining copy and the Hint (Hint still describes the Free cap when Pro — P2 below).
+
 ### `isPro` vs `stripeCustomerId` (not the same)
 
-| Check                             | Where                                                     | Means                                                                                                                                  |
-| --------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **`isPro`** (`checkSubscription`) | UI (Billing button label, board limits, Free / Pro badge) | “Does this organization have **Pro** access right now?” — needs `stripePriceId` + `stripeCurrentPeriodEnd` still valid (+ 1-day grace) |
-| **`stripeCustomerId`**            | `stripe-redirect` branch                                  | “Do we already have a Stripe Customer so we open **Customer Portal** instead of Checkout?”                                             |
+| Check                             | Where                                                                   | Means                                                                                                                                  |
+| --------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **`isPro`** (`checkSubscription`) | UI (Billing button label, tile remaining / Unlimited, Free / Pro badge) | “Does this organization have **Pro** access right now?” — needs `stripePriceId` + `stripeCurrentPeriodEnd` still valid (+ 1-day grace) |
+| **`stripeCustomerId`**            | `stripe-redirect` branch                                                | “Do we already have a Stripe Customer so we open **Customer Portal** instead of Checkout?”                                             |
 
 Usually they agree after a successful Checkout + webhook. They can diverge briefly
 (webhook lag) or if you later add free trials, past-due grace, etc. Don’t replace

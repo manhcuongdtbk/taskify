@@ -5,9 +5,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
-import { checkSubscription } from "@/lib/subscription";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
+import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
 
 import { deleteBoard } from "./index";
 
@@ -17,6 +17,9 @@ vi.mock("@/lib/prisma/client", () => ({
     board: { delete: vi.fn() },
     organizationLimit: {
       updateMany: vi.fn(),
+    },
+    organizationSubscription: {
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -37,17 +40,16 @@ vi.mock("@/lib/create-audit-log", () => ({
   createAuditLog: vi.fn(),
 }));
 
-vi.mock("@/lib/subscription", () => ({
-  checkSubscription: vi.fn(),
-}));
-
 import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
-const checkSubscriptionMock = vi.mocked(checkSubscription);
 const transactionMock = vi.mocked(prisma.$transaction);
 const boardDeleteMock = vi.mocked(prisma.board.delete);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
+const defaultSubscriptionFindUniqueMock = vi.mocked(
+  prisma.organizationSubscription.findUnique,
+);
+const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const redirectMock = vi.mocked(redirect);
 const createAuditLogMock = vi.mocked(createAuditLog);
@@ -67,6 +69,9 @@ const mockInteractiveTransaction = () => {
       board: { delete: boardDeleteMock },
       organizationLimit: {
         updateMany: updateManyMock,
+      },
+      organizationSubscription: {
+        findUnique: txSubscriptionFindUniqueMock,
       },
     } as never);
   });
@@ -91,16 +96,26 @@ describe("deleteBoard", () => {
   test("deletes a Free-plan board and frees a slot in the same transaction", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(false);
     boardDeleteMock.mockResolvedValue(board);
+    txSubscriptionFindUniqueMock.mockResolvedValue(null);
     updateManyMock.mockResolvedValue({ count: 1 });
 
     await deleteBoard({ id: board.id });
 
     expect(authMock).toHaveBeenCalledOnce();
     expect(transactionMock).toHaveBeenCalledOnce();
+    expect(defaultSubscriptionFindUniqueMock).not.toHaveBeenCalled();
     expect(boardDeleteMock).toHaveBeenCalledExactlyOnceWith({
       where: { id: board.id, orgId: "org_1" },
+    });
+    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+      select: {
+        stripeSubscriptionId: true,
+        stripeCurrentPeriodEnd: true,
+        stripePriceId: true,
+        stripeCustomerId: true,
+      },
     });
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1", count: { gt: 0 } },
@@ -123,12 +138,15 @@ describe("deleteBoard", () => {
   test("skips the Free-plan slot release for a Pro organization", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(true);
     boardDeleteMock.mockResolvedValue(board);
+    txSubscriptionFindUniqueMock.mockResolvedValue(
+      organizationSubscriptionFactory.build({ orgId: "org_1" }),
+    );
 
     await deleteBoard({ id: board.id });
 
     expect(transactionMock).toHaveBeenCalledOnce();
+    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledOnce();
     expect(updateManyMock).not.toHaveBeenCalled();
     expect(boardDeleteMock).toHaveBeenCalledOnce();
     expect(redirectMock).toHaveBeenCalledExactlyOnceWith(
@@ -139,8 +157,8 @@ describe("deleteBoard", () => {
   test("returns Failed to delete without writing an audit log when decrement throws", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(false);
     boardDeleteMock.mockResolvedValue(board);
+    txSubscriptionFindUniqueMock.mockResolvedValue(null);
     updateManyMock.mockRejectedValue(new Error("db down"));
 
     const result = await deleteBoard({ id: board.id });
@@ -152,7 +170,6 @@ describe("deleteBoard", () => {
 
   test("returns Failed to delete when the board delete throws", async () => {
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(true);
     boardDeleteMock.mockRejectedValue(new Error("db down"));
 
     const result = await deleteBoard({ id: "board_1" });

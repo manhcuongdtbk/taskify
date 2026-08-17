@@ -5,9 +5,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/errors/free-board-limit";
 import prisma from "@/lib/prisma/client";
-import { checkSubscription } from "@/lib/subscription";
 import { FREE_PLAN } from "@/constants/pricing-plans";
 import { boardFactory } from "@/lib/testing/factories/board";
+import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
 
 import { createBoard } from "./index";
 
@@ -18,6 +18,9 @@ vi.mock("@/lib/prisma/client", () => ({
     organizationLimit: {
       updateMany: vi.fn(),
       createMany: vi.fn(),
+    },
+    organizationSubscription: {
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -34,17 +37,16 @@ vi.mock("@/lib/create-audit-log", () => ({
   createAuditLog: vi.fn(),
 }));
 
-vi.mock("@/lib/subscription", () => ({
-  checkSubscription: vi.fn(),
-}));
-
 import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
-const checkSubscriptionMock = vi.mocked(checkSubscription);
 const transactionMock = vi.mocked(prisma.$transaction);
 const boardCreateMock = vi.mocked(prisma.board.create);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
+const defaultSubscriptionFindUniqueMock = vi.mocked(
+  prisma.organizationSubscription.findUnique,
+);
+const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
@@ -74,6 +76,9 @@ const mockInteractiveTransaction = () => {
         updateMany: updateManyMock,
         createMany: prisma.organizationLimit.createMany,
       },
+      organizationSubscription: {
+        findUnique: txSubscriptionFindUniqueMock,
+      },
     } as never);
   });
 };
@@ -91,18 +96,29 @@ describe("createBoard", () => {
     const result = await createBoard({ title: "Roadmap", image });
 
     expect(transactionMock).not.toHaveBeenCalled();
+    expect(txSubscriptionFindUniqueMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
   test("creates a Free-plan board after reserving a slot in the same transaction", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(false);
+    txSubscriptionFindUniqueMock.mockResolvedValue(null);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockResolvedValue(board);
 
     const result = await createBoard({ title: board.title, image });
 
+    expect(defaultSubscriptionFindUniqueMock).not.toHaveBeenCalled();
+    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+      select: {
+        stripeSubscriptionId: true,
+        stripeCurrentPeriodEnd: true,
+        stripePriceId: true,
+        stripeCustomerId: true,
+      },
+    });
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1", count: { lt: FREE_PLAN.maxBoards } },
       data: { count: { increment: 1 } },
@@ -133,11 +149,14 @@ describe("createBoard", () => {
   test("skips the Free-plan slot reserve for a Pro organization", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(true);
+    txSubscriptionFindUniqueMock.mockResolvedValue(
+      organizationSubscriptionFactory.build({ orgId: "org_1" }),
+    );
     boardCreateMock.mockResolvedValue(board);
 
     const result = await createBoard({ title: board.title, image });
 
+    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledOnce();
     expect(updateManyMock).not.toHaveBeenCalled();
     expect(boardCreateMock).toHaveBeenCalledOnce();
     expect(result).toStrictEqual({ data: board });
@@ -145,7 +164,7 @@ describe("createBoard", () => {
 
   test("returns the Free-plan limit error without creating a board", async () => {
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(false);
+    txSubscriptionFindUniqueMock.mockResolvedValue(null);
     updateManyMock.mockResolvedValue({ count: 0 });
     vi.mocked(prisma.organizationLimit.createMany).mockResolvedValue({
       count: 0,
@@ -162,7 +181,9 @@ describe("createBoard", () => {
 
   test("returns Failed to create when the board insert throws", async () => {
     authMock.mockResolvedValue(orgAuth);
-    checkSubscriptionMock.mockResolvedValue(true);
+    txSubscriptionFindUniqueMock.mockResolvedValue(
+      organizationSubscriptionFactory.build({ orgId: "org_1" }),
+    );
     boardCreateMock.mockRejectedValue(new Error("db down"));
 
     const result = await createBoard({ title: "Roadmap", image });

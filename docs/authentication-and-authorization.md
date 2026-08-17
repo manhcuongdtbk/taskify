@@ -28,7 +28,7 @@ Not a full permissions product. Today we only:
 
 - **Require a session + active organization** before protected mutations (`userId` / `orgId` checks in Server Actions and card Route Handlers)
 - **Tenant isolation** — board/list/card queries scoped with `orgId` so one organization cannot mutate another’s data by id alone
-- **Pricing-plan entitlements** — Free board caps / Pro via `checkSubscription` + `organization-limit` (see [`features.md`](./features.md) / [`billing.md`](./billing.md))
+- **Pricing-plan entitlements** — display via `checkSubscription`; mutations re-read plan / slots in the Action ([`data.md`](./data.md), [`billing.md`](./billing.md))
 
 We do **not** yet enforce organization **roles** (admin vs member) or fine-grained action permissions.
 

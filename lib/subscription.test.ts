@@ -5,7 +5,7 @@ import { addDays } from "date-fns";
 import prisma from "@/lib/prisma/client";
 import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
 
-import { checkSubscription } from "./subscription";
+import { checkSubscription, isProOrganization } from "./subscription";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: { organizationSubscription: { findUnique: vi.fn() } },
@@ -19,6 +19,13 @@ const authMock = vi.mocked(auth);
 const findUniqueMock = vi.mocked(prisma.organizationSubscription.findUnique);
 
 const frozenNow = new Date("2026-06-15T12:00:00.000Z");
+
+describe("isProOrganization", () => {
+  test("throws without querying when orgId is empty", async () => {
+    await expect(isProOrganization("")).rejects.toThrow("Unauthorized");
+    expect(findUniqueMock).not.toHaveBeenCalled();
+  });
+});
 
 describe("checkSubscription", () => {
   beforeEach(() => {

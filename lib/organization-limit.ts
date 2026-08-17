@@ -1,8 +1,6 @@
-import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma/client";
 import { FREE_PLAN } from "@/constants/pricing-plans";
-import { checkSubscription } from "@/lib/subscription";
 
 type OrganizationLimitWriter = {
   organizationLimit: Pick<
@@ -97,16 +95,8 @@ export const decrementAvailableCount = async (
   });
 };
 
-/** Read-side Free-plan room. Creates still go through `incrementAvailableCount`. */
-export const isBelowFreeBoardCap = (count: number) =>
-  count < FREE_PLAN.maxBoards;
-
-/** UI gate: Pro, or Free with unused board slots. Creates still go through `incrementAvailableCount`. */
-export const canCreateBoard = (isPro: boolean, count: number) =>
-  isPro || isBelowFreeBoardCap(count);
-
-/** Request-scoped board-count read. React `cache` — docs/data.md */
-export const getAvailableCount = cache(async () => {
+/** Stored Free-plan board count for remaining copy. Creates still go through `incrementAvailableCount`. */
+export const getAvailableCount = async () => {
   const { orgId } = await auth();
 
   if (!orgId) {
@@ -124,22 +114,4 @@ export const getAvailableCount = cache(async () => {
   }
 
   return organizationLimit.count;
-});
-
-/**
- * Create-board UI: remaining copy + trigger gate. Prisma reads are cached on
- * `getAvailableCount` / `checkSubscription` (page `isPro` shares the latter).
- * docs/data.md
- */
-export const getBoardCreateAccess = async () => {
-  const [availableCount, isPro] = await Promise.all([
-    getAvailableCount(),
-    checkSubscription(),
-  ]);
-
-  return {
-    availableCount,
-    isPro,
-    canCreate: canCreateBoard(isPro, availableCount),
-  };
 };

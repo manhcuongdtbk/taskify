@@ -1,12 +1,13 @@
 import { Hint } from "@/components/hint";
 import { HelpCircle } from "lucide-react";
-import { getBoardCreateAccess } from "@/lib/organization-limit";
+import { getAvailableCount } from "@/lib/organization-limit";
+import { checkSubscription } from "@/lib/subscription";
 import {
   FREE_PLAN,
   PRO_PLAN,
   hasUnlimitedBoards,
 } from "@/constants/pricing-plans";
-import { CreateBoardTrigger } from "@/components/create-board-trigger";
+import { FormPopover } from "@/components/form/form-popover";
 
 /** Strip UA button chrome so the tile matches the old muted `div` face. */
 const tileClassName =
@@ -16,35 +17,24 @@ const boardLimitHintDescription = `${FREE_PLAN.name} Workspaces can have up to $
 
 const boardLimitHintLabel = `${FREE_PLAN.name} plan board limit`;
 
-type CreateBoardTileViewProps = {
-  availableCount: number;
-  isPro: boolean;
-};
-
-/** Sync chrome (remaining copy + hint). Async load + create gate: Playwright. docs/testing.md */
-export const CreateBoardTileView = ({
-  availableCount,
-  isPro,
-}: CreateBoardTileViewProps) => {
+export const CreateBoardTile = async () => {
+  const [availableCount, isPro] = await Promise.all([
+    getAvailableCount(),
+    checkSubscription(),
+  ]);
   const remainingLabel =
     isPro && hasUnlimitedBoards(PRO_PLAN)
       ? "Unlimited"
       : FREE_PLAN.maxBoards - availableCount;
 
-  const label = (
-    <>
-      <p className="text-sm">Create new board</p>
-      <span className="text-xs">{`${remainingLabel} remaining`}</span>
-    </>
-  );
-
   return (
     <div className="relative aspect-video h-full w-full">
-      <CreateBoardTrigger sideOffset={10} side="right">
+      <FormPopover sideOffset={10} side="right">
         <button type="button" className={tileClassName}>
-          {label}
+          <p className="text-sm">Create new board</p>
+          <span className="text-xs">{`${remainingLabel} remaining`}</span>
         </button>
-      </CreateBoardTrigger>
+      </FormPopover>
       {/* TODO (P2 — docs/billing.md): Hint
                 always describes the Free plan board limit even when isPro shows
                 "Unlimited". Hide the Hint for Pro, or change the copy by plan. */}
@@ -61,9 +51,4 @@ export const CreateBoardTileView = ({
       </div>
     </div>
   );
-};
-
-export const CreateBoardTile = async () => {
-  const { availableCount, isPro } = await getBoardCreateAccess();
-  return <CreateBoardTileView availableCount={availableCount} isPro={isPro} />;
 };

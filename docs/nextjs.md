@@ -24,7 +24,7 @@ These are intentional patterns learners should copy unless a higher-priority off
 - **`typedRoutes` + slim `lib/paths`** (cast-needed URLs only) for in-app links / redirects — see [Typed routes and env](#typed-routes-and-env)
 - **`Link` for in-app routes; plain `<a>` for external URLs** — see [Link vs `<a>`](#link-vs-a)
 - **`experimental.typedEnv`** so `process.env` keys get IntelliSense from loaded `.env*` — see [Typed routes and env](#typed-routes-and-env)
-- **Server Actions** (`"use server"`) for mutations, with authentication / authorization checks inside the action
+- **Server Actions** (`"use server"`) for mutations, with authentication / authorization checks **inside** the action (UI is not the lock — [`data.md`](./data.md))
 - **`revalidatePath`** after successful mutations
 - **Route Handlers** (`route.ts`) for HTTP endpoints (e.g. Stripe webhook)
 - **Route Handler errors** — expected 401/`notFound()` as HTTP; no whole-handler `try/catch`. See [Route Handler throws vs HTTP status](#route-handler-throws-vs-http-status)

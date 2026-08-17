@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-vi.mock("@/components/create-board-trigger", () => ({
-  CreateBoardTrigger: ({ children }: { children: ReactNode }) => children,
+vi.mock("@/components/form/form-popover", () => ({
+  FormPopover: ({ children }: { children: ReactNode }) => children,
 }));
 
 vi.mock("next/link", () => ({

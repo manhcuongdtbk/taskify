@@ -13,7 +13,7 @@ import {
   FreeBoardLimitReachedError,
 } from "@/lib/errors/free-board-limit";
 import { incrementAvailableCount } from "@/lib/organization-limit";
-import { checkSubscription } from "@/lib/subscription";
+import { isProOrganization } from "@/lib/subscription";
 
 const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -24,12 +24,11 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
     };
   }
 
-  const isPro = await checkSubscription();
-
   let board;
 
   try {
     board = await prisma.$transaction(async (tx) => {
+      const isPro = await isProOrganization(orgId, tx);
       if (!isPro) {
         const reserved = await incrementAvailableCount(orgId, tx);
         if (!reserved) {
