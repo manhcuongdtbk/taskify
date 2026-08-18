@@ -142,7 +142,7 @@ Do not treat rendered UI as the lock: RSC props, badges, remaining copy, which c
 
 Display reads (`checkSubscription` on a page) may use React `cache()` for one RSC render. That is allowed. Call `checkSubscription()` with no args from every RSC on the request so `cache()` shares `isPro` (org page badge + create-board tile). Do not pass a raw `orgId` into that helper — `cache()` keys on arguments, and a caller-supplied id is not membership-checked.
 
-For board card reordering, `actions/update-card-order` validates destination lists inside the interactive transaction and relies on the scoped `tx.card.update` `where` clause to enforce that the cards being updated belong to the org board (invalid cards fail the update and the action returns the generic "Failed to reorder.").
+For board card reordering, `actions/update-card-order` validates destination lists inside the interactive transaction and awaits each scoped `tx.card.update` sequentially (one adapter-pg connection per interactive transaction — do not `Promise.all` on `tx`). Invalid cards fail the update and the action returns the generic "Failed to reorder."
 
 This is Next’s [Data Security](https://nextjs.org/docs/app/guides/data-security) recommendation (assume Actions are POSTable; authorize inside them), adopted here as a **repo rule** for every mutation — not Create-only. In this repo’s vocabulary that is a Next **recommendation** we follow, not domain [**best practice**](./vocabulary.md) (that word is for what the product teaches users). Create opening the form at the Free cap is one instance — [`billing.md`](./billing.md). Authorization checklist: [`authentication-and-authorization.md`](./authentication-and-authorization.md).
 

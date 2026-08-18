@@ -36,19 +36,24 @@ const handler = async ({ items, boardId }: InputType): Promise<ReturnType> => {
         }
       }
 
-      const updates = items.map((card) =>
-        tx.card.update({
-          // Security boundary:
-          // We intentionally do not separately pre-validate that each card's
-          // current list belongs to the org board. The `where` clause scopes
-          // the update to cards on `orgId`'s board, so invalid cards fail the
-          // update and we return the generic "Failed to reorder." response.
-          where: { id: card.id, list: { boardId, board: { orgId } } },
-          data: { order: card.order, listId: card.listId },
-        }),
-      );
+      // Sequential awaits: interactive `$transaction` uses one adapter-pg
+      // connection. Promise.all on `tx` can overlap queries on that connection.
+      const updated = [];
+      for (const card of items) {
+        updated.push(
+          await tx.card.update({
+            // Security boundary:
+            // We intentionally do not separately pre-validate that each card's
+            // current list belongs to the org board. The `where` clause scopes
+            // the update to cards on `orgId`'s board, so invalid cards fail the
+            // update and we return the generic "Failed to reorder." response.
+            where: { id: card.id, list: { boardId, board: { orgId } } },
+            data: { order: card.order, listId: card.listId },
+          }),
+        );
+      }
 
-      return Promise.all(updates);
+      return updated;
     });
   } catch (reason) {
     console.log("[UPDATE_CARD_ORDER_ERROR]", reason);

@@ -123,6 +123,35 @@ describe("updateCardOrder", () => {
     expect(result).toStrictEqual({ data: [card] });
   });
 
+  test("updates each card sequentially on the transaction client", async () => {
+    const first = cardFactory.build({ listId: "list_1", order: 1 });
+    const second = cardFactory.build({ listId: "list_1", order: 2 });
+    authMock.mockResolvedValue(orgAuth);
+    listCountMock.mockResolvedValue(1);
+    cardUpdateMock.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
+
+    const result = await updateCardOrder({
+      boardId: "board_1",
+      items: [first, second],
+    });
+
+    expect(cardUpdateMock).toHaveBeenNthCalledWith(1, {
+      where: {
+        id: first.id,
+        list: { boardId: "board_1", board: { orgId: "org_1" } },
+      },
+      data: { order: first.order, listId: first.listId },
+    });
+    expect(cardUpdateMock).toHaveBeenNthCalledWith(2, {
+      where: {
+        id: second.id,
+        list: { boardId: "board_1", board: { orgId: "org_1" } },
+      },
+      data: { order: second.order, listId: second.listId },
+    });
+    expect(result).toStrictEqual({ data: [first, second] });
+  });
+
   test("skips the destination check and writes nothing when there are no items", async () => {
     authMock.mockResolvedValue(orgAuth);
 
