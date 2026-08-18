@@ -8,10 +8,7 @@ import { createSafeAction } from "@/lib/create-safe-action";
 import { CreateBoardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
-import {
-  FREE_BOARD_LIMIT_SERVER_ERROR,
-  FreeBoardLimitReachedError,
-} from "@/lib/errors/free-board-limit";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 import {
   incrementAvailableCount,
   incrementBoardCount,
@@ -30,42 +27,46 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
   let board;
 
   try {
-    board = await prisma.$transaction(async (tx) => {
+    const outcome = await prisma.$transaction(async (tx) => {
       const isPro = await isProOrganization(orgId, tx);
       if (isPro) {
         // Keep the stored counter aligned with reality across plan changes.
         await incrementBoardCount(orgId, tx);
       } else {
         const reserved = await incrementAvailableCount(orgId, tx);
-        if (!reserved) throw new FreeBoardLimitReachedError();
+        // Return — do not throw — so the at-cap stored-count heal commits.
+        if (!reserved) {
+          return { created: false as const };
+        }
       }
 
-      return tx.board.create({
-        data: {
-          title,
-          orgId,
-          imageId: image.id,
-          imageThumbUrl: image.thumbUrl,
-          imageFullUrl: image.fullUrl,
-          imageLinkHTML: image.linkHTML,
-          imageUserName: image.userName,
-        },
-      });
+      return {
+        created: true as const,
+        board: await tx.board.create({
+          data: {
+            title,
+            orgId,
+            imageId: image.id,
+            imageThumbUrl: image.thumbUrl,
+            imageFullUrl: image.fullUrl,
+            imageLinkHTML: image.linkHTML,
+            imageUserName: image.userName,
+          },
+        }),
+      };
     });
+
+    if (!outcome.created) {
+      return {
+        serverError: FREE_BOARD_LIMIT_SERVER_ERROR,
+      };
+    }
+
+    board = outcome.board;
   } catch (reason) {
     if (reason instanceof Error && reason.message === "Unauthorized") {
       return {
         serverError: "Unauthorized",
-      };
-    }
-
-    if (
-      reason instanceof FreeBoardLimitReachedError ||
-      (reason instanceof Error &&
-        reason.message === FREE_BOARD_LIMIT_SERVER_ERROR)
-    ) {
-      return {
-        serverError: FREE_BOARD_LIMIT_SERVER_ERROR,
       };
     }
 

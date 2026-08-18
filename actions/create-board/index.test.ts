@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
-import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/errors/free-board-limit";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 import prisma from "@/lib/prisma/client";
 import { FREE_PLAN } from "@/constants/pricing-plans";
 import { boardFactory } from "@/lib/testing/factories/board";
@@ -54,6 +54,8 @@ const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
+let lastTransactionOutcome: "committed" | "rolledBack" | undefined;
+
 const orgAuth = {
   orgId: "org_1",
   userId: "user_1",
@@ -69,22 +71,30 @@ const image = {
 };
 
 const mockInteractiveTransaction = () => {
+  lastTransactionOutcome = undefined;
   transactionMock.mockImplementation(async (fn) => {
     if (typeof fn !== "function") {
       throw new Error("expected interactive $transaction");
     }
 
-    return fn({
-      $queryRaw: queryRawMock,
-      board: { create: boardCreateMock, count: boardCountMock },
-      organizationLimit: {
-        updateMany: updateManyMock,
-        createMany: createManyMock,
-      },
-      organizationSubscription: {
-        findUnique: txSubscriptionFindUniqueMock,
-      },
-    } as never);
+    try {
+      const value = await fn({
+        $queryRaw: queryRawMock,
+        board: { create: boardCreateMock, count: boardCountMock },
+        organizationLimit: {
+          updateMany: updateManyMock,
+          createMany: createManyMock,
+        },
+        organizationSubscription: {
+          findUnique: txSubscriptionFindUniqueMock,
+        },
+      } as never);
+      lastTransactionOutcome = "committed";
+      return value;
+    } catch (reason) {
+      lastTransactionOutcome = "rolledBack";
+      throw reason;
+    }
   });
 };
 
@@ -184,7 +194,7 @@ describe("createBoard", () => {
     expect(result).toStrictEqual({ data: board });
   });
 
-  test("returns the Free-plan limit error without creating a board", async () => {
+  test("returns the Free-plan limit error without creating a board and keeps the healed stored count", async () => {
     authMock.mockResolvedValue(orgAuth);
     txSubscriptionFindUniqueMock.mockResolvedValue(null);
     createManyMock.mockResolvedValue({ count: 0 });
@@ -194,8 +204,13 @@ describe("createBoard", () => {
 
     const result = await createBoard({ title: "Roadmap", image });
 
+    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+      data: { count: FREE_PLAN.maxBoards },
+    });
     expect(boardCreateMock).not.toHaveBeenCalled();
     expect(createAuditLogMock).not.toHaveBeenCalled();
+    expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({
       serverError: FREE_BOARD_LIMIT_SERVER_ERROR,
     });

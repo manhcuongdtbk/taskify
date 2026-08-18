@@ -62,8 +62,10 @@ const writeStoredBoardCount = (
  * boards, and writes `actual + 1` when under the cap. Callers pass `orgId`
  * (already from `auth()`) and the interactive-transaction client (`tx`) so
  * Clerk is not awaited while the row is locked. `FOR UPDATE` is released at
- * statement end outside a transaction. A failed board create rolls the write
- * back. docs/prisma.md
+ * statement end outside a transaction. A failed board **create** rolls the
+ * slot write back. At the cap this writes `actual` and returns `false` —
+ * callers must return that from `$transaction` (not throw) so the heal
+ * commits. docs/prisma.md
  */
 export const incrementAvailableCount = async (
   orgId: string,

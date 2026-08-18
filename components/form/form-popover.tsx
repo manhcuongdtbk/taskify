@@ -25,7 +25,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
-import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/errors/free-board-limit";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 
 type FormPopoverProps = {
   children: Extract<

@@ -38,7 +38,7 @@ vi.mock("@/lib/unsplash", () => ({
 vi.mock("next/image", () => import("@/lib/testing/next/image"));
 
 import { FormPopover } from "./form-popover";
-import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/errors/free-board-limit";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 
 const firstImage = defaultImages[0]!;
 const firstTileName = firstImage.description || "Unsplash Image";
