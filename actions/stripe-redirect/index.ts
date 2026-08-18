@@ -94,11 +94,15 @@ const handler = async ({}: InputType): Promise<ReturnType> => {
         },
       });
 
-      url = stripeSession.url || "";
+      url = stripeSession.url;
     }
   } catch {
     // TODO (P0 — docs/billing.md): log the failure reason
     // (e.g. `catch (reason)` + console/reporter) so checkout failures are debuggable.
+    return { serverError: "Something went wrong." };
+  }
+
+  if (!url) {
     return { serverError: "Something went wrong." };
   }
 

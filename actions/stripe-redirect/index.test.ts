@@ -192,7 +192,7 @@ describe("stripeRedirect", () => {
     });
   });
 
-  test("returns an empty Checkout URL when Stripe omits one", async () => {
+  test("returns Something went wrong when Stripe omits a Checkout URL", async () => {
     authMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue(clerkUser);
     subscriptionFindUniqueMock.mockResolvedValue(null);
@@ -200,7 +200,10 @@ describe("stripeRedirect", () => {
 
     const result = await stripeRedirect({});
 
-    expect(result).toStrictEqual({ data: "" });
+    expect(stripeMocks.portalCreate).not.toHaveBeenCalled();
+    expect(stripeMocks.checkoutCreate).toHaveBeenCalledOnce();
+    expect(revalidatePathMock).not.toHaveBeenCalled();
+    expect(result).toStrictEqual({ serverError: "Something went wrong." });
   });
 
   test("returns Something went wrong when Stripe throws", async () => {

@@ -8,7 +8,7 @@ import { createSafeAction } from "@/lib/create-safe-action";
 import { CreateCardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { lockListRowForUpdate } from "@/lib/prisma/lock-for-update";
-import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
+import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 
 const handler = async ({
   boardId,
