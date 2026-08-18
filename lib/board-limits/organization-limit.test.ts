@@ -9,6 +9,7 @@ import {
   decrementAvailableCount,
   getAvailableCount,
   incrementAvailableCount,
+  incrementBoardCount,
 } from "./organization-limit";
 
 vi.mock("@/lib/prisma/client", () => ({
@@ -127,7 +128,49 @@ describe("decrementAvailableCount", () => {
   });
 });
 
+describe("incrementBoardCount", () => {
+  test("throws without writing when orgId is empty", async () => {
+    await expect(incrementBoardCount("")).rejects.toThrow("Unauthorized");
+    expect(updateManyMock).not.toHaveBeenCalled();
+    expect(createManyMock).not.toHaveBeenCalled();
+    expect(authMock).not.toHaveBeenCalled();
+  });
+
+  test("creates the org row (count=0) then increments by 1", async () => {
+    createManyMock.mockResolvedValue({ count: 1 });
+    updateManyMock.mockResolvedValue({ count: 1 });
+
+    await incrementBoardCount("org_1");
+
+    expect(createManyMock).toHaveBeenCalledExactlyOnceWith({
+      data: { orgId: "org_1", count: 0 },
+      skipDuplicates: true,
+    });
+    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+      data: { count: { increment: 1 } },
+    });
+  });
+});
+
 describe("getAvailableCount", () => {
+  test("skips auth when orgId is provided", async () => {
+    authMock.mockResolvedValue({ orgId: "SHOULD_NOT_CALL" } as Awaited<
+      ReturnType<typeof auth>
+    >);
+    findUniqueMock.mockResolvedValue(
+      organizationLimitFactory.build({ orgId: "org_1", count: 3 }),
+    );
+
+    const result = await getAvailableCount("org_1");
+
+    expect(authMock).not.toHaveBeenCalled();
+    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+    });
+    expect(result).toBe(3);
+  });
+
   test("returns 0 without querying when there is no orgId", async () => {
     authMock.mockResolvedValue({ orgId: null } as Awaited<
       ReturnType<typeof auth>

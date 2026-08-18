@@ -18,7 +18,7 @@ Prefer [Clerk docs](https://clerk.com/docs) for the SDK versions in `package.jso
 - **`ClerkProvider`** on the platform shell (`providers/clerk-provider.tsx`) with Clerk’s [shadcn appearance theme](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes#shadcn-theme)
 - **Hosted authentication UI** via App Router catch-alls: `sign-in`, `sign-up`, `select-org` under `app/(platform)/(clerk)/`
 - **Organizations** — `OrganizationList` / `OrganizationSwitcher` / `UserButton`; product data is tenanted by `orgId`
-- **`auth()` / `currentUser()`** from `@clerk/nextjs/server` inside Server Actions, layouts, and helpers (`lib/subscription.ts`, `lib/organization-limit.ts`)
+- **`auth()` / `currentUser()`** from `@clerk/nextjs/server` inside Server Actions, layouts, and helpers (`lib/subscription.ts`, `lib/board-limits/organization-limit.ts`)
 - **`clerkMiddleware` in `proxy.ts`** — public marketing + Stripe webhook; redirect unauthenticated users; require an active organization for protected app routes
 - **Organization id in billing** — Checkout `metadata.orgId` so webhooks can link subscriptions ([`billing.md`](./billing.md))
 

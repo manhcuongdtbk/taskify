@@ -19,31 +19,39 @@ const handler = async ({ items, boardId }: InputType): Promise<ReturnType> => {
   let updatedCards;
 
   try {
-    const destinationListIds = [...new Set(items.map((card) => card.listId))];
+    updatedCards = await prisma.$transaction(async (tx) => {
+      const destinationListIds = [...new Set(items.map((card) => card.listId))];
 
-    if (destinationListIds.length > 0) {
-      const destinationCount = await prisma.list.count({
-        where: {
-          id: { in: destinationListIds },
-          boardId,
-          board: { orgId },
-        },
-      });
+      if (destinationListIds.length > 0) {
+        const destinationCount = await tx.list.count({
+          where: {
+            id: { in: destinationListIds },
+            boardId,
+            board: { orgId },
+          },
+        });
 
-      if (destinationCount !== destinationListIds.length) {
-        return { serverError: "Failed to reorder." };
+        if (destinationCount !== destinationListIds.length) {
+          throw new Error("Failed to reorder.");
+        }
       }
-    }
 
-    const transaction = items.map((card) =>
-      prisma.card.update({
-        where: { id: card.id, list: { boardId, board: { orgId } } },
-        data: { order: card.order, listId: card.listId },
-      }),
-    );
+      const updates = items.map((card) =>
+        tx.card.update({
+          // Security boundary:
+          // We intentionally do not separately pre-validate that each card's
+          // current list belongs to the org board. The `where` clause scopes
+          // the update to cards on `orgId`'s board, so invalid cards fail the
+          // update and we return the generic "Failed to reorder." response.
+          where: { id: card.id, list: { boardId, board: { orgId } } },
+          data: { order: card.order, listId: card.listId },
+        }),
+      );
 
-    updatedCards = await prisma.$transaction(transaction);
-  } catch {
+      return Promise.all(updates);
+    });
+  } catch (reason) {
+    console.log("[UPDATE_CARD_ORDER_ERROR]", reason);
     return { serverError: "Failed to reorder." };
   }
 

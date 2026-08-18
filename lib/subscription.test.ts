@@ -48,6 +48,38 @@ describe("checkSubscription", () => {
     expect(result).toBe(false);
   });
 
+  test("skips auth when orgId is provided", async () => {
+    // Avoid false negatives from prior tests.
+    authMock.mockClear();
+    findUniqueMock.mockClear();
+
+    authMock.mockResolvedValue({ orgId: "SHOULD_NOT_CALL" } as Awaited<
+      ReturnType<typeof auth>
+    >);
+
+    findUniqueMock.mockResolvedValue(
+      organizationSubscriptionFactory.build({
+        orgId: "org_1",
+        stripePriceId: "price_pro",
+        stripeCurrentPeriodEnd: addDays(frozenNow, 1),
+      }),
+    );
+
+    const result = await checkSubscription("org_1");
+
+    expect(authMock).not.toHaveBeenCalled();
+    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+      select: {
+        stripeSubscriptionId: true,
+        stripeCurrentPeriodEnd: true,
+        stripePriceId: true,
+        stripeCustomerId: true,
+      },
+    });
+    expect(result).toBe(true);
+  });
+
   test("returns false when the organization has no subscription row", async () => {
     authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
       ReturnType<typeof auth>

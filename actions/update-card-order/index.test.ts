@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
 import { cardFactory } from "@/lib/testing/factories/card";
@@ -35,6 +35,23 @@ const orgAuth = {
 } as Awaited<ReturnType<typeof auth>>;
 
 describe("updateCardOrder", () => {
+  const mockInteractiveTransaction = () => {
+    transactionMock.mockImplementation(async (fn) => {
+      if (typeof fn !== "function") {
+        throw new Error("expected interactive $transaction");
+      }
+
+      return fn({
+        list: { count: listCountMock },
+        card: { update: cardUpdateMock },
+      } as never);
+    });
+  };
+
+  beforeEach(() => {
+    mockInteractiveTransaction();
+  });
+
   test("returns Unauthorized without writing when there is no session", async () => {
     authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
       ReturnType<typeof auth>
@@ -69,7 +86,8 @@ describe("updateCardOrder", () => {
         board: { orgId: "org_1" },
       },
     });
-    expect(transactionMock).not.toHaveBeenCalled();
+    expect(transactionMock).toHaveBeenCalledOnce();
+    expect(cardUpdateMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to reorder." });
   });
 
@@ -78,7 +96,6 @@ describe("updateCardOrder", () => {
     authMock.mockResolvedValue(orgAuth);
     listCountMock.mockResolvedValue(1);
     cardUpdateMock.mockResolvedValue(card);
-    transactionMock.mockResolvedValue([card]);
 
     const result = await updateCardOrder({
       boardId: "board_1",
@@ -108,7 +125,6 @@ describe("updateCardOrder", () => {
 
   test("skips the destination check and writes nothing when there are no items", async () => {
     authMock.mockResolvedValue(orgAuth);
-    transactionMock.mockResolvedValue([]);
 
     const result = await updateCardOrder({
       boardId: "board_1",
@@ -116,7 +132,7 @@ describe("updateCardOrder", () => {
     });
 
     expect(listCountMock).not.toHaveBeenCalled();
-    expect(transactionMock).toHaveBeenCalledExactlyOnceWith([]);
+    expect(transactionMock).toHaveBeenCalledOnce();
     expect(revalidatePathMock).toHaveBeenCalledExactlyOnceWith(
       "/board/board_1",
     );
@@ -133,7 +149,7 @@ describe("updateCardOrder", () => {
       items: [card],
     });
 
-    expect(transactionMock).not.toHaveBeenCalled();
+    expect(transactionMock).toHaveBeenCalledOnce();
     expect(result).toStrictEqual({ serverError: "Failed to reorder." });
   });
 
@@ -141,7 +157,7 @@ describe("updateCardOrder", () => {
     const card = cardFactory.build({ listId: "list_1" });
     authMock.mockResolvedValue(orgAuth);
     listCountMock.mockResolvedValue(1);
-    transactionMock.mockRejectedValue(new Error("Record to update not found"));
+    cardUpdateMock.mockRejectedValue(new Error("Record to update not found"));
 
     const result = await updateCardOrder({
       boardId: "board_1",
@@ -156,6 +172,7 @@ describe("updateCardOrder", () => {
       data: { order: card.order, listId: card.listId },
     });
     expect(revalidatePathMock).not.toHaveBeenCalled();
+    expect(transactionMock).toHaveBeenCalledOnce();
     expect(result).toStrictEqual({ serverError: "Failed to reorder." });
   });
 });

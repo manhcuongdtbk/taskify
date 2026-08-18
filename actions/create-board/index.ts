@@ -12,7 +12,10 @@ import {
   FREE_BOARD_LIMIT_SERVER_ERROR,
   FreeBoardLimitReachedError,
 } from "@/lib/errors/free-board-limit";
-import { incrementAvailableCount } from "@/lib/organization-limit";
+import {
+  incrementAvailableCount,
+  incrementBoardCount,
+} from "@/lib/board-limits/organization-limit";
 import { isProOrganization } from "@/lib/subscription";
 
 const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
@@ -29,11 +32,12 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
   try {
     board = await prisma.$transaction(async (tx) => {
       const isPro = await isProOrganization(orgId, tx);
-      if (!isPro) {
+      if (isPro) {
+        // Keep the stored counter aligned with reality across plan changes.
+        await incrementBoardCount(orgId, tx);
+      } else {
         const reserved = await incrementAvailableCount(orgId, tx);
-        if (!reserved) {
-          throw new FreeBoardLimitReachedError();
-        }
+        if (!reserved) throw new FreeBoardLimitReachedError();
       }
 
       return tx.board.create({
@@ -49,6 +53,12 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
       });
     });
   } catch (reason) {
+    if (reason instanceof Error && reason.message === "Unauthorized") {
+      return {
+        serverError: "Unauthorized",
+      };
+    }
+
     if (
       reason instanceof FreeBoardLimitReachedError ||
       (reason instanceof Error &&
@@ -64,12 +74,18 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
     };
   }
 
-  await createAuditLog({
-    entityId: board.id,
-    entityType: ENTITY_TYPE.BOARD,
-    entityTitle: board.title,
-    action: ACTION.CREATE,
-  });
+  try {
+    await createAuditLog({
+      entityId: board.id,
+      entityType: ENTITY_TYPE.BOARD,
+      entityTitle: board.title,
+      action: ACTION.CREATE,
+    });
+  } catch (reason) {
+    // Audit log errors are non-fatal for the domain action. The action must
+    // still return success so the client doesn't retry and create duplicates.
+    console.log("[CREATE_BOARD_AUDIT_LOG_ERROR]", reason);
+  }
 
   revalidatePath(`/board/${board.id}`);
 

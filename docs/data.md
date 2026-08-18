@@ -138,9 +138,11 @@ Still prefer the **server** for secrets, Prisma, and most first-load data. Use t
 
 Do not treat rendered UI as the lock: RSC props, badges, remaining copy, which control is shown. That snapshot can lag org switches, other tabs, and webhooks.
 
-**Writes** (Server Actions, protected Route Handlers) re-read authentication, tenant `orgId`, ownership, and entitlements (plan, Free-board slots) on **that** request. A Server Action is a new request — not the page’s React `cache()`. “Fresh” means that mutation’s snapshot, not a live subscription.
+**Writes** (Server Actions, protected Route Handlers) re-read authentication, tenant `orgId`, ownership, and entitlements (plan, Free-board slots) on **that** request. A Server Action is a new request — not the page’s React `cache()`. “Fresh” means that mutation’s snapshot, not a live subscription. The stored board counter tracks actual open boards across plan changes (both Pro and Free creates/deletes update it); only the **cap check** is Free-only — see [`prisma.md`](./prisma.md).
 
 Display reads (`checkSubscription` on a page) may use React `cache()` for one RSC render. That is allowed.
+
+For board card reordering, `actions/update-card-order` validates destination lists inside the interactive transaction and relies on the scoped `tx.card.update` `where` clause to enforce that the cards being updated belong to the org board (invalid cards fail the update and the action returns the generic "Failed to reorder.").
 
 This is Next’s [Data Security](https://nextjs.org/docs/app/guides/data-security) recommendation (assume Actions are POSTable; authorize inside them), adopted here as a **repo rule** for every mutation — not Create-only. In this repo’s vocabulary that is a Next **recommendation** we follow, not domain [**best practice**](./vocabulary.md) (that word is for what the product teaches users). Create opening the form at the Free cap is one instance — [`billing.md`](./billing.md). Authorization checklist: [`authentication-and-authorization.md`](./authentication-and-authorization.md).
 

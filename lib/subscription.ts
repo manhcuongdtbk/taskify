@@ -72,12 +72,12 @@ export const isProOrganization = async (
  * Actions are a new request.
  * docs/data.md
  */
-export const checkSubscription = cache(async () => {
-  const { orgId } = await auth();
+export const checkSubscription = cache(async (orgId?: string | null) => {
+  const resolvedOrgId = orgId ?? (await auth()).orgId;
 
-  if (!orgId) {
+  if (!resolvedOrgId) {
     return false;
   }
 
-  return isProOrganization(orgId);
+  return isProOrganization(resolvedOrgId);
 });

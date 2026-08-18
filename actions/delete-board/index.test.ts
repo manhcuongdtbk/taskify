@@ -7,7 +7,6 @@ import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
-import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
 
 import { deleteBoard } from "./index";
 
@@ -46,9 +45,6 @@ const authMock = vi.mocked(auth);
 const transactionMock = vi.mocked(prisma.$transaction);
 const boardDeleteMock = vi.mocked(prisma.board.delete);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
-const defaultSubscriptionFindUniqueMock = vi.mocked(
-  prisma.organizationSubscription.findUnique,
-);
 const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const redirectMock = vi.mocked(redirect);
@@ -97,26 +93,16 @@ describe("deleteBoard", () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
-    txSubscriptionFindUniqueMock.mockResolvedValue(null);
     updateManyMock.mockResolvedValue({ count: 1 });
 
     await deleteBoard({ id: board.id });
 
     expect(authMock).toHaveBeenCalledOnce();
     expect(transactionMock).toHaveBeenCalledOnce();
-    expect(defaultSubscriptionFindUniqueMock).not.toHaveBeenCalled();
     expect(boardDeleteMock).toHaveBeenCalledExactlyOnceWith({
       where: { id: board.id, orgId: "org_1" },
     });
-    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1" },
-      select: {
-        stripeSubscriptionId: true,
-        stripeCurrentPeriodEnd: true,
-        stripePriceId: true,
-        stripeCustomerId: true,
-      },
-    });
+    expect(txSubscriptionFindUniqueMock).not.toHaveBeenCalled();
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1", count: { gt: 0 } },
       data: { count: { decrement: 1 } },
@@ -135,19 +121,16 @@ describe("deleteBoard", () => {
     );
   });
 
-  test("skips the Free-plan slot release for a Pro organization", async () => {
+  test("decrements the stored counter for a Pro organization", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
-    txSubscriptionFindUniqueMock.mockResolvedValue(
-      organizationSubscriptionFactory.build({ orgId: "org_1" }),
-    );
 
     await deleteBoard({ id: board.id });
 
     expect(transactionMock).toHaveBeenCalledOnce();
-    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledOnce();
-    expect(updateManyMock).not.toHaveBeenCalled();
+    expect(txSubscriptionFindUniqueMock).not.toHaveBeenCalled();
+    expect(updateManyMock).toHaveBeenCalledOnce();
     expect(boardDeleteMock).toHaveBeenCalledOnce();
     expect(redirectMock).toHaveBeenCalledExactlyOnceWith(
       paths.organization("org_1"),
@@ -158,7 +141,6 @@ describe("deleteBoard", () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
-    txSubscriptionFindUniqueMock.mockResolvedValue(null);
     updateManyMock.mockRejectedValue(new Error("db down"));
 
     const result = await deleteBoard({ id: board.id });
@@ -178,5 +160,21 @@ describe("deleteBoard", () => {
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to delete." });
+  });
+
+  test("does not fail the board delete when audit log throws", async () => {
+    const board = boardFactory.build({ orgId: "org_1" });
+    authMock.mockResolvedValue(orgAuth);
+    boardDeleteMock.mockResolvedValue(board);
+    updateManyMock.mockResolvedValue({ count: 1 });
+    createAuditLogMock.mockRejectedValue(new Error("audit down"));
+
+    await deleteBoard({ id: board.id });
+
+    // Decrement + redirect still happen; audit log is non-fatal.
+    expect(updateManyMock).toHaveBeenCalledOnce();
+    expect(redirectMock).toHaveBeenCalledExactlyOnceWith(
+      paths.organization("org_1"),
+    );
   });
 });

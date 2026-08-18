@@ -9,8 +9,7 @@ import { DeleteBoardSchema } from "./schema";
 import { redirect } from "next/navigation";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
-import { decrementAvailableCount } from "@/lib/organization-limit";
-import { isProOrganization } from "@/lib/subscription";
+import { decrementAvailableCount } from "@/lib/board-limits/organization-limit";
 import { paths } from "@/lib/paths";
 
 const handler = async ({ id }: InputType): Promise<ReturnType> => {
@@ -30,22 +29,26 @@ const handler = async ({ id }: InputType): Promise<ReturnType> => {
         where: { id, orgId },
       });
 
-      const isPro = await isProOrganization(orgId, tx);
-      if (!isPro) {
-        await decrementAvailableCount(orgId, tx);
-      }
+      // Keep stored counter aligned with reality across plan changes.
+      await decrementAvailableCount(orgId, tx);
 
       return deleted;
     });
+  } catch {
+    return { serverError: "Failed to delete." };
+  }
 
+  // Audit log errors are non-fatal for the domain action. The action must
+  // still return success so the client doesn't retry and create duplicates.
+  try {
     await createAuditLog({
       entityId: board.id,
       entityType: ENTITY_TYPE.BOARD,
       entityTitle: board.title,
       action: ACTION.DELETE,
     });
-  } catch {
-    return { serverError: "Failed to delete." };
+  } catch (reason) {
+    console.log("[DELETE_BOARD_AUDIT_LOG_ERROR]", reason);
   }
 
   revalidatePath(paths.organization(orgId));
