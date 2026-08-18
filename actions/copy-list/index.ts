@@ -8,6 +8,7 @@ import { createSafeAction } from "@/lib/create-safe-action";
 import { CopyListSchema } from "./schema";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { createAuditLog } from "@/lib/create-audit-log";
+import { lockBoardRowForUpdate } from "@/lib/prisma/lock-for-update";
 
 const handler = async ({ id, boardId }: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -29,6 +30,11 @@ const handler = async ({ id, boardId }: InputType): Promise<ReturnType> => {
 
       // Return — do not throw — so "List not found" is not swallowed as a copy failure.
       if (!listToCopy) {
+        return { copied: false as const };
+      }
+
+      const locked = await lockBoardRowForUpdate(boardId, tx);
+      if (!locked) {
         return { copied: false as const };
       }
 

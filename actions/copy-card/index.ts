@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { CopyCardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
+import { lockListRowForUpdate } from "@/lib/prisma/lock-for-update";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 
 const handler = async ({ id, boardId }: InputType): Promise<ReturnType> => {
@@ -28,6 +29,11 @@ const handler = async ({ id, boardId }: InputType): Promise<ReturnType> => {
 
       // Return — do not throw — so "Card not found" is not swallowed as a copy failure.
       if (!cardToCopy) {
+        return { copied: false as const };
+      }
+
+      const locked = await lockListRowForUpdate(cardToCopy.listId, tx);
+      if (!locked) {
         return { copied: false as const };
       }
 

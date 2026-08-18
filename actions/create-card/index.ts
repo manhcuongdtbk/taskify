@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { CreateCardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
+import { lockListRowForUpdate } from "@/lib/prisma/lock-for-update";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
 const handler = async ({
@@ -32,6 +33,11 @@ const handler = async ({
 
       // Return — do not throw — so "List not found." is not swallowed as a create failure.
       if (!list) {
+        return { created: false as const };
+      }
+
+      const locked = await lockListRowForUpdate(listId, tx);
+      if (!locked) {
         return { created: false as const };
       }
 

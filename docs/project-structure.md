@@ -152,29 +152,29 @@ Migrate **only that capability** (not the entire repo) when **any** of these hol
 
 Rows are grouped by Kind, in the same order as [Convention priority](#convention-priority).
 
-| Path                   | Role                                                                                             | Kind                             |
-| ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------- |
-| `app/`                 | App Router: pages, layouts, route handlers                                                       | Next.js convention               |
-| `app/(…)/`             | Route groups (marketing, platform, clerk, dashboard)                                             | Next.js convention               |
-| `app/.../_components/` | Route-local UI (not in URL)                                                                      | Next.js convention (`_`)         |
-| `app/api/`             | Route handlers (`route.ts`) — HTTP we expose                                                     | Next.js convention               |
-| `public/`              | Static assets                                                                                    | Next.js convention               |
-| `proxy.ts`             | Request proxy (authentication gating)                                                            | Next.js convention               |
-| `next.config.ts`       | Next.js config                                                                                   | Next.js convention               |
-| `app/globals.css`      | Global CSS (Tailwind entry, etc.)                                                                | Next.js recommendation           |
-| `styles/fonts.ts`      | Shared `next/font` definitions (`@/fonts`); not a CSS dump                                       | Next.js recommendation           |
-| `components/`          | Shared UI across routes (app-specific)                                                           | Common practice                  |
-| `hooks/`               | Shared client hooks                                                                              | Common practice                  |
-| `lib/`                 | Shared helpers and integrations                                                                  | Common practice                  |
-| `lib/tanstack-query/`  | Query `client.ts`, `fetcher.ts`, `resources/<resource>/` factories — [`data.md`](./data.md)      | Common practice (Adopted)        |
-| `lib/prisma/`          | `client.ts` + `query-options/<model>.ts` + `errors/` (`P*` helpers) — [`prisma.md`](./prisma.md) | Common practice (Adopted)        |
-| `lib/board-limits/`    | Free-plan cap: lock/count helpers, remaining copy, Action/FormPopover limit string               | Common practice (Adopted)        |
-| `config/`              | App config; **product name** in `config/site.ts` (`siteConfig.name`)                             | Common practice                  |
-| `constants/`           | App constants; **pricing plans** in `constants/pricing-plans.ts`                                 | Common practice                  |
-| `prisma/`              | Schema + migrations                                                                              | Common (Prisma)                  |
-| `components/ui/`       | **shadcn/ui only** (CLI / registry primitives)                                                   | Repo convention                  |
-| `actions/`             | Server Actions grouped by feature                                                                | Repo convention (structure only) |
-| `scripts/`             | Maintenance scripts (e.g. route export-name check)                                               | Common practice                  |
+| Path                   | Role                                                                                                                    | Kind                             |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `app/`                 | App Router: pages, layouts, route handlers                                                                              | Next.js convention               |
+| `app/(…)/`             | Route groups (marketing, platform, clerk, dashboard)                                                                    | Next.js convention               |
+| `app/.../_components/` | Route-local UI (not in URL)                                                                                             | Next.js convention (`_`)         |
+| `app/api/`             | Route handlers (`route.ts`) — HTTP we expose                                                                            | Next.js convention               |
+| `public/`              | Static assets                                                                                                           | Next.js convention               |
+| `proxy.ts`             | Request proxy (authentication gating)                                                                                   | Next.js convention               |
+| `next.config.ts`       | Next.js config                                                                                                          | Next.js convention               |
+| `app/globals.css`      | Global CSS (Tailwind entry, etc.)                                                                                       | Next.js recommendation           |
+| `styles/fonts.ts`      | Shared `next/font` definitions (`@/fonts`); not a CSS dump                                                              | Next.js recommendation           |
+| `components/`          | Shared UI across routes (app-specific)                                                                                  | Common practice                  |
+| `hooks/`               | Shared client hooks                                                                                                     | Common practice                  |
+| `lib/`                 | Shared helpers and integrations                                                                                         | Common practice                  |
+| `lib/tanstack-query/`  | Query `client.ts`, `fetcher.ts`, `resources/<resource>/` factories — [`data.md`](./data.md)                             | Common practice (Adopted)        |
+| `lib/prisma/`          | `client.ts` + `query-options/<model>.ts` + `lock-for-update.ts` + `errors/` (`P*` helpers) — [`prisma.md`](./prisma.md) | Common practice (Adopted)        |
+| `lib/board-limits/`    | Free-plan cap: lock/count helpers, remaining copy, Action/FormPopover limit string                                      | Common practice (Adopted)        |
+| `config/`              | App config; **product name** in `config/site.ts` (`siteConfig.name`)                                                    | Common practice                  |
+| `constants/`           | App constants; **pricing plans** in `constants/pricing-plans.ts`                                                        | Common practice                  |
+| `prisma/`              | Schema + migrations                                                                                                     | Common (Prisma)                  |
+| `components/ui/`       | **shadcn/ui only** (CLI / registry primitives)                                                                          | Repo convention                  |
+| `actions/`             | Server Actions grouped by feature                                                                                       | Repo convention (structure only) |
+| `scripts/`             | Maintenance scripts (e.g. route export-name check)                                                                      | Common practice                  |
 
 Next.js does not assign special meaning to `components/`, `lib/`, `hooks/`, or `actions/` — see the [official examples note](https://nextjs.org/docs/app/getting-started/project-structure#examples). Rows marked **Common practice** above are this repo’s **Adopted** subset — full catalog (including future folders) in [Common practice folders](#common-practice-folders). Code/naming habits: [`conventions.md`](./conventions.md#common-practices-catalog).
 
@@ -198,13 +198,13 @@ Details for each top-level folder are in the [quick map](#in-this-repo-quick-map
 
 Full shipped map: [`features.md`](./features.md). Vision / audience: [`product.md`](./product.md). Below is only a coarse pointer into the tree.
 
-| Area                                             | Start looking in                                                   |
-| ------------------------------------------------ | ------------------------------------------------------------------ |
-| Authentication / organization selection          | `proxy.ts`, `app/(platform)/(clerk)/`                              |
-| Boards (lists / cards)                           | `app/(platform)/(dashboard)/board/`                                |
-| Organization (home, settings, activity, billing) | `app/(platform)/(dashboard)/organization/`                         |
-| Server mutations                                 | `actions/`                                                         |
-| Data models / DB access                          | `prisma/`, `lib/prisma/` (`client` + `query-options/` + `errors/`) |
+| Area                                             | Start looking in                                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Authentication / organization selection          | `proxy.ts`, `app/(platform)/(clerk)/`                                                     |
+| Boards (lists / cards)                           | `app/(platform)/(dashboard)/board/`                                                       |
+| Organization (home, settings, activity, billing) | `app/(platform)/(dashboard)/organization/`                                                |
+| Server mutations                                 | `actions/`                                                                                |
+| Data models / DB access                          | `prisma/`, `lib/prisma/` (`client` + `query-options/` + `lock-for-update.ts` + `errors/`) |
 
 ## Repo conventions (keep this list short)
 

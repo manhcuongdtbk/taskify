@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { CreateListSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
+import { lockBoardRowForUpdate } from "@/lib/prisma/lock-for-update";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 
 const handler = async ({ boardId, title }: InputType): Promise<ReturnType> => {
@@ -28,6 +29,11 @@ const handler = async ({ boardId, title }: InputType): Promise<ReturnType> => {
 
       // Return — do not throw — so "Board not found." is not swallowed as a create failure.
       if (!board) {
+        return { created: false as const };
+      }
+
+      const locked = await lockBoardRowForUpdate(boardId, tx);
+      if (!locked) {
         return { created: false as const };
       }
 
