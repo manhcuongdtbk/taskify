@@ -53,6 +53,10 @@ const expectLockedOrgRow = () => {
     skipDuplicates: true,
   });
   expect(queryRawMock).toHaveBeenCalledOnce();
+  const [query, ...values] = queryRawMock.mock.calls[0] ?? [];
+  const sql = Array.isArray(query) ? query.join("?") : String(query ?? "");
+  expect(sql).toContain("FOR UPDATE");
+  expect(values).toStrictEqual(["org_1"]);
   expect(boardCountMock).toHaveBeenCalledExactlyOnceWith({
     where: { orgId: "org_1" },
   });
