@@ -25,25 +25,37 @@ const handler = async ({
   let card;
 
   try {
-    const list = await prisma.list.findUnique({
-      where: { id: listId, boardId, board: { orgId } },
+    const outcome = await prisma.$transaction(async (tx) => {
+      const list = await tx.list.findUnique({
+        where: { id: listId, boardId, board: { orgId } },
+      });
+
+      // Return — do not throw — so "List not found." is not swallowed as a create failure.
+      if (!list) {
+        return { created: false as const };
+      }
+
+      const lastCard = await tx.card.findFirst({
+        where: { listId },
+        orderBy: { order: "desc" },
+        select: { order: true },
+      });
+
+      const newOrder = lastCard ? lastCard.order + 1 : 1;
+
+      return {
+        created: true as const,
+        card: await tx.card.create({
+          data: { title, listId, order: newOrder },
+        }),
+      };
     });
 
-    if (!list) {
+    if (!outcome.created) {
       return { serverError: "List not found." };
     }
 
-    const lastCard = await prisma.card.findFirst({
-      where: { listId },
-      orderBy: { order: "desc" },
-      select: { order: true },
-    });
-
-    const newOrder = lastCard ? lastCard.order + 1 : 1;
-
-    card = await prisma.card.create({
-      data: { title, listId, order: newOrder },
-    });
+    card = outcome.card;
 
     await createAuditLog({
       entityId: card.id,

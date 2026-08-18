@@ -21,25 +21,37 @@ const handler = async ({ boardId, title }: InputType): Promise<ReturnType> => {
   let list;
 
   try {
-    const board = await prisma.board.findUnique({
-      where: { id: boardId, orgId },
+    const outcome = await prisma.$transaction(async (tx) => {
+      const board = await tx.board.findUnique({
+        where: { id: boardId, orgId },
+      });
+
+      // Return — do not throw — so "Board not found." is not swallowed as a create failure.
+      if (!board) {
+        return { created: false as const };
+      }
+
+      const lastList = await tx.list.findFirst({
+        where: { boardId },
+        orderBy: { order: "desc" },
+        select: { order: true },
+      });
+
+      const newOrder = lastList ? lastList.order + 1 : 1;
+
+      return {
+        created: true as const,
+        list: await tx.list.create({
+          data: { title, boardId, order: newOrder },
+        }),
+      };
     });
 
-    if (!board) {
+    if (!outcome.created) {
       return { serverError: "Board not found." };
     }
 
-    const lastList = await prisma.list.findFirst({
-      where: { boardId },
-      orderBy: { order: "desc" },
-      select: { order: true },
-    });
-
-    const newOrder = lastList ? lastList.order + 1 : 1;
-
-    list = await prisma.list.create({
-      data: { title, boardId, order: newOrder },
-    });
+    list = outcome.list;
 
     await createAuditLog({
       entityId: list.id,
