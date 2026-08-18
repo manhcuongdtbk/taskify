@@ -12,10 +12,12 @@ import { deleteBoard } from "./index";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: {
+    $queryRaw: vi.fn(),
     $transaction: vi.fn(),
-    board: { delete: vi.fn() },
+    board: { delete: vi.fn(), count: vi.fn() },
     organizationLimit: {
       updateMany: vi.fn(),
+      createMany: vi.fn(),
     },
     organizationSubscription: {
       findUnique: vi.fn(),
@@ -44,7 +46,10 @@ import { createAuditLog } from "@/lib/create-audit-log";
 const authMock = vi.mocked(auth);
 const transactionMock = vi.mocked(prisma.$transaction);
 const boardDeleteMock = vi.mocked(prisma.board.delete);
+const boardCountMock = vi.mocked(prisma.board.count);
+const queryRawMock = vi.mocked(prisma.$queryRaw);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
+const createManyMock = vi.mocked(prisma.organizationLimit.createMany);
 const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const redirectMock = vi.mocked(redirect);
@@ -62,9 +67,11 @@ const mockInteractiveTransaction = () => {
     }
 
     return fn({
-      board: { delete: boardDeleteMock },
+      $queryRaw: queryRawMock,
+      board: { delete: boardDeleteMock, count: boardCountMock },
       organizationLimit: {
         updateMany: updateManyMock,
+        createMany: createManyMock,
       },
       organizationSubscription: {
         findUnique: txSubscriptionFindUniqueMock,
@@ -93,6 +100,9 @@ describe("deleteBoard", () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
+    createManyMock.mockResolvedValue({ count: 0 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValue(4);
     updateManyMock.mockResolvedValue({ count: 1 });
 
     await deleteBoard({ id: board.id });
@@ -103,9 +113,12 @@ describe("deleteBoard", () => {
       where: { id: board.id, orgId: "org_1" },
     });
     expect(txSubscriptionFindUniqueMock).not.toHaveBeenCalled();
+    expect(boardCountMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+    });
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1", count: { gt: 0 } },
-      data: { count: { decrement: 1 } },
+      where: { orgId: "org_1" },
+      data: { count: 4 },
     });
     expect(createAuditLogMock).toHaveBeenCalledExactlyOnceWith({
       entityId: board.id,
@@ -125,6 +138,10 @@ describe("deleteBoard", () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
+    createManyMock.mockResolvedValue({ count: 0 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValue(9);
+    updateManyMock.mockResolvedValue({ count: 1 });
 
     await deleteBoard({ id: board.id });
 
@@ -141,6 +158,9 @@ describe("deleteBoard", () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
+    createManyMock.mockResolvedValue({ count: 0 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValue(4);
     updateManyMock.mockRejectedValue(new Error("db down"));
 
     const result = await deleteBoard({ id: board.id });
@@ -160,21 +180,5 @@ describe("deleteBoard", () => {
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to delete." });
-  });
-
-  test("does not fail the board delete when audit log throws", async () => {
-    const board = boardFactory.build({ orgId: "org_1" });
-    authMock.mockResolvedValue(orgAuth);
-    boardDeleteMock.mockResolvedValue(board);
-    updateManyMock.mockResolvedValue({ count: 1 });
-    createAuditLogMock.mockRejectedValue(new Error("audit down"));
-
-    await deleteBoard({ id: board.id });
-
-    // Decrement + redirect still happen; audit log is non-fatal.
-    expect(updateManyMock).toHaveBeenCalledOnce();
-    expect(redirectMock).toHaveBeenCalledExactlyOnceWith(
-      paths.organization("org_1"),
-    );
   });
 });

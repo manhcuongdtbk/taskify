@@ -74,18 +74,12 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
     };
   }
 
-  try {
-    await createAuditLog({
-      entityId: board.id,
-      entityType: ENTITY_TYPE.BOARD,
-      entityTitle: board.title,
-      action: ACTION.CREATE,
-    });
-  } catch (reason) {
-    // Audit log errors are non-fatal for the domain action. The action must
-    // still return success so the client doesn't retry and create duplicates.
-    console.log("[CREATE_BOARD_AUDIT_LOG_ERROR]", reason);
-  }
+  await createAuditLog({
+    entityId: board.id,
+    entityType: ENTITY_TYPE.BOARD,
+    entityTitle: board.title,
+    action: ACTION.CREATE,
+  });
 
   revalidatePath(`/board/${board.id}`);
 

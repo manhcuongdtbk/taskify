@@ -9,6 +9,13 @@ interface Props {
   action: ACTION;
 }
 
+/**
+ * Writes an audit log row for a domain mutation.
+ *
+ * Failures are swallowed here (`{ error }`, no throw) so Actions can `await`
+ * this without a try/catch — a failed log must not fail the mutation or
+ * trigger a client retry. Callers ignore the return value.
+ */
 export const createAuditLog = async ({
   entityId,
   entityType,

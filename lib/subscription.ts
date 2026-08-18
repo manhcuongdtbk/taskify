@@ -68,16 +68,17 @@ export const isProOrganization = async (
  * Cancel in Customer Portal does not clear this instantly — see `docs/billing.md`.
  *
  * React `cache` is request-scoped memoization (org page `isPro` + create-board
- * tile remaining copy in one RSC render). Not Redis / Data Cache. Server
+ * tile remaining copy in one RSC render — both call `checkSubscription()` with
+ * no args so they share the cache key). Not Redis / Data Cache. Server
  * Actions are a new request.
  * docs/data.md
  */
-export const checkSubscription = cache(async (orgId?: string | null) => {
-  const resolvedOrgId = orgId ?? (await auth()).orgId;
+export const checkSubscription = cache(async () => {
+  const { orgId } = await auth();
 
-  if (!resolvedOrgId) {
+  if (!orgId) {
     return false;
   }
 
-  return isProOrganization(resolvedOrgId);
+  return isProOrganization(orgId);
 });

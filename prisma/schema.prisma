@@ -14,6 +14,7 @@ datasource db {
 
 model Board {
   id            String @id @default(uuid())
+  /// Clerk org. Indexed for board-limit `COUNT` on create/delete. docs/prisma.md
   orgId         String
   title         String
   imageId       String
@@ -26,6 +27,8 @@ model Board {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([orgId])
 }
 
 model List {

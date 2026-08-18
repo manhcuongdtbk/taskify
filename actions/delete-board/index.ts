@@ -38,18 +38,12 @@ const handler = async ({ id }: InputType): Promise<ReturnType> => {
     return { serverError: "Failed to delete." };
   }
 
-  // Audit log errors are non-fatal for the domain action. The action must
-  // still return success so the client doesn't retry and create duplicates.
-  try {
-    await createAuditLog({
-      entityId: board.id,
-      entityType: ENTITY_TYPE.BOARD,
-      entityTitle: board.title,
-      action: ACTION.DELETE,
-    });
-  } catch (reason) {
-    console.log("[DELETE_BOARD_AUDIT_LOG_ERROR]", reason);
-  }
+  await createAuditLog({
+    entityId: board.id,
+    entityType: ENTITY_TYPE.BOARD,
+    entityTitle: board.title,
+    action: ACTION.DELETE,
+  });
 
   revalidatePath(paths.organization(orgId));
   redirect(paths.organization(orgId));

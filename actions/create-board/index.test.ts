@@ -13,8 +13,9 @@ import { createBoard } from "./index";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: {
+    $queryRaw: vi.fn(),
     $transaction: vi.fn(),
-    board: { create: vi.fn() },
+    board: { create: vi.fn(), count: vi.fn() },
     organizationLimit: {
       updateMany: vi.fn(),
       createMany: vi.fn(),
@@ -42,6 +43,8 @@ import { createAuditLog } from "@/lib/create-audit-log";
 const authMock = vi.mocked(auth);
 const transactionMock = vi.mocked(prisma.$transaction);
 const boardCreateMock = vi.mocked(prisma.board.create);
+const boardCountMock = vi.mocked(prisma.board.count);
+const queryRawMock = vi.mocked(prisma.$queryRaw);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
 const createManyMock = vi.mocked(prisma.organizationLimit.createMany);
 const defaultSubscriptionFindUniqueMock = vi.mocked(
@@ -72,10 +75,11 @@ const mockInteractiveTransaction = () => {
     }
 
     return fn({
-      board: { create: boardCreateMock },
+      $queryRaw: queryRawMock,
+      board: { create: boardCreateMock, count: boardCountMock },
       organizationLimit: {
         updateMany: updateManyMock,
-        createMany: prisma.organizationLimit.createMany,
+        createMany: createManyMock,
       },
       organizationSubscription: {
         findUnique: txSubscriptionFindUniqueMock,
@@ -105,6 +109,9 @@ describe("createBoard", () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
     authMock.mockResolvedValue(orgAuth);
     txSubscriptionFindUniqueMock.mockResolvedValue(null);
+    createManyMock.mockResolvedValue({ count: 1 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValue(2);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockResolvedValue(board);
 
@@ -120,9 +127,12 @@ describe("createBoard", () => {
         stripeCustomerId: true,
       },
     });
+    expect(boardCountMock).toHaveBeenCalledExactlyOnceWith({
+      where: { orgId: "org_1" },
+    });
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
-      where: { orgId: "org_1", count: { lt: FREE_PLAN.maxBoards } },
-      data: { count: { increment: 1 } },
+      where: { orgId: "org_1" },
+      data: { count: 3 },
     });
     expect(boardCreateMock).toHaveBeenCalledExactlyOnceWith({
       data: {
@@ -154,6 +164,8 @@ describe("createBoard", () => {
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
     createManyMock.mockResolvedValue({ count: 1 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValue(10);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockResolvedValue(board);
 
@@ -166,7 +178,7 @@ describe("createBoard", () => {
     });
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
-      data: { count: { increment: 1 } },
+      data: { count: 11 },
     });
     expect(boardCreateMock).toHaveBeenCalledOnce();
     expect(result).toStrictEqual({ data: board });
@@ -175,10 +187,10 @@ describe("createBoard", () => {
   test("returns the Free-plan limit error without creating a board", async () => {
     authMock.mockResolvedValue(orgAuth);
     txSubscriptionFindUniqueMock.mockResolvedValue(null);
-    updateManyMock.mockResolvedValue({ count: 0 });
-    vi.mocked(prisma.organizationLimit.createMany).mockResolvedValue({
-      count: 0,
-    });
+    createManyMock.mockResolvedValue({ count: 0 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValue(FREE_PLAN.maxBoards);
+    updateManyMock.mockResolvedValue({ count: 1 });
 
     const result = await createBoard({ title: "Roadmap", image });
 
@@ -194,6 +206,10 @@ describe("createBoard", () => {
     txSubscriptionFindUniqueMock.mockResolvedValue(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
+    createManyMock.mockResolvedValue({ count: 1 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValue(0);
+    updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockRejectedValue(new Error("db down"));
 
     const result = await createBoard({ title: "Roadmap", image });
@@ -202,50 +218,28 @@ describe("createBoard", () => {
     expect(result).toStrictEqual({ serverError: "Failed to create." });
   });
 
-  test("does not fail the board create when audit log throws", async () => {
-    const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
-    authMock.mockResolvedValue(orgAuth);
-    txSubscriptionFindUniqueMock.mockResolvedValue(null);
-    updateManyMock.mockResolvedValue({ count: 1 });
-    createManyMock.mockResolvedValue({ count: 1 });
-    boardCreateMock.mockResolvedValue(board);
-    createAuditLogMock.mockRejectedValue(new Error("audit down"));
-
-    const result = await createBoard({ title: board.title, image });
-
-    // Still succeeded; client should not retry.
-    expect(result).toStrictEqual({ data: board });
-  });
-
-  test("Free create fails after a Pro create pushes the counter over the cap", async () => {
+  test("Free create fails when live boards are already at the cap", async () => {
     const firstBoard = boardFactory.build({
       orgId: "org_1",
       title: "Pro board",
     });
     const secondBoardTitle = "Free board";
 
-    // 1) Pro create: should always increment counter (no cap enforcement).
     authMock.mockResolvedValue(orgAuth);
     txSubscriptionFindUniqueMock.mockResolvedValueOnce(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
     createManyMock.mockResolvedValue({ count: 1 });
+    queryRawMock.mockResolvedValue([]);
+    boardCountMock.mockResolvedValueOnce(4);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockResolvedValue(firstBoard);
 
     const proResult = await createBoard({ title: firstBoard.title, image });
     expect(proResult).toStrictEqual({ data: firstBoard });
 
-    // 2) Free create after downgrade: cap reached so action returns limit error.
     txSubscriptionFindUniqueMock.mockResolvedValueOnce(null);
-
-    // incrementAvailableCount: updateMany (under cap) => 0
-    // then createMany insert skipDuplicates => 0
-    // then retry updateMany under cap => 0
-    updateManyMock
-      .mockResolvedValueOnce({ count: 0 })
-      .mockResolvedValueOnce({ count: 0 });
-    createManyMock.mockResolvedValueOnce({ count: 0 });
+    boardCountMock.mockResolvedValueOnce(FREE_PLAN.maxBoards);
     boardCreateMock.mockClear();
 
     const freeResult = await createBoard({ title: secondBoardTitle, image });

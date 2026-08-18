@@ -138,9 +138,9 @@ Still prefer the **server** for secrets, Prisma, and most first-load data. Use t
 
 Do not treat rendered UI as the lock: RSC props, badges, remaining copy, which control is shown. That snapshot can lag org switches, other tabs, and webhooks.
 
-**Writes** (Server Actions, protected Route Handlers) re-read authentication, tenant `orgId`, ownership, and entitlements (plan, Free-board slots) on **that** request. A Server Action is a new request — not the page’s React `cache()`. “Fresh” means that mutation’s snapshot, not a live subscription. The stored board counter tracks actual open boards across plan changes (both Pro and Free creates/deletes update it); only the **cap check** is Free-only — see [`prisma.md`](./prisma.md).
+**Writes** (Server Actions, protected Route Handlers) re-read authentication, tenant `orgId`, ownership, and entitlements (plan, Free-board slots) on **that** request. A Server Action is a new request — not the page’s React `cache()`. “Fresh” means that mutation’s snapshot, not a live subscription. The stored board counter is aligned from live `Board` rows (lock + `COUNT`, plus a one-time backfill migration) so the Free cap cannot be bypassed after a Pro era; only the **cap check** is Free-only — see [`prisma.md`](./prisma.md).
 
-Display reads (`checkSubscription` on a page) may use React `cache()` for one RSC render. That is allowed.
+Display reads (`checkSubscription` on a page) may use React `cache()` for one RSC render. That is allowed. Call `checkSubscription()` with no args from every RSC on the request so `cache()` shares `isPro` (org page badge + create-board tile). Do not pass a raw `orgId` into that helper — `cache()` keys on arguments, and a caller-supplied id is not membership-checked.
 
 For board card reordering, `actions/update-card-order` validates destination lists inside the interactive transaction and relies on the scoped `tx.card.update` `where` clause to enforce that the cards being updated belong to the org board (invalid cards fail the update and the action returns the generic "Failed to reorder.").
 

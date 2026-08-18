@@ -1,6 +1,5 @@
 import { Hint } from "@/components/hint";
 import { HelpCircle } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
 import { getAvailableCount } from "@/lib/board-limits/organization-limit";
 import { checkSubscription } from "@/lib/subscription";
 import { FormPopover } from "@/components/form/form-popover";
@@ -15,11 +14,10 @@ const tileClassName =
   "appearance-none border-0 p-0 font-inherit text-inherit shadow-none outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 flex h-full w-full flex-col items-center justify-center gap-y-1 rounded-xs bg-muted transition hover:opacity-75";
 
 export const CreateBoardTile = async () => {
-  const { orgId } = await auth();
-
   const [availableCount, isPro] = await Promise.all([
-    getAvailableCount(orgId),
-    checkSubscription(orgId),
+    getAvailableCount(),
+    // Same args as the org page so React `cache()` shares `isPro`. docs/data.md
+    checkSubscription(),
   ]);
   const remainingCopy = getCreateBoardRemainingCopy({
     availableCount,
