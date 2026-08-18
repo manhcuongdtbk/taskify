@@ -123,18 +123,37 @@ describe("updateCardOrder", () => {
     expect(result).toStrictEqual({ data: [card] });
   });
 
-  test("updates each card sequentially on the transaction client", async () => {
+  test("waits for each card update before starting the next", async () => {
     const first = cardFactory.build({ listId: "list_1", order: 1 });
     const second = cardFactory.build({ listId: "list_1", order: 2 });
     authMock.mockResolvedValue(orgAuth);
     listCountMock.mockResolvedValue(1);
-    cardUpdateMock.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
 
-    const result = await updateCardOrder({
+    let firstUpdateStarted!: () => void;
+    const firstUpdateHasStarted = new Promise<void>((resolve) => {
+      firstUpdateStarted = resolve;
+    });
+    let resumeFirst!: (card: typeof first) => void;
+    const firstUpdate = new Promise<typeof first>((resolve) => {
+      resumeFirst = resolve;
+    });
+    let secondStarted = false;
+
+    cardUpdateMock.mockImplementationOnce(() => {
+      firstUpdateStarted();
+      return firstUpdate;
+    });
+    cardUpdateMock.mockImplementationOnce(() => {
+      secondStarted = true;
+      return Promise.resolve(second);
+    });
+
+    const resultPromise = updateCardOrder({
       boardId: "board_1",
       items: [first, second],
     });
 
+    await firstUpdateHasStarted;
     expect(cardUpdateMock).toHaveBeenNthCalledWith(1, {
       where: {
         id: first.id,
@@ -142,6 +161,11 @@ describe("updateCardOrder", () => {
       },
       data: { order: first.order, listId: first.listId },
     });
+    expect(secondStarted).toBe(false);
+
+    resumeFirst(first);
+    const result = await resultPromise;
+
     expect(cardUpdateMock).toHaveBeenNthCalledWith(2, {
       where: {
         id: second.id,
