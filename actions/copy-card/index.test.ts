@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
@@ -10,6 +10,7 @@ import { copyCard } from "./index";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: {
+    $transaction: vi.fn(),
     card: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
   },
 }));
@@ -29,18 +30,49 @@ vi.mock("@/lib/create-audit-log", () => ({
 import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
+const transactionMock = vi.mocked(prisma.$transaction);
 const cardFindUniqueMock = vi.mocked(prisma.card.findUnique);
 const cardFindFirstMock = vi.mocked(prisma.card.findFirst);
 const cardCreateMock = vi.mocked(prisma.card.create);
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
+let lastTransactionOutcome: "committed" | "rolledBack" | undefined;
+
 const orgAuth = {
   orgId: "org_1",
   userId: "user_1",
 } as Awaited<ReturnType<typeof auth>>;
 
+const mockInteractiveTransaction = () => {
+  lastTransactionOutcome = undefined;
+  transactionMock.mockImplementation(async (fn) => {
+    if (typeof fn !== "function") {
+      throw new Error("expected interactive $transaction");
+    }
+
+    try {
+      const value = await fn({
+        card: {
+          findUnique: cardFindUniqueMock,
+          findFirst: cardFindFirstMock,
+          create: cardCreateMock,
+        },
+      });
+      lastTransactionOutcome = "committed";
+      return value;
+    } catch (reason) {
+      lastTransactionOutcome = "rolledBack";
+      throw reason;
+    }
+  });
+};
+
 describe("copyCard", () => {
+  beforeEach(() => {
+    mockInteractiveTransaction();
+  });
+
   test("returns Unauthorized without writing when there is no session", async () => {
     authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
       ReturnType<typeof auth>
@@ -48,6 +80,7 @@ describe("copyCard", () => {
 
     const result = await copyCard({ id: "card_1", boardId: "board_1" });
 
+    expect(transactionMock).not.toHaveBeenCalled();
     expect(cardFindUniqueMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
@@ -65,6 +98,7 @@ describe("copyCard", () => {
       },
     });
     expect(cardCreateMock).not.toHaveBeenCalled();
+    expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "Card not found" });
   });
 
@@ -98,6 +132,8 @@ describe("copyCard", () => {
         listId: source.listId,
       },
     });
+    expect(transactionMock).toHaveBeenCalledOnce();
+    expect(lastTransactionOutcome).toBe("committed");
     expect(createAuditLogMock).toHaveBeenCalledExactlyOnceWith({
       entityId: copy.id,
       entityType: ENTITY_TYPE.CARD,
@@ -119,6 +155,7 @@ describe("copyCard", () => {
 
     const result = await copyCard({ id: source.id, boardId: "board_1" });
 
+    expect(lastTransactionOutcome).toBe("rolledBack");
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to copy." });
   });

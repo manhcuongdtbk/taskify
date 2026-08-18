@@ -21,30 +21,42 @@ const handler = async ({ id, boardId }: InputType): Promise<ReturnType> => {
   let card;
 
   try {
-    const cardToCopy = await prisma.card.findUnique({
-      where: { id, list: { boardId, board: { orgId } } },
+    const outcome = await prisma.$transaction(async (tx) => {
+      const cardToCopy = await tx.card.findUnique({
+        where: { id, list: { boardId, board: { orgId } } },
+      });
+
+      // Return — do not throw — so "Card not found" is not swallowed as a copy failure.
+      if (!cardToCopy) {
+        return { copied: false as const };
+      }
+
+      const lastCard = await tx.card.findFirst({
+        where: { listId: cardToCopy.listId },
+        orderBy: { order: "desc" },
+        select: { order: true },
+      });
+
+      const newOrder = lastCard ? lastCard.order + 1 : 1;
+
+      return {
+        copied: true as const,
+        card: await tx.card.create({
+          data: {
+            title: `${cardToCopy.title} (Copy)`,
+            description: cardToCopy.description,
+            order: newOrder,
+            listId: cardToCopy.listId,
+          },
+        }),
+      };
     });
 
-    if (!cardToCopy) {
+    if (!outcome.copied) {
       return { serverError: "Card not found" };
     }
 
-    const lastCard = await prisma.card.findFirst({
-      where: { listId: cardToCopy.listId },
-      orderBy: { order: "desc" },
-      select: { order: true },
-    });
-
-    const newOrder = lastCard ? lastCard.order + 1 : 1;
-
-    card = await prisma.card.create({
-      data: {
-        title: `${cardToCopy.title} (Copy)`,
-        description: cardToCopy.description,
-        order: newOrder,
-        listId: cardToCopy.listId,
-      },
-    });
+    card = outcome.card;
 
     await createAuditLog({
       entityId: card.id,
