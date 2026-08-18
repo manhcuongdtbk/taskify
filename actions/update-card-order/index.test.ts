@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma/client";
 import { cardFactory } from "@/lib/testing/factories/card";
 
 import { updateCardOrder } from "./index";
+import { cardOrderTransactionTimeoutMs } from "./transaction-timeout";
 
 vi.mock("@/lib/prisma/client", () => ({
   default: {
@@ -116,7 +117,10 @@ describe("updateCardOrder", () => {
       },
       data: { order: card.order, listId: card.listId },
     });
-    expect(transactionMock).toHaveBeenCalledOnce();
+    expect(transactionMock).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Function),
+      { timeout: cardOrderTransactionTimeoutMs(1) },
+    );
     expect(revalidatePathMock).toHaveBeenCalledExactlyOnceWith(
       "/board/board_1",
     );
@@ -185,7 +189,10 @@ describe("updateCardOrder", () => {
     });
 
     expect(listCountMock).not.toHaveBeenCalled();
-    expect(transactionMock).toHaveBeenCalledOnce();
+    expect(transactionMock).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Function),
+      { timeout: cardOrderTransactionTimeoutMs(0) },
+    );
     expect(revalidatePathMock).toHaveBeenCalledExactlyOnceWith(
       "/board/board_1",
     );
@@ -204,6 +211,32 @@ describe("updateCardOrder", () => {
 
     expect(transactionMock).toHaveBeenCalledOnce();
     expect(result).toStrictEqual({ serverError: "Failed to reorder." });
+  });
+
+  test("raises the interactive transaction timeout for a long sequential reorder", async () => {
+    const items = cardFactory.buildList(40, { listId: "list_1" });
+    authMock.mockResolvedValue(orgAuth);
+    listCountMock.mockResolvedValue(1);
+    cardUpdateMock.mockImplementation((args) => {
+      const card = items.find((item) => item.id === args.where.id);
+      if (!card) {
+        throw new Error("unexpected card update");
+      }
+
+      return Promise.resolve(card);
+    });
+
+    const result = await updateCardOrder({
+      boardId: "board_1",
+      items,
+    });
+
+    expect(transactionMock).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Function),
+      { timeout: cardOrderTransactionTimeoutMs(40) },
+    );
+    expect(cardUpdateMock).toHaveBeenCalledTimes(40);
+    expect(result).toStrictEqual({ data: items });
   });
 
   test("returns Failed to reorder when a card is not on the org board", async () => {
