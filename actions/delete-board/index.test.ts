@@ -45,11 +45,11 @@ import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
 const transactionMock = vi.mocked(prisma.$transaction);
-const boardDeleteMock = vi.mocked(prisma.board.delete);
-const boardCountMock = vi.mocked(prisma.board.count);
-const queryRawMock = vi.mocked(prisma.$queryRaw);
-const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
-const createManyMock = vi.mocked(prisma.organizationLimit.createMany);
+const boardDeleteMock = vi.fn();
+const boardCountMock = vi.fn();
+const queryRawMock = vi.fn();
+const updateManyMock = vi.fn();
+const createManyMock = vi.fn();
 const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const redirectMock = vi.mocked(redirect);

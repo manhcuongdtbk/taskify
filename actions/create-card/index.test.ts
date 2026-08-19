@@ -80,7 +80,7 @@ const mockInteractiveTransaction = () => {
         $queryRaw: txQueryRawMock,
         list: { findUnique: txListFindUniqueMock },
         card: { findFirst: txCardFindFirstMock, create: txCardCreateMock },
-      });
+      } as never);
       lastTransactionOutcome = "committed";
       return value;
     } catch (reason) {

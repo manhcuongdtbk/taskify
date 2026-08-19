@@ -81,7 +81,7 @@ const mockInteractiveTransaction = () => {
           findFirst: txCardFindFirstMock,
           create: txCardCreateMock,
         },
-      });
+      } as never);
       lastTransactionOutcome = "committed";
       return value;
     } catch (reason) {

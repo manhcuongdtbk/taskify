@@ -24,8 +24,8 @@ vi.mock("next/cache", () => ({
 }));
 
 const authMock = vi.mocked(auth);
-const listCountMock = vi.mocked(prisma.list.count);
-const cardUpdateMock = vi.mocked(prisma.card.update);
+const listCountMock = vi.fn();
+const cardUpdateMock = vi.fn();
 const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
 
