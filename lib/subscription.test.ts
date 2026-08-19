@@ -4,7 +4,7 @@ import { addDays } from "date-fns";
 import prisma from "@/lib/prisma/client";
 import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
 import { getOrgAuth } from "@/lib/auth/get-org-auth";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 
 import { checkSubscription, isProOrganization } from "./subscription";
 

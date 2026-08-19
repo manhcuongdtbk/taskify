@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import * as z from "zod";
 
 import { createSafeAction } from "./create-safe-action";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import {
   tooSmallNumber,
   tooBigString,

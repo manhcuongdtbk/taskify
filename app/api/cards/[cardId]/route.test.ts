@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma/client";
 import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { cardWithListTitleArgs } from "@/lib/prisma/query-options/card";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { jsonBody } from "@/lib/testing/json-body";
 
 vi.mock("@/lib/prisma/client");

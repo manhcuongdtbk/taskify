@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 import prisma from "@/lib/prisma/client";
 import { FREE_PLAN } from "@/constants/pricing-plans";

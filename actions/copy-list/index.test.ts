@@ -10,7 +10,7 @@ import {
   mockInteractiveTransaction,
 } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { expectLockedRow } from "@/lib/testing/prisma/expect-locked-row";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { cardFactory } from "@/lib/testing/factories/card";
 import {
   listFactory,

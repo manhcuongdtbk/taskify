@@ -9,7 +9,7 @@ import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardFactory } from "@/lib/testing/factories/card";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { jsonBody } from "@/lib/testing/json-body";
 
 vi.mock("@/lib/prisma/client");
