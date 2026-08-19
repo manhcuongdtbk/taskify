@@ -48,6 +48,9 @@ isProject: false
 - **Card modal remount:** description, actions, activity, and title reset when a different card is opened
 - **`actions/**/index.ts` exclude dropped** from `vitest.config.mts` — action handlers are now in the coverage bucket (most have Vitest suites or are org-scoped wrappers)
 - **CI renamed** `vitest.yml` → `ci.yml`
+- **Org auth DAL:** `lib/auth/get-org-auth.ts`; `createSafeAction` always verifies org auth; action/route/layout/lib suites mock `getOrgAuth` instead of Clerk `auth`
+- **Follow-up hardening:** `createAuditLog` stays non-fatal to domain writes; `stripe-redirect` typing tightened; `update-list-order` transaction consistency fixed
+- **Fixture/coverage cleanup:** auth fixtures moved under `lib/testing/auth/`; `lib/auth/**` and `lib/testing/**` excluded from coverage as mocked wrappers / test infrastructure
 
 ## Still later
 

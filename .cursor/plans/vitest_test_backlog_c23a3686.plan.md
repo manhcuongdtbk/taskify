@@ -81,13 +81,13 @@ SoT going forward: [`docs/testing.md`](../../docs/testing.md) (**Colocated 100% 
 
 Record from `pnpm test:coverage` summary **after each P is merged** (same `vitest.config.mts` include) — not while the PR is still in review. Until then, current numbers live only in a fresh local/CI run under gitignored `coverage/` ([`docs/testing.md`](../../docs/testing.md)).
 
-| Closed P | Date       | Stmts % | Branch % | Funcs % | Lines % | Notes                                                                                                                  |
-| -------- | ---------- | ------- | -------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| P0       |            |         |          |         |         | Not captured at merge; P1 is the ratchet baseline for P2                                                               |
-| P1       | 2026-08-07 | 27.27   | 23.07    | 37.00   | 27.06   | After [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7) merge — `pnpm test:coverage` All files                  |
-| P2       | 2026-08-10 | 64.12   | 49.63    | 84.49   | 63.87   | After [PR #8](https://github.com/manhcuongdtbk/taskify/pull/8) merge — `pnpm test:coverage` All files                  |
-| P3       | 2026-08-14 | 69.91   | 57.92    | 88.69   | 69.2    | After [PR #9](https://github.com/manhcuongdtbk/taskify/pull/9) merge — `pnpm test:coverage` All files                  |
-| P4       |            |         |          |         |         | Fill after merge. Pre-exclude All-files: 73.66 / 62.89 / 91.09 / 72.64 (beat P3). Then include polish + 99% thresholds |
+| Closed P | Date       | Stmts % | Branch % | Funcs % | Lines % | Notes                                                                                                                                                             |
+| -------- | ---------- | ------- | -------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0       |            |         |          |         |         | Not captured at merge; P1 is the ratchet baseline for P2                                                                                                          |
+| P1       | 2026-08-07 | 27.27   | 23.07    | 37.00   | 27.06   | After [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7) merge — `pnpm test:coverage` All files                                                             |
+| P2       | 2026-08-10 | 64.12   | 49.63    | 84.49   | 63.87   | After [PR #8](https://github.com/manhcuongdtbk/taskify/pull/8) merge — `pnpm test:coverage` All files                                                             |
+| P3       | 2026-08-14 | 69.91   | 57.92    | 88.69   | 69.2    | After [PR #9](https://github.com/manhcuongdtbk/taskify/pull/9) merge — `pnpm test:coverage` All files                                                             |
+| P4       | 2026-08-19 | 99.89   | 99.63    | 100     | 99.89   | After [PR #12](https://github.com/manhcuongdtbk/taskify/pull/12) merge — `pnpm test:coverage` with 99% thresholds and current `vitest.config.mts` include/exclude |
 
 ---
 
@@ -185,6 +185,9 @@ After the backlog freeze dropped, product fixes and hardening continued on `test
 - **Card modal:** remount description, actions, activity, title on card switch; refetch failure test
 - **`actions/**/index.ts` coverage exclude dropped** — handlers now in the bucket
 - **CI renamed** `vitest.yml` → `ci.yml`
+- **Org auth DAL:** `lib/auth/get-org-auth.ts`; `createSafeAction` always verifies org auth; actions/routes/layouts/lib helpers mock `getOrgAuth` instead of Clerk `auth`
+- **Audit/Stripe/order follow-ups:** non-fatal `createAuditLog` contract clarified; `stripe-redirect` typing tightened; `update-list-order` transaction consistency fixed
+- **Auth fixtures + coverage:** auth fixtures moved under `lib/testing/auth/`; `lib/auth/**` and `lib/testing/**` excluded from coverage because they are mocked wrappers / test infrastructure
 
 ## Out of this backlog
 
