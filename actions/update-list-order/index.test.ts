@@ -7,12 +7,7 @@ import { listFactory } from "@/lib/testing/factories/list";
 
 import { updateListOrder } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    list: { update: vi.fn() },
-    $transaction: vi.fn(),
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

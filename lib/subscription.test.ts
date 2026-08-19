@@ -7,9 +7,7 @@ import { organizationSubscriptionFactory } from "@/lib/testing/factories/organiz
 
 import { checkSubscription, isProOrganization } from "./subscription";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: { organizationSubscription: { findUnique: vi.fn() } },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

@@ -7,9 +7,7 @@ import prisma from "@/lib/prisma/client";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: { board: { findUnique: vi.fn() } },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

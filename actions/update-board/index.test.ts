@@ -8,9 +8,7 @@ import { boardFactory } from "@/lib/testing/factories/board";
 
 import { updateBoard } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: { board: { update: vi.fn() } },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

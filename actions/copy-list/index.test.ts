@@ -9,13 +9,7 @@ import { listWithCardsOrderedByOrderAscFactory } from "@/lib/testing/factories/l
 
 import { copyList } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    $transaction: vi.fn(),
-    $queryRaw: vi.fn(),
-    list: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

@@ -9,14 +9,7 @@ import { listFactory } from "@/lib/testing/factories/list";
 
 import { createList } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    $transaction: vi.fn(),
-    $queryRaw: vi.fn(),
-    board: { findUnique: vi.fn() },
-    list: { findFirst: vi.fn(), create: vi.fn() },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

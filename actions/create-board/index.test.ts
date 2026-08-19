@@ -11,20 +11,7 @@ import { organizationSubscriptionFactory } from "@/lib/testing/factories/organiz
 
 import { createBoard } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    $queryRaw: vi.fn(),
-    $transaction: vi.fn(),
-    board: { create: vi.fn(), count: vi.fn() },
-    organizationLimit: {
-      updateMany: vi.fn(),
-      createMany: vi.fn(),
-    },
-    organizationSubscription: {
-      findUnique: vi.fn(),
-    },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

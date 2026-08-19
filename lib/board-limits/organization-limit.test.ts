@@ -10,17 +10,7 @@ import {
   withOrganizationLimitLock,
 } from "./organization-limit";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    $queryRaw: vi.fn(),
-    board: { count: vi.fn() },
-    organizationLimit: {
-      findUnique: vi.fn(),
-      createMany: vi.fn(),
-      updateMany: vi.fn(),
-    },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

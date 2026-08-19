@@ -8,9 +8,7 @@ import { cardFactory } from "@/lib/testing/factories/card";
 
 import { deleteCard } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: { card: { delete: vi.fn() } },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

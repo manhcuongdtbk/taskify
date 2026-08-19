@@ -9,11 +9,7 @@ import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardFactory } from "@/lib/testing/factories/card";
 import { jsonBody } from "@/lib/testing/json-body";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    $transaction: vi.fn(),
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

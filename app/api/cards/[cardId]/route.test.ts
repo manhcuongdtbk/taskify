@@ -8,11 +8,7 @@ import { cardWithListTitleArgs } from "@/lib/prisma/query-options/card";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { jsonBody } from "@/lib/testing/json-body";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    card: { findUnique: vi.fn() },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

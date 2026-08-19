@@ -639,7 +639,7 @@ Installed Vitest ([Mocking Modules](https://vitest.dev/guide/mocking/modules) ·
 - **Colocated `lib/__mocks__/prisma.ts`** loaded by `vi.mock("@/lib/prisma/client")` without a factory ([`__mocks__` convention](https://vitest.dev/api/vi.html#vi-mock)) — `__mocks__` dirs are allowed; catch-all `__tests__/` / `tests/` are not
 - **Automock** (`vi.mock` with no factory and no `__mocks__` file): Vitest recursively replaces exports (nested objects / class instances); useful for plain modules — Prisma Client is a heavy instance/Proxy, so prefer an explicit factory or `__mocks__` stub of methods you call
 
-**Do not add `vitest-mock-extended` by default.** The Prisma blog uses `mockDeep` for convenience. Vitest does not require it. Add that package only if a narrow manual stub becomes painful (many models, interactive `$transaction`, etc.) — [one tool per job](./vocabulary.md#one-tool-per-job).
+**`vitest-mock-extended` is adopted** for Prisma Client mocks. `mockDeep<PrismaClient>()` lives in [`lib/prisma/__mocks__/client.ts`](../lib/prisma/__mocks__/client.ts) — every test just calls `vi.mock("@/lib/prisma/client")` with no factory. Every delegate method (`prisma.board.update`, `prisma.card.findUnique`, …) is automatically a typed `Mock`. Interactive `$transaction` tests still pass a partial tx client (`as never`) because only the methods under test are wired up — if the handler calls an unmocked method, the test fails at runtime. [`vitest-mock-extended` docs](https://github.com/eratio08/vitest-mock-extended). Match installed — [`conventions.md`](./conventions.md#match-installed-official-docs).
 
 **Model / entity test data (typing + sharing):**
 

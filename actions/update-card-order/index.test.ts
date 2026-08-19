@@ -7,13 +7,7 @@ import { cardFactory } from "@/lib/testing/factories/card";
 
 import { updateCardOrder } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    list: { count: vi.fn() },
-    card: { update: vi.fn() },
-    $transaction: vi.fn(),
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

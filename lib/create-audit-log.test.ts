@@ -12,9 +12,7 @@ import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
 import { createAuditLog } from "./create-audit-log";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: { auditLog: { create: vi.fn() } },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

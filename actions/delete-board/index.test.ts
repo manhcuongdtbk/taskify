@@ -10,20 +10,7 @@ import { boardFactory } from "@/lib/testing/factories/board";
 
 import { deleteBoard } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    $queryRaw: vi.fn(),
-    $transaction: vi.fn(),
-    board: { delete: vi.fn(), count: vi.fn() },
-    organizationLimit: {
-      updateMany: vi.fn(),
-      createMany: vi.fn(),
-    },
-    organizationSubscription: {
-      findUnique: vi.fn(),
-    },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

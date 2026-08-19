@@ -8,13 +8,7 @@ import { cardFactory } from "@/lib/testing/factories/card";
 
 import { copyCard } from "./index";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    $transaction: vi.fn(),
-    $queryRaw: vi.fn(),
-    card: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),

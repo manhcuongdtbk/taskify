@@ -22,11 +22,7 @@ vi.mock("stripe", () => ({
   },
 }));
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: {
-    organizationSubscription: { findUnique: vi.fn() },
-  },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
