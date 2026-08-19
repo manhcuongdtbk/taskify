@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma/client";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { cardFactory } from "@/lib/testing/factories/card";
+import { deferPromise } from "@/lib/testing/defer-promise";
 
 import { updateCardOrder } from "./index";
 
@@ -111,25 +112,32 @@ describe("updateCardOrder", () => {
     authMock.mockResolvedValue(orgAuth);
     txClient.list.count.mockResolvedValue(1);
 
-    let firstUpdateStarted!: () => void;
-    const firstUpdateHasStarted = new Promise<void>((resolve) => {
-      firstUpdateStarted = resolve;
-    });
-    let resumeFirst!: (card: typeof first) => void;
-    const firstUpdate = new Promise<typeof first>((resolve) => {
-      resumeFirst = resolve;
-    });
+    // Deferred promises let the test control *when* the Prisma
+    // `$transaction` callback for each card resolves.
+    //
+    // This test specifically asserts that updates run sequentially:
+    // we pause the first card update, verify the second hasn't started
+    // yet, then resume the first update so the handler can proceed.
+    //
+    // `deferPromise(...)` wraps the “deferred promise” boilerplate
+    // (promise + resolve/reject) so the test can control async timing
+    // without the manual `let resolve!` / `new Promise(...)` pattern.
+    const { promise: firstUpdateDidStart, resolve: signalFirstUpdateStarted } =
+      deferPromise<void>();
+
+    const { promise: firstUpdateResult, resolve: resolveFirstUpdate } =
+      deferPromise<typeof first>();
     let secondStarted = false;
 
-    // @ts-expect-error -- Promise vs PrismaPromise (branded); value is correct
-    txClient.card.update.mockImplementationOnce(() => {
-      firstUpdateStarted();
-      return firstUpdate;
+    txClient.card.update.mockImplementationOnce((_args) => {
+      void _args;
+      signalFirstUpdateStarted();
+      return firstUpdateResult as ReturnType<typeof txClient.card.update>;
     });
-    // @ts-expect-error -- Promise vs PrismaPromise (branded); value is correct
-    txClient.card.update.mockImplementationOnce(() => {
+    txClient.card.update.mockImplementationOnce((_args) => {
+      void _args;
       secondStarted = true;
-      return Promise.resolve(second);
+      return Promise.resolve(second) as ReturnType<typeof txClient.card.update>;
     });
 
     const resultPromise = updateCardOrder({
@@ -137,7 +145,7 @@ describe("updateCardOrder", () => {
       items: [first, second],
     });
 
-    await firstUpdateHasStarted;
+    await firstUpdateDidStart;
     expect(txClient.card.update).toHaveBeenNthCalledWith(1, {
       where: {
         id: first.id,
@@ -147,7 +155,7 @@ describe("updateCardOrder", () => {
     });
     expect(secondStarted).toBe(false);
 
-    resumeFirst(first);
+    resolveFirstUpdate(first);
     const result = await resultPromise;
 
     expect(txClient.card.update).toHaveBeenNthCalledWith(2, {
