@@ -13,6 +13,10 @@ interface Props {
 /**
  * Writes an audit log row for a domain mutation.
  *
+ * This function is intentionally non-fatal and safe to call outside the
+ * caller's main `prisma.$transaction` boundary: if audit logging fails, the
+ * domain mutation must still commit and the client must not retry.
+ *
  * Failures are swallowed here (`{ error }`, no throw) so Actions can `await`
  * this without a try/catch — a failed log must not fail the mutation or
  * trigger a client retry. Callers ignore the return value.

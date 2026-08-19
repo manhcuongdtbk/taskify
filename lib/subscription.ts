@@ -33,6 +33,10 @@ export const isProOrganization = async (
   db: OrganizationSubscriptionReader = prisma,
 ) => {
   if (!orgId) {
+    // Fail fast for transactional callers: without an `orgId`, we cannot
+    // scope the subscription row correctly. `createSafeAction` should
+    // guarantee this for Server Actions, but keeping the throw makes any
+    // invariant breach obvious during development/testing.
     throw new Error("Unauthorized");
   }
 

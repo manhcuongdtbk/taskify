@@ -59,6 +59,9 @@ const handler = async (
 
     board = outcome.board;
   } catch (reason) {
+    // Defensive mapping: lock helpers can throw `Error("Unauthorized")`
+    // when invariants are violated (e.g. empty `orgId`). createSafeAction
+    // normally prevents this; this catch keeps the client-facing copy stable.
     if (reason instanceof Error && reason.message === "Unauthorized") {
       return {
         serverError: "Unauthorized",
