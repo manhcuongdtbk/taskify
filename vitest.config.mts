@@ -45,6 +45,8 @@ export default defineConfig({
         "**/*.{test,spec}.{ts,tsx}",
         "**/*.types.ts", // lib/create-safe-action.types.ts
         "**/types.ts", // actions/<name>/types.ts — docs/conventions.md
+        "lib/auth/**", // DAL wrappers — always mocked in tests
+        "lib/testing/**", // test infrastructure
         "lib/prisma/client.ts",
         "lib/prisma/query-options/**", // shapes only — docs/prisma.md
         "lib/unsplash.ts",
