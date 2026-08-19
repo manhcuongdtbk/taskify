@@ -14,6 +14,7 @@ import {
   cardDetailNotFound,
   cardDetailOk,
   cardDetailPending,
+  cardDetailServerError,
   cardDetailUnauthorized,
 } from "@/lib/testing/msw/handlers/card";
 import { server } from "@/lib/testing/msw/server";
@@ -327,5 +328,30 @@ describe("CardModal", () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
     expect(screen.queryByTestId("card-activity")).not.toBeInTheDocument();
+  });
+
+  test("replaces a loaded card with an error when a refetch fails", async () => {
+    const card = cardWithListTitleFactory.build();
+    const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
+    server.use(cardDetailOk(card), cardAuditLogsOk([cardAuditLog]));
+    useCardModalStore.getState().open(card.id);
+
+    const { queryClient } = renderWithQuery(<CardModal />);
+
+    expect(await screen.findByTestId("card-header")).toHaveTextContent(
+      card.title,
+    );
+
+    server.use(cardDetailServerError());
+    await queryClient.refetchQueries();
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Couldn't load this card",
+      );
+    });
+    expect(screen.queryByTestId("card-header")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-description")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-actions")).not.toBeInTheDocument();
   });
 });

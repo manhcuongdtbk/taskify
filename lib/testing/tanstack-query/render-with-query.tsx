@@ -21,6 +21,7 @@ export const renderWithQuery = (ui: ReactNode) => {
   });
   const invalidateQueries = vi.spyOn(queryClient, "invalidateQueries");
   return {
+    queryClient,
     invalidateQueries,
     ...render(
       <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,

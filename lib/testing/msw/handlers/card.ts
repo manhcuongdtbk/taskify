@@ -56,6 +56,12 @@ export const cardAuditLogsUnauthorized = () =>
     () => new HttpResponse("Unauthorized", { status: 401 }),
   );
 
+export const cardDetailServerError = () =>
+  http.get(
+    cardDetailPath,
+    () => new HttpResponse("Internal Server Error", { status: 500 }),
+  );
+
 /** Hang forever — keeps the Query pending. See docs/testing.md. */
 export const cardDetailPending = () => http.get(cardDetailPath, pendingForever);
 
