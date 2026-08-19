@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 import { describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
+import { mockTxClient } from "@/lib/testing/prisma";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardFactory } from "@/lib/testing/factories/card";
 import { jsonBody } from "@/lib/testing/json-body";
@@ -24,10 +25,9 @@ vi.mock("next/navigation", () => ({
 import { GET } from "./route";
 
 const authMock = vi.mocked(auth);
+const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const notFoundMock = vi.mocked(notFound);
-const findUniqueMock = vi.fn();
-const findManyMock = vi.fn();
 
 const orgAuth = {
   orgId: "org_1",
@@ -46,10 +46,7 @@ const mockInteractiveTransaction = () => {
       throw new Error("expected interactive $transaction");
     }
 
-    return fn({
-      card: { findUnique: findUniqueMock },
-      auditLog: { findMany: findManyMock },
-    } as never);
+    return fn(txClient);
   });
 };
 
@@ -70,17 +67,17 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
     const card = cardFactory.build();
     const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
     authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue({ id: card.id });
-    findManyMock.mockResolvedValue([cardAuditLog]);
+    txClient.card.findUnique.mockResolvedValue(card);
+    txClient.auditLog.findMany.mockResolvedValue([cardAuditLog]);
     mockInteractiveTransaction();
 
     const response = await GET(request, contextFor(card.id));
 
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: { id: card.id, list: { board: { orgId: "org_1" } } },
       select: { id: true },
     });
-    expect(findManyMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.auditLog.findMany).toHaveBeenCalledExactlyOnceWith({
       where: {
         orgId: "org_1",
         entityId: card.id,
@@ -97,17 +94,17 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
   test("returns an empty list when the card exists and has no card audit logs", async () => {
     const card = cardFactory.build();
     authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue({ id: card.id });
-    findManyMock.mockResolvedValue([]);
+    txClient.card.findUnique.mockResolvedValue(card);
+    txClient.auditLog.findMany.mockResolvedValue([]);
     mockInteractiveTransaction();
 
     const response = await GET(request, contextFor(card.id));
 
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: { id: card.id, list: { board: { orgId: "org_1" } } },
       select: { id: true },
     });
-    expect(findManyMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.auditLog.findMany).toHaveBeenCalledExactlyOnceWith({
       where: {
         orgId: "org_1",
         entityId: card.id,
@@ -124,7 +121,7 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
   test("calls notFound without loading card audit logs when the card is missing or in another org", async () => {
     const card = cardFactory.build();
     authMock.mockResolvedValue(orgAuth);
-    findUniqueMock.mockResolvedValue(null);
+    txClient.card.findUnique.mockResolvedValue(null);
     mockInteractiveTransaction();
 
     const error = await GET(request, contextFor(card.id)).then(
@@ -134,11 +131,11 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
       (reason: unknown) => reason,
     );
 
-    expect(findUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: { id: card.id, list: { board: { orgId: "org_1" } } },
       select: { id: true },
     });
-    expect(findManyMock).not.toHaveBeenCalled();
+    expect(txClient.auditLog.findMany).not.toHaveBeenCalled();
     expect(notFoundMock).toHaveBeenCalledOnce();
     expect(error).toMatchObject({ message: "NEXT_NOT_FOUND" });
   });

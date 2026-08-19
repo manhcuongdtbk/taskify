@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
+import { mockTxClient } from "@/lib/testing/prisma";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
 
@@ -31,13 +32,8 @@ vi.mock("@/lib/create-audit-log", () => ({
 import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
+const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
-const boardDeleteMock = vi.fn();
-const boardCountMock = vi.fn();
-const queryRawMock = vi.fn();
-const updateManyMock = vi.fn();
-const createManyMock = vi.fn();
-const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const redirectMock = vi.mocked(redirect);
 const createAuditLogMock = vi.mocked(createAuditLog);
@@ -53,17 +49,7 @@ const mockInteractiveTransaction = () => {
       throw new Error("expected interactive $transaction");
     }
 
-    return fn({
-      $queryRaw: queryRawMock,
-      board: { delete: boardDeleteMock, count: boardCountMock },
-      organizationLimit: {
-        updateMany: updateManyMock,
-        createMany: createManyMock,
-      },
-      organizationSubscription: {
-        findUnique: txSubscriptionFindUniqueMock,
-      },
-    } as never);
+    return fn(txClient);
   });
 };
 
@@ -87,48 +73,38 @@ describe("deleteBoard", () => {
 
   test("deletes a Free-plan board and frees a slot in the same transaction", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
-    const callOrder: string[] = [];
     authMock.mockResolvedValue(orgAuth);
-    createManyMock.mockImplementation(async () => {
-      callOrder.push("lock");
-      return { count: 0 };
-    });
-    queryRawMock.mockImplementation(async () => {
-      callOrder.push("lock-for-update");
-      return lockedOrgLimitRow;
-    });
-    boardDeleteMock.mockImplementation(async () => {
-      callOrder.push("delete");
-      return board;
-    });
-    boardCountMock.mockImplementation(async () => {
-      callOrder.push("count");
-      return 4;
-    });
-    updateManyMock.mockImplementation(async () => {
-      callOrder.push("sync");
-      return { count: 1 };
-    });
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
+    txClient.board.delete.mockResolvedValue(board);
+    txClient.board.count.mockResolvedValue(4);
+    txClient.organizationLimit.updateMany.mockResolvedValue({ count: 1 });
 
     await deleteBoard({ id: board.id });
 
     expect(authMock).toHaveBeenCalledOnce();
     expect(transactionMock).toHaveBeenCalledOnce();
-    expect(callOrder).toStrictEqual([
-      "lock",
-      "lock-for-update",
-      "delete",
-      "count",
-      "sync",
-    ]);
-    expect(boardDeleteMock).toHaveBeenCalledExactlyOnceWith({
+
+    const order = [
+      txClient.organizationLimit.createMany,
+      txClient.$queryRaw,
+      txClient.board.delete,
+      txClient.board.count,
+      txClient.organizationLimit.updateMany,
+    ].map((m) => m.mock.invocationCallOrder[0]);
+    for (let i = 1; i < order.length; i++) {
+      expect(order[i]).toBeGreaterThan(order[i - 1]!);
+    }
+    expect(txClient.board.delete).toHaveBeenCalledExactlyOnceWith({
       where: { id: board.id, orgId: "org_1" },
     });
-    expect(txSubscriptionFindUniqueMock).not.toHaveBeenCalled();
-    expect(boardCountMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.organizationSubscription.findUnique).not.toHaveBeenCalled();
+    expect(txClient.board.count).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
     });
-    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+    expect(
+      txClient.organizationLimit.updateMany,
+    ).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
       data: { count: 4 },
     });
@@ -149,18 +125,18 @@ describe("deleteBoard", () => {
   test("decrements the stored counter for a Pro organization", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
-    boardDeleteMock.mockResolvedValue(board);
-    createManyMock.mockResolvedValue({ count: 0 });
-    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
-    boardCountMock.mockResolvedValue(9);
-    updateManyMock.mockResolvedValue({ count: 1 });
+    txClient.board.delete.mockResolvedValue(board);
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
+    txClient.board.count.mockResolvedValue(9);
+    txClient.organizationLimit.updateMany.mockResolvedValue({ count: 1 });
 
     await deleteBoard({ id: board.id });
 
     expect(transactionMock).toHaveBeenCalledOnce();
-    expect(txSubscriptionFindUniqueMock).not.toHaveBeenCalled();
-    expect(updateManyMock).toHaveBeenCalledOnce();
-    expect(boardDeleteMock).toHaveBeenCalledOnce();
+    expect(txClient.organizationSubscription.findUnique).not.toHaveBeenCalled();
+    expect(txClient.organizationLimit.updateMany).toHaveBeenCalledOnce();
+    expect(txClient.board.delete).toHaveBeenCalledOnce();
     expect(redirectMock).toHaveBeenCalledExactlyOnceWith(
       paths.organization("org_1"),
     );
@@ -169,15 +145,17 @@ describe("deleteBoard", () => {
   test("returns Failed to delete without writing an audit log when decrement throws", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
     authMock.mockResolvedValue(orgAuth);
-    boardDeleteMock.mockResolvedValue(board);
-    createManyMock.mockResolvedValue({ count: 0 });
-    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
-    boardCountMock.mockResolvedValue(4);
-    updateManyMock.mockRejectedValue(new Error("db down"));
+    txClient.board.delete.mockResolvedValue(board);
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
+    txClient.board.count.mockResolvedValue(4);
+    txClient.organizationLimit.updateMany.mockRejectedValue(
+      new Error("db down"),
+    );
 
     const result = await deleteBoard({ id: board.id });
 
-    expect(boardDeleteMock).toHaveBeenCalledOnce();
+    expect(txClient.board.delete).toHaveBeenCalledOnce();
 
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
@@ -186,11 +164,11 @@ describe("deleteBoard", () => {
 
   test("returns Failed to delete when the board delete throws", async () => {
     authMock.mockResolvedValue(orgAuth);
-    boardDeleteMock.mockRejectedValue(new Error("db down"));
+    txClient.board.delete.mockRejectedValue(new Error("db down"));
 
     const result = await deleteBoard({ id: "board_1" });
 
-    expect(updateManyMock).not.toHaveBeenCalled();
+    expect(txClient.organizationLimit.updateMany).not.toHaveBeenCalled();
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to delete." });

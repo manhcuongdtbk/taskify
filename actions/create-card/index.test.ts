@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
+import { mockTxClient } from "@/lib/testing/prisma";
 import { cardFactory } from "@/lib/testing/factories/card";
 import { listFactory } from "@/lib/testing/factories/list";
 
@@ -26,15 +27,12 @@ vi.mock("@/lib/create-audit-log", () => ({
 import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
+const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const globalQueryRawMock = vi.mocked(prisma.$queryRaw);
 const globalListFindUniqueMock = vi.mocked(prisma.list.findUnique);
 const globalCardFindFirstMock = vi.mocked(prisma.card.findFirst);
 const globalCardCreateMock = vi.mocked(prisma.card.create);
-const txQueryRawMock = vi.fn();
-const txListFindUniqueMock = vi.fn();
-const txCardFindFirstMock = vi.fn();
-const txCardCreateMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
@@ -46,8 +44,8 @@ const orgAuth = {
 } as Awaited<ReturnType<typeof auth>>;
 
 const expectLockedList = (listId: string) => {
-  expect(txQueryRawMock).toHaveBeenCalledOnce();
-  const [query, ...values] = txQueryRawMock.mock.calls[0] ?? [];
+  expect(txClient.$queryRaw).toHaveBeenCalledOnce();
+  const [query, ...values] = txClient.$queryRaw.mock.calls[0] ?? [];
   const sql = Array.isArray(query) ? query.join("?") : String(query ?? "");
   expect(sql).toContain('FROM "List"');
   expect(sql).toContain("FOR UPDATE");
@@ -69,11 +67,7 @@ const mockInteractiveTransaction = () => {
     }
 
     try {
-      const value = await fn({
-        $queryRaw: txQueryRawMock,
-        list: { findUnique: txListFindUniqueMock },
-        card: { findFirst: txCardFindFirstMock, create: txCardCreateMock },
-      } as never);
+      const value = await fn(txClient);
       lastTransactionOutcome = "committed";
       return value;
     } catch (reason) {
@@ -100,14 +94,14 @@ describe("createCard", () => {
     });
 
     expect(transactionMock).not.toHaveBeenCalled();
-    expect(txListFindUniqueMock).not.toHaveBeenCalled();
+    expect(txClient.list.findUnique).not.toHaveBeenCalled();
     expectGlobalClientUnused();
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
   test("returns List not found when the list is not on the org board", async () => {
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(null);
+    txClient.list.findUnique.mockResolvedValue(null);
 
     const result = await createCard({
       title: "Ship P2",
@@ -115,15 +109,15 @@ describe("createCard", () => {
       listId: "list_1",
     });
 
-    expect(txListFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: "list_1",
         boardId: "board_1",
         board: { orgId: "org_1" },
       },
     });
-    expect(txQueryRawMock).not.toHaveBeenCalled();
-    expect(txCardCreateMock).not.toHaveBeenCalled();
+    expect(txClient.$queryRaw).not.toHaveBeenCalled();
+    expect(txClient.card.create).not.toHaveBeenCalled();
     expectGlobalClientUnused();
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found." });
@@ -132,8 +126,8 @@ describe("createCard", () => {
   test("returns List not found when the list row lock misses", async () => {
     const list = listFactory.build({ boardId: "board_1" });
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(list);
-    txQueryRawMock.mockResolvedValue([]);
+    txClient.list.findUnique.mockResolvedValue(list);
+    txClient.$queryRaw.mockResolvedValue([]);
 
     const result = await createCard({
       title: "Ship P2",
@@ -142,7 +136,7 @@ describe("createCard", () => {
     });
 
     expectLockedList(list.id);
-    expect(txCardCreateMock).not.toHaveBeenCalled();
+    expect(txClient.card.create).not.toHaveBeenCalled();
     expectGlobalClientUnused();
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found." });
@@ -152,10 +146,10 @@ describe("createCard", () => {
     const list = listFactory.build({ boardId: "board_1" });
     const card = cardFactory.build({ listId: list.id, title: "Ship P2" });
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(list);
-    txQueryRawMock.mockResolvedValue([{}]);
-    txCardFindFirstMock.mockResolvedValue(null);
-    txCardCreateMock.mockResolvedValue(card);
+    txClient.list.findUnique.mockResolvedValue(list);
+    txClient.$queryRaw.mockResolvedValue([{}]);
+    txClient.card.findFirst.mockResolvedValue(null);
+    txClient.card.create.mockResolvedValue(card);
 
     const result = await createCard({
       title: card.title,
@@ -163,7 +157,7 @@ describe("createCard", () => {
       listId: list.id,
     });
 
-    expect(txListFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: list.id,
         boardId: list.boardId,
@@ -171,12 +165,12 @@ describe("createCard", () => {
       },
     });
     expectLockedList(list.id);
-    expect(txCardFindFirstMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.findFirst).toHaveBeenCalledExactlyOnceWith({
       where: { listId: list.id },
       orderBy: { order: "desc" },
       select: { order: true },
     });
-    expect(txCardCreateMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.create).toHaveBeenCalledExactlyOnceWith({
       data: { title: card.title, listId: list.id, order: 1 },
     });
     expect(transactionMock).toHaveBeenCalledOnce();
@@ -197,10 +191,10 @@ describe("createCard", () => {
   test("returns Failed to create when the card insert throws", async () => {
     const list = listFactory.build({ boardId: "board_1" });
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(list);
-    txQueryRawMock.mockResolvedValue([{}]);
-    txCardFindFirstMock.mockResolvedValue({ order: 3 } as never);
-    txCardCreateMock.mockRejectedValue(new Error("db down"));
+    txClient.list.findUnique.mockResolvedValue(list);
+    txClient.$queryRaw.mockResolvedValue([{}]);
+    txClient.card.findFirst.mockResolvedValue(cardFactory.build({ order: 3 }));
+    txClient.card.create.mockRejectedValue(new Error("db down"));
 
     const result = await createCard({
       title: "Ship P2",
@@ -208,7 +202,7 @@ describe("createCard", () => {
       listId: list.id,
     });
 
-    expect(txCardCreateMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.create).toHaveBeenCalledExactlyOnceWith({
       data: { title: "Ship P2", listId: list.id, order: 4 },
     });
     expectGlobalClientUnused();

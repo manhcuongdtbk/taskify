@@ -4,8 +4,12 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
+import { mockTxClient } from "@/lib/testing/prisma";
 import { cardFactory } from "@/lib/testing/factories/card";
-import { listWithCardsOrderedByOrderAscFactory } from "@/lib/testing/factories/list";
+import {
+  listFactory,
+  listWithCardsOrderedByOrderAscFactory,
+} from "@/lib/testing/factories/list";
 
 import { copyList } from "./index";
 
@@ -26,15 +30,12 @@ vi.mock("@/lib/create-audit-log", () => ({
 import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
+const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const globalQueryRawMock = vi.mocked(prisma.$queryRaw);
 const globalListFindUniqueMock = vi.mocked(prisma.list.findUnique);
 const globalListFindFirstMock = vi.mocked(prisma.list.findFirst);
 const globalListCreateMock = vi.mocked(prisma.list.create);
-const txQueryRawMock = vi.fn();
-const txListFindUniqueMock = vi.fn();
-const txListFindFirstMock = vi.fn();
-const txListCreateMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
@@ -46,8 +47,8 @@ const orgAuth = {
 } as Awaited<ReturnType<typeof auth>>;
 
 const expectLockedBoard = (boardId: string) => {
-  expect(txQueryRawMock).toHaveBeenCalledOnce();
-  const [query, ...values] = txQueryRawMock.mock.calls[0] ?? [];
+  expect(txClient.$queryRaw).toHaveBeenCalledOnce();
+  const [query, ...values] = txClient.$queryRaw.mock.calls[0] ?? [];
   const sql = Array.isArray(query) ? query.join("?") : String(query ?? "");
   expect(sql).toContain('FROM "Board"');
   expect(sql).toContain("FOR UPDATE");
@@ -69,14 +70,7 @@ const mockInteractiveTransaction = () => {
     }
 
     try {
-      const value = await fn({
-        $queryRaw: txQueryRawMock,
-        list: {
-          findUnique: txListFindUniqueMock,
-          findFirst: txListFindFirstMock,
-          create: txListCreateMock,
-        },
-      } as never);
+      const value = await fn(txClient);
       lastTransactionOutcome = "committed";
       return value;
     } catch (reason) {
@@ -99,18 +93,18 @@ describe("copyList", () => {
     const result = await copyList({ id: "list_1", boardId: "board_1" });
 
     expect(transactionMock).not.toHaveBeenCalled();
-    expect(txListFindUniqueMock).not.toHaveBeenCalled();
+    expect(txClient.list.findUnique).not.toHaveBeenCalled();
     expectGlobalClientUnused();
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
   test("returns List not found when the list is not on the org board", async () => {
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(null);
+    txClient.list.findUnique.mockResolvedValue(null);
 
     const result = await copyList({ id: "list_1", boardId: "board_1" });
 
-    expect(txListFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: "list_1",
         boardId: "board_1",
@@ -118,8 +112,8 @@ describe("copyList", () => {
       },
       include: { cards: true },
     });
-    expect(txQueryRawMock).not.toHaveBeenCalled();
-    expect(txListCreateMock).not.toHaveBeenCalled();
+    expect(txClient.$queryRaw).not.toHaveBeenCalled();
+    expect(txClient.list.create).not.toHaveBeenCalled();
     expectGlobalClientUnused();
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found" });
@@ -130,13 +124,13 @@ describe("copyList", () => {
       boardId: "board_1",
     });
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(source);
-    txQueryRawMock.mockResolvedValue([]);
+    txClient.list.findUnique.mockResolvedValue(source);
+    txClient.$queryRaw.mockResolvedValue([]);
 
     const result = await copyList({ id: source.id, boardId: source.boardId });
 
     expectLockedBoard(source.boardId);
-    expect(txListCreateMock).not.toHaveBeenCalled();
+    expect(txClient.list.create).not.toHaveBeenCalled();
     expectGlobalClientUnused();
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found" });
@@ -158,14 +152,14 @@ describe("copyList", () => {
       order: 1,
     });
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(source);
-    txQueryRawMock.mockResolvedValue([{}]);
-    txListFindFirstMock.mockResolvedValue(null);
-    txListCreateMock.mockResolvedValue(copy);
+    txClient.list.findUnique.mockResolvedValue(source);
+    txClient.$queryRaw.mockResolvedValue([{}]);
+    txClient.list.findFirst.mockResolvedValue(null);
+    txClient.list.create.mockResolvedValue(copy);
 
     const result = await copyList({ id: source.id, boardId: source.boardId });
 
-    expect(txListFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: source.id,
         boardId: source.boardId,
@@ -174,12 +168,12 @@ describe("copyList", () => {
       include: { cards: true },
     });
     expectLockedBoard(source.boardId);
-    expect(txListFindFirstMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.findFirst).toHaveBeenCalledExactlyOnceWith({
       where: { boardId: source.boardId },
       orderBy: { order: "desc" },
       select: { order: true },
     });
-    expect(txListCreateMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.create).toHaveBeenCalledExactlyOnceWith({
       data: {
         title: source.title,
         boardId: source.boardId,
@@ -218,14 +212,14 @@ describe("copyList", () => {
       boardId: "board_1",
     });
     authMock.mockResolvedValue(orgAuth);
-    txListFindUniqueMock.mockResolvedValue(source);
-    txQueryRawMock.mockResolvedValue([{}]);
-    txListFindFirstMock.mockResolvedValue({ order: 2 } as never);
-    txListCreateMock.mockRejectedValue(new Error("db down"));
+    txClient.list.findUnique.mockResolvedValue(source);
+    txClient.$queryRaw.mockResolvedValue([{}]);
+    txClient.list.findFirst.mockResolvedValue(listFactory.build({ order: 2 }));
+    txClient.list.create.mockRejectedValue(new Error("db down"));
 
     const result = await copyList({ id: source.id, boardId: source.boardId });
 
-    expect(txListCreateMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.create).toHaveBeenCalledExactlyOnceWith({
       data: {
         title: source.title,
         boardId: source.boardId,

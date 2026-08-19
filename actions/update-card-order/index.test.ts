@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
+import { mockTxClient } from "@/lib/testing/prisma";
 import { cardFactory } from "@/lib/testing/factories/card";
 
 import { updateCardOrder } from "./index";
@@ -18,8 +19,7 @@ vi.mock("next/cache", () => ({
 }));
 
 const authMock = vi.mocked(auth);
-const listCountMock = vi.fn();
-const cardUpdateMock = vi.fn();
+const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
 
@@ -35,10 +35,7 @@ describe("updateCardOrder", () => {
         throw new Error("expected interactive $transaction");
       }
 
-      return fn({
-        list: { count: listCountMock },
-        card: { update: cardUpdateMock },
-      } as never);
+      return fn(txClient);
     });
   };
 
@@ -57,7 +54,7 @@ describe("updateCardOrder", () => {
       items: [card],
     });
 
-    expect(listCountMock).not.toHaveBeenCalled();
+    expect(txClient.list.count).not.toHaveBeenCalled();
     expect(transactionMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
@@ -66,14 +63,14 @@ describe("updateCardOrder", () => {
     const staying = cardFactory.build({ listId: "list_1" });
     const moving = cardFactory.build({ listId: "list_other" });
     authMock.mockResolvedValue(orgAuth);
-    listCountMock.mockResolvedValue(1);
+    txClient.list.count.mockResolvedValue(1);
 
     const result = await updateCardOrder({
       boardId: "board_1",
       items: [staying, moving],
     });
 
-    expect(listCountMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.count).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: { in: [staying.listId, moving.listId] },
         boardId: "board_1",
@@ -81,29 +78,29 @@ describe("updateCardOrder", () => {
       },
     });
     expect(transactionMock).toHaveBeenCalledOnce();
-    expect(cardUpdateMock).not.toHaveBeenCalled();
+    expect(txClient.card.update).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to reorder." });
   });
 
   test("reorders cards whose current and destination lists are on the org board", async () => {
     const card = cardFactory.build({ listId: "list_1", order: 2 });
     authMock.mockResolvedValue(orgAuth);
-    listCountMock.mockResolvedValue(1);
-    cardUpdateMock.mockResolvedValue(card);
+    txClient.list.count.mockResolvedValue(1);
+    txClient.card.update.mockResolvedValue(card);
 
     const result = await updateCardOrder({
       boardId: "board_1",
       items: [card],
     });
 
-    expect(listCountMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.list.count).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: { in: [card.listId] },
         boardId: "board_1",
         board: { orgId: "org_1" },
       },
     });
-    expect(cardUpdateMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.update).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: card.id,
         list: { boardId: "board_1", board: { orgId: "org_1" } },
@@ -121,7 +118,7 @@ describe("updateCardOrder", () => {
     const first = cardFactory.build({ listId: "list_1", order: 1 });
     const second = cardFactory.build({ listId: "list_1", order: 2 });
     authMock.mockResolvedValue(orgAuth);
-    listCountMock.mockResolvedValue(1);
+    txClient.list.count.mockResolvedValue(1);
 
     let firstUpdateStarted!: () => void;
     const firstUpdateHasStarted = new Promise<void>((resolve) => {
@@ -133,11 +130,13 @@ describe("updateCardOrder", () => {
     });
     let secondStarted = false;
 
-    cardUpdateMock.mockImplementationOnce(() => {
+    // @ts-expect-error -- Promise vs PrismaPromise (branded); value is correct
+    txClient.card.update.mockImplementationOnce(() => {
       firstUpdateStarted();
       return firstUpdate;
     });
-    cardUpdateMock.mockImplementationOnce(() => {
+    // @ts-expect-error -- Promise vs PrismaPromise (branded); value is correct
+    txClient.card.update.mockImplementationOnce(() => {
       secondStarted = true;
       return Promise.resolve(second);
     });
@@ -148,7 +147,7 @@ describe("updateCardOrder", () => {
     });
 
     await firstUpdateHasStarted;
-    expect(cardUpdateMock).toHaveBeenNthCalledWith(1, {
+    expect(txClient.card.update).toHaveBeenNthCalledWith(1, {
       where: {
         id: first.id,
         list: { boardId: "board_1", board: { orgId: "org_1" } },
@@ -160,7 +159,7 @@ describe("updateCardOrder", () => {
     resumeFirst(first);
     const result = await resultPromise;
 
-    expect(cardUpdateMock).toHaveBeenNthCalledWith(2, {
+    expect(txClient.card.update).toHaveBeenNthCalledWith(2, {
       where: {
         id: second.id,
         list: { boardId: "board_1", board: { orgId: "org_1" } },
@@ -178,7 +177,7 @@ describe("updateCardOrder", () => {
       items: [],
     });
 
-    expect(listCountMock).not.toHaveBeenCalled();
+    expect(txClient.list.count).not.toHaveBeenCalled();
     expect(transactionMock).toHaveBeenCalledOnce();
     expect(revalidatePathMock).toHaveBeenCalledExactlyOnceWith(
       "/board/board_1",
@@ -189,7 +188,7 @@ describe("updateCardOrder", () => {
   test("returns Failed to reorder when the destination count throws", async () => {
     const card = cardFactory.build();
     authMock.mockResolvedValue(orgAuth);
-    listCountMock.mockRejectedValue(new Error("db down"));
+    txClient.list.count.mockRejectedValue(new Error("db down"));
 
     const result = await updateCardOrder({
       boardId: "board_1",
@@ -203,15 +202,17 @@ describe("updateCardOrder", () => {
   test("returns Failed to reorder when a card is not on the org board", async () => {
     const card = cardFactory.build({ listId: "list_1" });
     authMock.mockResolvedValue(orgAuth);
-    listCountMock.mockResolvedValue(1);
-    cardUpdateMock.mockRejectedValue(new Error("Record to update not found"));
+    txClient.list.count.mockResolvedValue(1);
+    txClient.card.update.mockRejectedValue(
+      new Error("Record to update not found"),
+    );
 
     const result = await updateCardOrder({
       boardId: "board_1",
       items: [card],
     });
 
-    expect(cardUpdateMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.card.update).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: card.id,
         list: { boardId: "board_1", board: { orgId: "org_1" } },

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
+import { mockTxClient } from "@/lib/testing/prisma";
 import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 import prisma from "@/lib/prisma/client";
 import { FREE_PLAN } from "@/constants/pricing-plans";
@@ -28,16 +29,11 @@ vi.mock("@/lib/create-audit-log", () => ({
 import { createAuditLog } from "@/lib/create-audit-log";
 
 const authMock = vi.mocked(auth);
+const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
-const boardCreateMock = vi.mocked(prisma.board.create);
-const boardCountMock = vi.mocked(prisma.board.count);
-const queryRawMock = vi.mocked(prisma.$queryRaw);
-const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
-const createManyMock = vi.mocked(prisma.organizationLimit.createMany);
 const defaultSubscriptionFindUniqueMock = vi.mocked(
   prisma.organizationSubscription.findUnique,
 );
-const txSubscriptionFindUniqueMock = vi.fn();
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
@@ -67,17 +63,7 @@ const mockInteractiveTransaction = () => {
     }
 
     try {
-      const value = await fn({
-        $queryRaw: queryRawMock,
-        board: { create: boardCreateMock, count: boardCountMock },
-        organizationLimit: {
-          updateMany: updateManyMock,
-          createMany: createManyMock,
-        },
-        organizationSubscription: {
-          findUnique: txSubscriptionFindUniqueMock,
-        },
-      } as never);
+      const value = await fn(txClient);
       lastTransactionOutcome = "committed";
       return value;
     } catch (reason) {
@@ -100,25 +86,27 @@ describe("createBoard", () => {
     const result = await createBoard({ title: "Roadmap", image });
 
     expect(transactionMock).not.toHaveBeenCalled();
-    expect(txSubscriptionFindUniqueMock).not.toHaveBeenCalled();
+    expect(txClient.organizationSubscription.findUnique).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
   test("creates a Free-plan board after reserving a slot in the same transaction", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
     authMock.mockResolvedValue(orgAuth);
-    txSubscriptionFindUniqueMock.mockResolvedValue(null);
-    createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
+    txClient.organizationSubscription.findUnique.mockResolvedValue(null);
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 1 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
     // Cap-check COUNT, then sync COUNT after the insert.
-    boardCountMock.mockResolvedValueOnce(2).mockResolvedValueOnce(3);
-    updateManyMock.mockResolvedValue({ count: 1 });
-    boardCreateMock.mockResolvedValue(board);
+    txClient.board.count.mockResolvedValueOnce(2).mockResolvedValueOnce(3);
+    txClient.organizationLimit.updateMany.mockResolvedValue({ count: 1 });
+    txClient.board.create.mockResolvedValue(board);
 
     const result = await createBoard({ title: board.title, image });
 
     expect(defaultSubscriptionFindUniqueMock).not.toHaveBeenCalled();
-    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledExactlyOnceWith({
+    expect(
+      txClient.organizationSubscription.findUnique,
+    ).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
       select: {
         stripeSubscriptionId: true,
@@ -127,18 +115,20 @@ describe("createBoard", () => {
         stripeCustomerId: true,
       },
     });
-    expect(boardCountMock).toHaveBeenCalledTimes(2);
-    expect(boardCountMock).toHaveBeenNthCalledWith(1, {
+    expect(txClient.board.count).toHaveBeenCalledTimes(2);
+    expect(txClient.board.count).toHaveBeenNthCalledWith(1, {
       where: { orgId: "org_1" },
     });
-    expect(boardCountMock).toHaveBeenNthCalledWith(2, {
+    expect(txClient.board.count).toHaveBeenNthCalledWith(2, {
       where: { orgId: "org_1" },
     });
-    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+    expect(
+      txClient.organizationLimit.updateMany,
+    ).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
       data: { count: 3 },
     });
-    expect(boardCreateMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.board.create).toHaveBeenCalledExactlyOnceWith({
       data: {
         title: board.title,
         orgId: "org_1",
@@ -164,49 +154,55 @@ describe("createBoard", () => {
   test("increments the stored board counter for a Pro organization", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
     authMock.mockResolvedValue(orgAuth);
-    txSubscriptionFindUniqueMock.mockResolvedValue(
+    txClient.organizationSubscription.findUnique.mockResolvedValue(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
-    createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 1 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
     // Sync COUNT after the insert.
-    boardCountMock.mockResolvedValue(11);
-    updateManyMock.mockResolvedValue({ count: 1 });
-    boardCreateMock.mockResolvedValue(board);
+    txClient.board.count.mockResolvedValue(11);
+    txClient.organizationLimit.updateMany.mockResolvedValue({ count: 1 });
+    txClient.board.create.mockResolvedValue(board);
 
     const result = await createBoard({ title: board.title, image });
 
-    expect(txSubscriptionFindUniqueMock).toHaveBeenCalledOnce();
-    expect(createManyMock).toHaveBeenCalledExactlyOnceWith({
+    expect(txClient.organizationSubscription.findUnique).toHaveBeenCalledOnce();
+    expect(
+      txClient.organizationLimit.createMany,
+    ).toHaveBeenCalledExactlyOnceWith({
       data: { orgId: "org_1", count: 0 },
       skipDuplicates: true,
     });
-    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+    expect(
+      txClient.organizationLimit.updateMany,
+    ).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
       data: { count: 11 },
     });
-    expect(boardCreateMock).toHaveBeenCalledOnce();
+    expect(txClient.board.create).toHaveBeenCalledOnce();
     expect(result).toStrictEqual({ data: board });
   });
 
   test("returns the Free-plan limit error without creating a board and keeps the healed stored count", async () => {
     authMock.mockResolvedValue(orgAuth);
-    txSubscriptionFindUniqueMock.mockResolvedValue(null);
-    createManyMock.mockResolvedValue({ count: 0 });
-    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
+    txClient.organizationSubscription.findUnique.mockResolvedValue(null);
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
     // Cap-check COUNT, then sync COUNT (unchanged because we don't insert).
-    boardCountMock
+    txClient.board.count
       .mockResolvedValueOnce(FREE_PLAN.maxBoards)
       .mockResolvedValueOnce(FREE_PLAN.maxBoards);
-    updateManyMock.mockResolvedValue({ count: 1 });
+    txClient.organizationLimit.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await createBoard({ title: "Roadmap", image });
 
-    expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
+    expect(
+      txClient.organizationLimit.updateMany,
+    ).toHaveBeenCalledExactlyOnceWith({
       where: { orgId: "org_1" },
       data: { count: FREE_PLAN.maxBoards },
     });
-    expect(boardCreateMock).not.toHaveBeenCalled();
+    expect(txClient.board.create).not.toHaveBeenCalled();
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({
@@ -216,14 +212,14 @@ describe("createBoard", () => {
 
   test("returns Failed to create when the board insert throws", async () => {
     authMock.mockResolvedValue(orgAuth);
-    txSubscriptionFindUniqueMock.mockResolvedValue(
+    txClient.organizationSubscription.findUnique.mockResolvedValue(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
-    createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
-    boardCountMock.mockResolvedValue(0);
-    updateManyMock.mockResolvedValue({ count: 1 });
-    boardCreateMock.mockRejectedValue(new Error("db down"));
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 1 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
+    txClient.board.count.mockResolvedValue(0);
+    txClient.organizationLimit.updateMany.mockResolvedValue({ count: 1 });
+    txClient.board.create.mockRejectedValue(new Error("db down"));
 
     const result = await createBoard({ title: "Roadmap", image });
 
@@ -239,28 +235,28 @@ describe("createBoard", () => {
     const secondBoardTitle = "Free board";
 
     authMock.mockResolvedValue(orgAuth);
-    txSubscriptionFindUniqueMock.mockResolvedValueOnce(
+    txClient.organizationSubscription.findUnique.mockResolvedValueOnce(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
-    createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
-    boardCountMock.mockResolvedValueOnce(4);
-    updateManyMock.mockResolvedValue({ count: 1 });
-    boardCreateMock.mockResolvedValue(firstBoard);
+    txClient.organizationLimit.createMany.mockResolvedValue({ count: 1 });
+    txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
+    txClient.board.count.mockResolvedValueOnce(4);
+    txClient.organizationLimit.updateMany.mockResolvedValue({ count: 1 });
+    txClient.board.create.mockResolvedValue(firstBoard);
 
     const proResult = await createBoard({ title: firstBoard.title, image });
     expect(proResult).toStrictEqual({ data: firstBoard });
 
-    txSubscriptionFindUniqueMock.mockResolvedValueOnce(null);
+    txClient.organizationSubscription.findUnique.mockResolvedValueOnce(null);
     // Cap-check COUNT, then sync COUNT.
-    boardCountMock
+    txClient.board.count
       .mockResolvedValueOnce(FREE_PLAN.maxBoards)
       .mockResolvedValueOnce(FREE_PLAN.maxBoards);
-    boardCreateMock.mockClear();
+    txClient.board.create.mockClear();
 
     const freeResult = await createBoard({ title: secondBoardTitle, image });
 
-    expect(boardCreateMock).not.toHaveBeenCalled();
+    expect(txClient.board.create).not.toHaveBeenCalled();
     expect(freeResult).toStrictEqual({
       serverError: FREE_BOARD_LIMIT_SERVER_ERROR,
     });

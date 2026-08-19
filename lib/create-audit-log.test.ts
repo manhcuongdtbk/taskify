@@ -10,6 +10,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
 import prisma from "@/lib/prisma/client";
+import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { createAuditLog } from "./create-audit-log";
 
 vi.mock("@/lib/prisma/client");
@@ -50,7 +51,7 @@ describe("createAuditLog", () => {
       firstName: "Ada",
       lastName: "Lovelace",
     } as Awaited<ReturnType<typeof currentUser>>);
-    createMock.mockResolvedValue({} as never);
+    createMock.mockResolvedValue(auditLogFactory.build());
 
     const result = await createAuditLog(auditInput);
 
