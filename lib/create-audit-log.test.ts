@@ -35,13 +35,13 @@ const auditInput = {
 };
 
 describe("createAuditLog", () => {
-  let logSpy: MockInstance<typeof console.log>;
+  let logSpy: MockInstance<typeof console.error>;
 
-  // Every failure path is swallowed through console.log — silence it for the
+  // Every failure path is swallowed through console.error — silence it for the
   // whole suite so the failure cases don't dump stack traces into the output.
   // `restoreMocks` / `mockReset` clear spy + mock state between tests.
   beforeEach(() => {
-    logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    logSpy = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   test("writes an audit log row for the action", async () => {
@@ -71,6 +71,32 @@ describe("createAuditLog", () => {
     expect(result).toBeUndefined();
   });
 
+  test("falls back to a safe audit name when Clerk omits both names", async () => {
+    getOrgAuthMock.mockResolvedValue(orgAuth);
+    currentUserMock.mockResolvedValue({
+      id: "user_1",
+      imageUrl: "https://img.example/u.png",
+      firstName: null,
+      lastName: null,
+    } as Awaited<ReturnType<typeof currentUser>>);
+    createMock.mockResolvedValue(auditLogFactory.build());
+
+    await createAuditLog(auditInput);
+
+    expect(createMock).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        orgId: "org_1",
+        entityId: "board_1",
+        entityType: ENTITY_TYPE.BOARD,
+        entityTitle: "Roadmap",
+        action: ACTION.CREATE,
+        userId: "user_1",
+        userImage: "https://img.example/u.png",
+        userName: "Unknown User",
+      },
+    });
+  });
+
   test.for([
     {
       case: "missing orgId",
@@ -96,9 +122,8 @@ describe("createAuditLog", () => {
     const result = await createAuditLog(auditInput);
 
     expect(createMock).not.toHaveBeenCalled();
-    expect(result).toStrictEqual({
-      error: "Failed to create audit log",
-    });
+    expect(logSpy).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
+    expect(result).toBeUndefined();
   });
 
   test("returns a failure when auditLog.create rejects", async () => {
@@ -115,8 +140,6 @@ describe("createAuditLog", () => {
 
     expect(createMock).toHaveBeenCalledOnce();
     expect(logSpy).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
-    expect(result).toStrictEqual({
-      error: "Failed to create audit log",
-    });
+    expect(result).toBeUndefined();
   });
 });

@@ -17,9 +17,9 @@ interface Props {
  * caller's main `prisma.$transaction` boundary: if audit logging fails, the
  * domain mutation must still commit and the client must not retry.
  *
- * Failures are swallowed here (`{ error }`, no throw) so Actions can `await`
- * this without a try/catch — a failed log must not fail the mutation or
- * trigger a client retry. Callers ignore the return value.
+ * Failures are swallowed here (no throw) so Actions can `await` this without a
+ * try/catch — a failed log must not fail the mutation or trigger a client
+ * retry.
  */
 export const createAuditLog = async ({
   entityId,
@@ -35,6 +35,10 @@ export const createAuditLog = async ({
       throw new Error("User not found!");
     }
 
+    const userName =
+      [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+      "Unknown User";
+
     await prisma.auditLog.create({
       data: {
         orgId,
@@ -44,13 +48,10 @@ export const createAuditLog = async ({
         action,
         userId: user.id,
         userImage: user.imageUrl,
-        userName: user.firstName + " " + user.lastName,
+        userName,
       },
     });
   } catch (reason) {
-    console.log("[AUDIT_LOG_ERROR]", reason);
-    return {
-      error: "Failed to create audit log",
-    };
+    console.error("[AUDIT_LOG_ERROR]", reason);
   }
 };

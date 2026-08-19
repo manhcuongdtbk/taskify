@@ -10,7 +10,7 @@ import { StripeRedirectSchema } from "./schema";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe, toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
 import { PRO_PLAN } from "@/constants/pricing-plans";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
 /**
  * Start Stripe billing for the current organization. Overview: `docs/billing.md`.
