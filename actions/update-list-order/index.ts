@@ -14,14 +14,21 @@ const handler = async (
   let lists;
 
   try {
-    const transaction = items.map((list) =>
-      prisma.list.update({
-        where: { id: list.id, boardId, board: { orgId } },
-        data: { order: list.order },
-      }),
-    );
+    lists = await prisma.$transaction(async (tx) => {
+      // Sequential awaits: interactive `$transaction` uses one adapter-pg
+      // connection. Promise.all on `tx` can overlap queries on that connection.
+      const updated = [];
+      for (const list of items) {
+        updated.push(
+          await tx.list.update({
+            where: { id: list.id, boardId, board: { orgId } },
+            data: { order: list.order },
+          }),
+        );
+      }
 
-    lists = await prisma.$transaction(transaction);
+      return updated;
+    });
   } catch {
     return { serverError: "Failed to reorder." };
   }
