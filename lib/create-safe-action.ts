@@ -2,6 +2,8 @@ import { startCase } from "es-toolkit/string";
 import * as z from "zod";
 
 import { type ActionState } from "./create-safe-action.types";
+import { type OrgAuth } from "./auth/get-org-auth.types";
+import { getOrgAuth } from "./auth/get-org-auth";
 
 const fieldLabel = (path: PropertyKey[] | undefined) => {
   const field = path?.findLast(
@@ -36,9 +38,24 @@ const actionValidationError: z.core.$ZodErrorMap = (issue) => {
   return undefined;
 };
 
+/**
+ * Wrap a Server Action handler with Zod validation and org auth.
+ *
+ * The handler receives validated input and an {@link OrgAuth}
+ * (`{ userId, orgId }`) verified via {@link getOrgAuth} before the handler
+ * runs. If the caller is not authenticated, the action short-circuits with
+ * `{ serverError: "Unauthorized" }` — no handler code needed.
+ *
+ * Following Next.js data-security guidance, every Server Action must re-verify
+ * authentication inside the action itself (not rely on page-level checks).
+ * Centralizing the check here ensures no action forgets it.
+ */
 export const createSafeAction = <TInput, TOutput>(
   schema: z.ZodType<TInput>,
-  handler: (input: TInput) => Promise<ActionState<TInput, TOutput>>,
+  handler: (
+    input: TInput,
+    orgAuth: OrgAuth,
+  ) => Promise<ActionState<TInput, TOutput>>,
 ) => {
   return async (input: TInput): Promise<ActionState<TInput, TOutput>> => {
     const validationResult = schema.safeParse(input, {
@@ -56,6 +73,12 @@ export const createSafeAction = <TInput, TOutput>(
       };
     }
 
-    return handler(validationResult.data);
+    const orgAuth = await getOrgAuth();
+
+    if (!orgAuth) {
+      return { serverError: "Unauthorized" };
+    }
+
+    return handler(validationResult.data, orgAuth);
   };
 };

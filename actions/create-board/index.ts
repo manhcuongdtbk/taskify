@@ -2,9 +2,9 @@
 
 import prisma from "@/lib/prisma/client";
 import { type InputType, type ReturnType } from "./types";
-import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { type OrgAuth } from "@/lib/auth/get-org-auth.types";
 import { CreateBoardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
@@ -13,15 +13,10 @@ import { withOrganizationLimitLock } from "@/lib/board-limits/organization-limit
 import { isProOrganization } from "@/lib/subscription";
 import { FREE_PLAN } from "@/constants/pricing-plans";
 
-const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = await auth();
-
-  if (!userId || !orgId) {
-    return {
-      serverError: "Unauthorized",
-    };
-  }
-
+const handler = async (
+  { title, image }: InputType,
+  { orgId }: OrgAuth,
+): Promise<ReturnType> => {
   let board;
 
   try {

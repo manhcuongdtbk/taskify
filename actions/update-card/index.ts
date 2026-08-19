@@ -1,27 +1,18 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { type InputType, type ReturnType } from "./types";
 import prisma from "@/lib/prisma/client";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { type OrgAuth } from "@/lib/auth/get-org-auth.types";
 import { UpdateCardSchema } from "./schema";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const handler = async ({
-  id,
-  boardId,
-  ...values
-}: InputType): Promise<ReturnType> => {
-  const { userId, orgId } = await auth();
-
-  if (!userId || !orgId) {
-    return {
-      serverError: "Unauthorized",
-    };
-  }
-
+const handler = async (
+  { id, boardId, ...values }: InputType,
+  { orgId }: OrgAuth,
+): Promise<ReturnType> => {
   let card;
 
   try {

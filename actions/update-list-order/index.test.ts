@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
 
@@ -10,24 +10,20 @@ import { updateListOrder } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const listUpdateMock = vi.mocked(prisma.list.update);
 const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
 
 describe("updateListOrder", () => {
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
     const list = listFactory.build();
 
     const result = await updateListOrder({
@@ -41,7 +37,7 @@ describe("updateListOrder", () => {
 
   test("reorders lists that belong to the org board", async () => {
     const list = listFactory.build({ boardId: "board_1", order: 2 });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     listUpdateMock.mockResolvedValue(list);
     transactionMock.mockResolvedValue([list]);
 
@@ -67,7 +63,7 @@ describe("updateListOrder", () => {
 
   test("returns Failed to reorder when the list update throws", async () => {
     const list = listFactory.build({ boardId: "board_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     transactionMock.mockRejectedValue(new Error("db down"));
 
     const result = await updateListOrder({

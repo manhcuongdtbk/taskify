@@ -1,6 +1,7 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 
 interface Props {
   entityId: string;
@@ -23,7 +24,7 @@ export const createAuditLog = async ({
   action,
 }: Props) => {
   try {
-    const { orgId } = await auth();
+    const orgId = (await getOrgAuth())?.orgId;
     const user = await currentUser();
 
     if (!orgId || !user) {

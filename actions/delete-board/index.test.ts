@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -15,9 +15,7 @@ import { deleteBoard } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -33,7 +31,7 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
@@ -48,9 +46,7 @@ describe("deleteBoard", () => {
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await deleteBoard({ id: "board_1" });
 
@@ -60,7 +56,7 @@ describe("deleteBoard", () => {
 
   test("deletes a Free-plan board and frees a slot in the same transaction", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
     txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
     txClient.board.delete.mockResolvedValue(board);
@@ -69,7 +65,7 @@ describe("deleteBoard", () => {
 
     await deleteBoard({ id: board.id });
 
-    expect(authMock).toHaveBeenCalledOnce();
+    expect(getOrgAuthMock).toHaveBeenCalledOnce();
     expect(transactionMock).toHaveBeenCalledOnce();
 
     const order = [
@@ -111,7 +107,7 @@ describe("deleteBoard", () => {
 
   test("decrements the stored counter for a Pro organization", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.board.delete.mockResolvedValue(board);
     txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
     txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
@@ -131,7 +127,7 @@ describe("deleteBoard", () => {
 
   test("returns Failed to delete without writing an audit log when decrement throws", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.board.delete.mockResolvedValue(board);
     txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
     txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
@@ -150,7 +146,7 @@ describe("deleteBoard", () => {
   });
 
   test("returns Failed to delete when the board delete throws", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.board.delete.mockRejectedValue(new Error("db down"));
 
     const result = await deleteBoard({ id: "board_1" });

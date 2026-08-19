@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -17,9 +17,7 @@ import { copyCard } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -31,7 +29,7 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const globalQueryRawMock = vi.mocked(prisma.$queryRaw);
@@ -55,9 +53,7 @@ describe("copyCard", () => {
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await copyCard({ id: "card_1", boardId: "board_1" });
 
@@ -73,7 +69,7 @@ describe("copyCard", () => {
   });
 
   test("returns Card not found when the card is not on the org board", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(null);
 
     const result = await copyCard({ id: "card_1", boardId: "board_1" });
@@ -98,7 +94,7 @@ describe("copyCard", () => {
 
   test("returns Card not found when the list row lock misses", async () => {
     const source = cardFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(source);
     txClient.$queryRaw.mockResolvedValue([]);
 
@@ -129,7 +125,7 @@ describe("copyCard", () => {
       title: "Ship P2 (Copy)",
       listId: source.listId,
     });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(source);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.card.findFirst.mockResolvedValue(null);
@@ -183,7 +179,7 @@ describe("copyCard", () => {
 
   test("returns Failed to copy when the card insert throws", async () => {
     const source = cardFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(source);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.card.findFirst.mockResolvedValue(cardFactory.build({ order: 2 }));

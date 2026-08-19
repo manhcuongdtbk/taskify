@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -18,9 +18,7 @@ import { createList } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -32,7 +30,7 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const globalQueryRawMock = vi.mocked(prisma.$queryRaw);
@@ -56,9 +54,7 @@ describe("createList", () => {
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await createList({ title: "Todo", boardId: "board_1" });
 
@@ -74,7 +70,7 @@ describe("createList", () => {
   });
 
   test("returns Board not found when the board is not in the org", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.board.findUnique.mockResolvedValue(null);
 
     const result = await createList({ title: "Todo", boardId: "board_1" });
@@ -96,7 +92,7 @@ describe("createList", () => {
 
   test("returns Board not found when the board row lock misses", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.board.findUnique.mockResolvedValue(board);
     txClient.$queryRaw.mockResolvedValue([]);
 
@@ -125,7 +121,7 @@ describe("createList", () => {
       title: "Todo",
       order: 1,
     });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.board.findUnique.mockResolvedValue(board);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.list.findFirst.mockResolvedValue(null);
@@ -171,7 +167,7 @@ describe("createList", () => {
 
   test("returns Failed to create when the list insert throws", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.board.findUnique.mockResolvedValue(board);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.list.findFirst.mockResolvedValue(listFactory.build({ order: 3 }));

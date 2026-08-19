@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -21,9 +21,7 @@ import { copyList } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -35,7 +33,7 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const globalQueryRawMock = vi.mocked(prisma.$queryRaw);
@@ -59,9 +57,7 @@ describe("copyList", () => {
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await copyList({ id: "list_1", boardId: "board_1" });
 
@@ -77,7 +73,7 @@ describe("copyList", () => {
   });
 
   test("returns List not found when the list is not on the org board", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(null);
 
     const result = await copyList({ id: "list_1", boardId: "board_1" });
@@ -106,7 +102,7 @@ describe("copyList", () => {
     const source = listWithCardsOrderedByOrderAscFactory.build({
       boardId: "board_1",
     });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(source);
     txClient.$queryRaw.mockResolvedValue([]);
 
@@ -143,7 +139,7 @@ describe("copyList", () => {
       boardId: source.boardId,
       order: 1,
     });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(source);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.list.findFirst.mockResolvedValue(null);
@@ -212,7 +208,7 @@ describe("copyList", () => {
     const source = listWithCardsOrderedByOrderAscFactory.build({
       boardId: "board_1",
     });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(source);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.list.findFirst.mockResolvedValue(listFactory.build({ order: 2 }));

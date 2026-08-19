@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -16,9 +16,7 @@ import { createBoard } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -30,7 +28,7 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const defaultSubscriptionFindUniqueMock = vi.mocked(
@@ -64,9 +62,7 @@ describe("createBoard", () => {
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await createBoard({ title: "Roadmap", image });
 
@@ -77,7 +73,7 @@ describe("createBoard", () => {
 
   test("creates a Free-plan board after reserving a slot in the same transaction", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.organizationSubscription.findUnique.mockResolvedValue(null);
     txClient.organizationLimit.createMany.mockResolvedValue({ count: 1 });
     txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
@@ -138,7 +134,7 @@ describe("createBoard", () => {
 
   test("increments the stored board counter for a Pro organization", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.organizationSubscription.findUnique.mockResolvedValue(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
@@ -169,7 +165,7 @@ describe("createBoard", () => {
   });
 
   test("returns the Free-plan limit error without creating a board and keeps the healed stored count", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.organizationSubscription.findUnique.mockResolvedValue(null);
     txClient.organizationLimit.createMany.mockResolvedValue({ count: 0 });
     txClient.$queryRaw.mockResolvedValue(lockedOrgLimitRow);
@@ -196,7 +192,7 @@ describe("createBoard", () => {
   });
 
   test("returns Failed to create when the board insert throws", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.organizationSubscription.findUnique.mockResolvedValue(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
@@ -219,7 +215,7 @@ describe("createBoard", () => {
     });
     const secondBoardTitle = "Free board";
 
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.organizationSubscription.findUnique.mockResolvedValueOnce(
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );

@@ -1,7 +1,7 @@
 import { cache } from "react";
-import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma/client";
 import { addDays, isFuture } from "date-fns";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 
 type OrganizationSubscriptionReader = {
   organizationSubscription: Pick<
@@ -74,7 +74,7 @@ export const isProOrganization = async (
  * docs/data.md
  */
 export const checkSubscription = cache(async () => {
-  const { orgId } = await auth();
+  const orgId = (await getOrgAuth())?.orgId;
 
   if (!orgId) {
     return false;

@@ -1,17 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
+import { orgAuth } from "@/lib/testing/org-auth";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -28,14 +27,10 @@ vi.mock("./_components/board-navbar", () => ({
 
 import BoardIdLayout, { generateMetadata } from "./layout";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const findUniqueMock = vi.mocked(prisma.board.findUnique);
 const notFoundMock = vi.mocked(notFound);
 const redirectMock = vi.mocked(redirect);
-
-const orgAuth = {
-  orgId: "org_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 const layoutProps = (boardId: string, children: ReactNode = null) =>
   ({
@@ -45,9 +40,7 @@ const layoutProps = (boardId: string, children: ReactNode = null) =>
 
 describe("generateMetadata", () => {
   test("returns Board without querying when there is no orgId", async () => {
-    authMock.mockResolvedValue({ orgId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const metadata = await generateMetadata(layoutProps("board_1"));
 
@@ -57,7 +50,7 @@ describe("generateMetadata", () => {
 
   test("loads the board title for the active org", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(board);
 
     const metadata = await generateMetadata(layoutProps(board.id));
@@ -69,7 +62,7 @@ describe("generateMetadata", () => {
   });
 
   test("returns Board when the row is missing for this org", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(null);
 
     const metadata = await generateMetadata(layoutProps("board_other"));
@@ -83,9 +76,7 @@ describe("generateMetadata", () => {
 
 describe("BoardIdLayout", () => {
   test("redirects to select-org without querying when there is no orgId", async () => {
-    authMock.mockResolvedValue({ orgId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     await expect(BoardIdLayout(layoutProps("board_1"))).rejects.toThrow(
       "NEXT_REDIRECT",
@@ -96,7 +87,7 @@ describe("BoardIdLayout", () => {
   });
 
   test("notFounds when the board is missing for this org", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(null);
 
     await expect(BoardIdLayout(layoutProps("board_other"))).rejects.toThrow(
@@ -111,7 +102,7 @@ describe("BoardIdLayout", () => {
 
   test("loads the board for the active org", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(board);
 
     const result = await BoardIdLayout(layoutProps(board.id, "child"));

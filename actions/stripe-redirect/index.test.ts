@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -6,6 +6,7 @@ import { PRO_PLAN } from "@/constants/pricing-plans";
 import prisma from "@/lib/prisma/client";
 import { toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
 import { orgAuth } from "@/lib/testing/org-auth";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
 
 import { stripeRedirect } from "./index";
@@ -25,8 +26,9 @@ vi.mock("stripe", () => ({
 
 vi.mock("@/lib/prisma/client");
 
+vi.mock("@/lib/auth/get-org-auth");
+
 vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
   currentUser: vi.fn(),
 }));
 
@@ -34,7 +36,7 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const currentUserMock = vi.mocked(currentUser);
 const subscriptionFindUniqueMock = vi.mocked(
   prisma.organizationSubscription.findUnique,
@@ -53,25 +55,21 @@ describe("stripeRedirect", () => {
     vi.stubEnv("NEXT_PUBLIC_APP_URL", appUrl);
   });
 
-  test.for([
-    {
-      case: "there is no session",
-      auth: { orgId: null, userId: null },
-      user: clerkUser,
-    },
-    {
-      case: "there is no org",
-      auth: { orgId: null, userId: "user_1" },
-      user: clerkUser,
-    },
-    {
-      case: "there is no user",
-      auth: orgAuth,
-      user: null,
-    },
-  ])("returns Unauthorized without writing when $case", async (row) => {
-    authMock.mockResolvedValue(row.auth as Awaited<ReturnType<typeof auth>>);
-    currentUserMock.mockResolvedValue(row.user);
+  test("returns Unauthorized without writing when there is no session", async () => {
+    getOrgAuthMock.mockResolvedValue(null);
+
+    const result = await stripeRedirect({});
+
+    expect(currentUserMock).not.toHaveBeenCalled();
+    expect(subscriptionFindUniqueMock).not.toHaveBeenCalled();
+    expect(stripeMocks.checkoutCreate).not.toHaveBeenCalled();
+    expect(stripeMocks.portalCreate).not.toHaveBeenCalled();
+    expect(result).toStrictEqual({ serverError: "Unauthorized" });
+  });
+
+  test("returns Unauthorized without writing when there is no user", async () => {
+    getOrgAuthMock.mockResolvedValue(orgAuth);
+    currentUserMock.mockResolvedValue(null);
 
     const result = await stripeRedirect({});
 
@@ -82,7 +80,7 @@ describe("stripeRedirect", () => {
   });
 
   test("opens Checkout for the session org when there is no Stripe customer", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue(clerkUser);
     subscriptionFindUniqueMock.mockResolvedValue(null);
     stripeMocks.checkoutCreate.mockResolvedValue({
@@ -131,7 +129,7 @@ describe("stripeRedirect", () => {
   });
 
   test("opens Checkout when the org row has no stripeCustomerId", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue(clerkUser);
     subscriptionFindUniqueMock.mockResolvedValue(
       organizationSubscriptionFactory.build({
@@ -159,7 +157,7 @@ describe("stripeRedirect", () => {
     const subscription = organizationSubscriptionFactory.build({
       orgId: "org_1",
     });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue(clerkUser);
     subscriptionFindUniqueMock.mockResolvedValue(subscription);
     stripeMocks.portalCreate.mockResolvedValue({
@@ -185,7 +183,7 @@ describe("stripeRedirect", () => {
   });
 
   test("returns Something went wrong when Stripe omits a Checkout URL", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue(clerkUser);
     subscriptionFindUniqueMock.mockResolvedValue(null);
     stripeMocks.checkoutCreate.mockResolvedValue({ url: null });
@@ -199,7 +197,7 @@ describe("stripeRedirect", () => {
   });
 
   test("returns Something went wrong when Stripe throws", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue(clerkUser);
     subscriptionFindUniqueMock.mockResolvedValue(null);
     stripeMocks.checkoutCreate.mockRejectedValue(new Error("stripe down"));

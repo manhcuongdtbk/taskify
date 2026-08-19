@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
 
@@ -11,9 +11,7 @@ import { updateList } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -25,16 +23,14 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const listUpdateMock = vi.mocked(prisma.list.update);
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
 describe("updateList", () => {
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await updateList({
       id: "list_1",
@@ -48,7 +44,7 @@ describe("updateList", () => {
 
   test("updates a list that belongs to the org board", async () => {
     const list = listFactory.build({ boardId: "board_1", title: "Doing" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     listUpdateMock.mockResolvedValue(list);
 
     const result = await updateList({
@@ -78,7 +74,7 @@ describe("updateList", () => {
   });
 
   test("returns Failed to update when the list update throws", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     listUpdateMock.mockRejectedValue(new Error("db down"));
 
     const result = await updateList({

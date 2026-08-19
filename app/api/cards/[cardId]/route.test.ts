@@ -1,18 +1,17 @@
-import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import { NextRequest } from "next/server";
 import { describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { cardWithListTitleArgs } from "@/lib/prisma/query-options/card";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { jsonBody } from "@/lib/testing/json-body";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -22,14 +21,9 @@ vi.mock("next/navigation", () => ({
 
 import { GET } from "./route";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const findUniqueMock = vi.mocked(prisma.card.findUnique);
 const notFoundMock = vi.mocked(notFound);
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 const request = new NextRequest("http://localhost/api/cards/card_1");
 
@@ -39,9 +33,7 @@ const contextFor = (cardId: string) => ({
 
 describe("GET /api/cards/[cardId]", () => {
   test("returns 401 without querying when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const response = await GET(request, contextFor("card_1"));
 
@@ -52,7 +44,7 @@ describe("GET /api/cards/[cardId]", () => {
 
   test("returns the card when it exists in this org", async () => {
     const card = cardWithListTitleFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(card);
 
     const response = await GET(request, contextFor(card.id));
@@ -68,7 +60,7 @@ describe("GET /api/cards/[cardId]", () => {
 
   test("calls notFound when the card is missing or in another org", async () => {
     const card = cardWithListTitleFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(null);
 
     const error = await GET(request, contextFor(card.id)).then(

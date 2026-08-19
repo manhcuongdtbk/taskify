@@ -1,8 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
-import { auth } from "@clerk/nextjs/server";
 
 import { type Prisma, type PrismaClient } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { organizationLimitFactory } from "@/lib/testing/factories/organization-limit";
 
 import {
@@ -12,18 +13,14 @@ import {
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const findUniqueMock = vi.mocked(prisma.organizationLimit.findUnique);
 const createManyMock = vi.mocked(prisma.organizationLimit.createMany);
 const updateManyMock = vi.mocked(prisma.organizationLimit.updateMany);
 const queryRawMock = vi.mocked(prisma.$queryRaw);
 const boardCountMock = vi.mocked(prisma.board.count);
-
-const orgAuth = { orgId: "org_1" } as Awaited<ReturnType<typeof auth>>;
 
 const tx = {
   $queryRaw: queryRawMock,
@@ -75,7 +72,7 @@ describe("withOrganizationLimitLock", () => {
     expect(createManyMock).not.toHaveBeenCalled();
     expect(queryRawMock).not.toHaveBeenCalled();
     expect(boardCountMock).not.toHaveBeenCalled();
-    expect(authMock).not.toHaveBeenCalled();
+    expect(getOrgAuthMock).not.toHaveBeenCalled();
   });
 
   test("throws when FOR UPDATE matches no row", async () => {
@@ -103,7 +100,7 @@ describe("withOrganizationLimitLock", () => {
 
     const result = await withOrganizationLimitLock("org_1", tx, mutate);
 
-    expect(authMock).not.toHaveBeenCalled();
+    expect(getOrgAuthMock).not.toHaveBeenCalled();
     expectLockedOrgRow();
     expect(mutate).toHaveBeenCalledTimes(1);
     expect(boardCountMock).toHaveBeenCalledExactlyOnceWith({
@@ -120,9 +117,7 @@ describe("withOrganizationLimitLock", () => {
 
 describe("getAvailableCount", () => {
   test("returns 0 without querying when there is no orgId", async () => {
-    authMock.mockResolvedValue({ orgId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await getAvailableCount();
 
@@ -131,7 +126,7 @@ describe("getAvailableCount", () => {
   });
 
   test("returns 0 when the organization has no limit row", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(null);
 
     const result = await getAvailableCount();
@@ -143,7 +138,7 @@ describe("getAvailableCount", () => {
   });
 
   test("returns the stored board count", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(
       organizationLimitFactory.build({ orgId: "org_1", count: 3 }),
     );

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
 
@@ -11,9 +11,7 @@ import { updateBoard } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -25,16 +23,14 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const boardUpdateMock = vi.mocked(prisma.board.update);
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
 describe("updateBoard", () => {
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await updateBoard({ id: "board_1", title: "Roadmap" });
 
@@ -44,7 +40,7 @@ describe("updateBoard", () => {
 
   test("updates a board that belongs to the org", async () => {
     const board = boardFactory.build({ orgId: "org_1", title: "Roadmap" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     boardUpdateMock.mockResolvedValue(board);
 
     const result = await updateBoard({ id: board.id, title: board.title });
@@ -66,7 +62,7 @@ describe("updateBoard", () => {
   });
 
   test("returns Failed to update when the board update throws", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     boardUpdateMock.mockRejectedValue(new Error("db down"));
 
     const result = await updateBoard({ id: "board_1", title: "Roadmap" });

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -13,15 +13,13 @@ import { updateCardOrder } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
@@ -32,9 +30,7 @@ describe("updateCardOrder", () => {
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
     const card = cardFactory.build();
 
     const result = await updateCardOrder({
@@ -50,7 +46,7 @@ describe("updateCardOrder", () => {
   test("returns Failed to reorder when a destination list is not on the org board", async () => {
     const staying = cardFactory.build({ listId: "list_1" });
     const moving = cardFactory.build({ listId: "list_other" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.count.mockResolvedValue(1);
 
     const result = await updateCardOrder({
@@ -72,7 +68,7 @@ describe("updateCardOrder", () => {
 
   test("reorders cards whose current and destination lists are on the org board", async () => {
     const card = cardFactory.build({ listId: "list_1", order: 2 });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.count.mockResolvedValue(1);
     txClient.card.update.mockResolvedValue(card);
 
@@ -105,7 +101,7 @@ describe("updateCardOrder", () => {
   test("waits for each card update before starting the next", async () => {
     const first = cardFactory.build({ listId: "list_1", order: 1 });
     const second = cardFactory.build({ listId: "list_1", order: 2 });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.count.mockResolvedValue(1);
 
     // Deferred promises let the test control *when* the Prisma
@@ -165,7 +161,7 @@ describe("updateCardOrder", () => {
   });
 
   test("skips the destination check and writes nothing when there are no items", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
 
     const result = await updateCardOrder({
       boardId: "board_1",
@@ -182,7 +178,7 @@ describe("updateCardOrder", () => {
 
   test("returns Failed to reorder when the destination count throws", async () => {
     const card = cardFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.count.mockRejectedValue(new Error("db down"));
 
     const result = await updateCardOrder({
@@ -196,7 +192,7 @@ describe("updateCardOrder", () => {
 
   test("returns Failed to reorder when a card is not on the org board", async () => {
     const card = cardFactory.build({ listId: "list_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.count.mockResolvedValue(1);
     txClient.card.update.mockRejectedValue(
       new Error("Record to update not found"),

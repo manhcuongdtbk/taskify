@@ -1,21 +1,20 @@
 import { ENTITY_TYPE } from "@/app/generated/prisma/client";
-import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import { NextRequest } from "next/server";
 import { describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardFactory } from "@/lib/testing/factories/card";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { jsonBody } from "@/lib/testing/json-body";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -25,15 +24,10 @@ vi.mock("next/navigation", () => ({
 
 import { GET } from "./route";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const notFoundMock = vi.mocked(notFound);
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 const request = new NextRequest("http://localhost/api/cards/card_1/audit-logs");
 
@@ -43,9 +37,7 @@ const contextFor = (cardId: string) => ({
 
 describe("GET /api/cards/[cardId]/audit-logs", () => {
   test("returns 401 without querying when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const response = await GET(request, contextFor("card_1"));
 
@@ -57,7 +49,7 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
   test("returns card audit logs when the card exists in this org", async () => {
     const card = cardFactory.build();
     const cardAuditLog = auditLogFactory.build({}, { transient: { card } });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(card);
     txClient.auditLog.findMany.mockResolvedValue([cardAuditLog]);
     mockInteractiveTransaction({ transactionMock, txClient });
@@ -84,7 +76,7 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
 
   test("returns an empty list when the card exists and has no card audit logs", async () => {
     const card = cardFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(card);
     txClient.auditLog.findMany.mockResolvedValue([]);
     mockInteractiveTransaction({ transactionMock, txClient });
@@ -111,7 +103,7 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
 
   test("calls notFound without loading card audit logs when the card is missing or in another org", async () => {
     const card = cardFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(null);
     mockInteractiveTransaction({ transactionMock, txClient });
 

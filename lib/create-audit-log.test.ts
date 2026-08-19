@@ -6,21 +6,24 @@ import {
   test,
   vi,
 } from "vitest";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { createAuditLog } from "./create-audit-log";
 
 vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
   currentUser: vi.fn(),
 }));
 
-const authMock = vi.mocked(auth);
+vi.mock("@/lib/auth/get-org-auth");
+
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const currentUserMock = vi.mocked(currentUser);
 const createMock = vi.mocked(prisma.auditLog.create);
 
@@ -42,9 +45,7 @@ describe("createAuditLog", () => {
   });
 
   test("writes an audit log row for the action", async () => {
-    authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue({
       id: "user_1",
       imageUrl: "https://img.example/u.png",
@@ -87,7 +88,7 @@ describe("createAuditLog", () => {
       user: null,
     },
   ])("returns a failure when $case", async ({ orgId, user }) => {
-    authMock.mockResolvedValue({ orgId } as Awaited<ReturnType<typeof auth>>);
+    getOrgAuthMock.mockResolvedValue(orgId ? orgAuth : null);
     currentUserMock.mockResolvedValue(
       user as Awaited<ReturnType<typeof currentUser>>,
     );
@@ -101,9 +102,7 @@ describe("createAuditLog", () => {
   });
 
   test("returns a failure when auditLog.create rejects", async () => {
-    authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue({
       id: "user_1",
       imageUrl: "https://img.example/u.png",

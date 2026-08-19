@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -18,9 +18,7 @@ import { createCard } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -32,7 +30,7 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const globalQueryRawMock = vi.mocked(prisma.$queryRaw);
@@ -56,9 +54,7 @@ describe("createCard", () => {
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await createCard({
       title: "Ship P2",
@@ -78,7 +74,7 @@ describe("createCard", () => {
   });
 
   test("returns List not found when the list is not on the org board", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(null);
 
     const result = await createCard({
@@ -108,7 +104,7 @@ describe("createCard", () => {
 
   test("returns List not found when the list row lock misses", async () => {
     const list = listFactory.build({ boardId: "board_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(list);
     txClient.$queryRaw.mockResolvedValue([]);
 
@@ -137,7 +133,7 @@ describe("createCard", () => {
   test("creates a card on a list that belongs to the org board", async () => {
     const list = listFactory.build({ boardId: "board_1" });
     const card = cardFactory.build({ listId: list.id, title: "Ship P2" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(list);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.card.findFirst.mockResolvedValue(null);
@@ -191,7 +187,7 @@ describe("createCard", () => {
 
   test("returns Failed to create when the card insert throws", async () => {
     const list = listFactory.build({ boardId: "board_1" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     txClient.list.findUnique.mockResolvedValue(list);
     txClient.$queryRaw.mockResolvedValue([{}]);
     txClient.card.findFirst.mockResolvedValue(cardFactory.build({ order: 3 }));

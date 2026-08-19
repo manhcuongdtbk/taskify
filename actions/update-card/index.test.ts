@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
 
@@ -11,9 +11,7 @@ import { updateCard } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -25,16 +23,14 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const cardUpdateMock = vi.mocked(prisma.card.update);
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
 describe("updateCard", () => {
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await updateCard({
       id: "card_1",
@@ -48,7 +44,7 @@ describe("updateCard", () => {
 
   test("updates a card that belongs to the org board", async () => {
     const card = cardFactory.build({ title: "Renamed" });
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     cardUpdateMock.mockResolvedValue(card);
 
     const result = await updateCard({
@@ -77,7 +73,7 @@ describe("updateCard", () => {
   });
 
   test("returns Failed to update when the card update throws", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     cardUpdateMock.mockRejectedValue(new Error("db down"));
 
     const result = await updateCard({

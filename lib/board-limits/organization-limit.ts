@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
 import { type Prisma } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 
 /**
  * Methods used under `prisma.$transaction(async (tx) => …)`. `$connect?: never`
@@ -92,7 +92,7 @@ export const withOrganizationLimitLock = async <T>(
 
 /** Stored open-board count used for Free remaining copy. Session org only — same as `checkSubscription`. */
 export const getAvailableCount = async () => {
-  const { orgId } = await auth();
+  const orgId = (await getOrgAuth())?.orgId;
 
   if (!orgId) {
     return 0;

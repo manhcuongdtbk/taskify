@@ -1,19 +1,18 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { auth } from "@clerk/nextjs/server";
 import { addDays } from "date-fns";
 
 import prisma from "@/lib/prisma/client";
 import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
+import { orgAuth } from "@/lib/testing/org-auth";
 
 import { checkSubscription, isProOrganization } from "./subscription";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const findUniqueMock = vi.mocked(prisma.organizationSubscription.findUnique);
 
 const frozenNow = new Date("2026-06-15T12:00:00.000Z");
@@ -36,9 +35,7 @@ describe("checkSubscription", () => {
   });
 
   test("returns false without querying when there is no orgId", async () => {
-    authMock.mockResolvedValue({ orgId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await checkSubscription();
 
@@ -47,9 +44,7 @@ describe("checkSubscription", () => {
   });
 
   test("returns false when the organization has no subscription row", async () => {
-    authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     findUniqueMock.mockResolvedValue(null);
 
     const result = await checkSubscription();
@@ -108,9 +103,7 @@ describe("checkSubscription", () => {
   ])(
     "returns $expected when $case",
     async ({ stripePriceId, stripeCurrentPeriodEnd, expected }) => {
-      authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
-        ReturnType<typeof auth>
-      >);
+      getOrgAuthMock.mockResolvedValue(orgAuth);
       findUniqueMock.mockResolvedValue(
         organizationSubscriptionFactory.build({
           orgId: "org_1",

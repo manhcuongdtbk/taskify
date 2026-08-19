@@ -1,6 +1,6 @@
 import { ENTITY_TYPE } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { notFound } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,9 +10,9 @@ export async function GET(
   request: NextRequest,
   { params }: RouteContext<"/api/cards/[cardId]/audit-logs">,
 ) {
-  const { orgId, userId } = await auth();
+  const orgId = (await getOrgAuth())?.orgId;
 
-  if (!orgId || !userId) {
+  if (!orgId) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

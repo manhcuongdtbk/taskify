@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { revalidatePath } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
 
@@ -11,9 +11,7 @@ import { deleteCard } from "./index";
 
 vi.mock("@/lib/prisma/client");
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-}));
+vi.mock("@/lib/auth/get-org-auth");
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -25,16 +23,14 @@ vi.mock("@/lib/create-audit-log", () => ({
 
 import { createAuditLog } from "@/lib/create-audit-log";
 
-const authMock = vi.mocked(auth);
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const cardDeleteMock = vi.mocked(prisma.card.delete);
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
 describe("deleteCard", () => {
   test("returns Unauthorized without writing when there is no session", async () => {
-    authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(null);
 
     const result = await deleteCard({ id: "card_1", boardId: "board_1" });
 
@@ -44,7 +40,7 @@ describe("deleteCard", () => {
 
   test("deletes a card that belongs to the org board", async () => {
     const card = cardFactory.build();
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     cardDeleteMock.mockResolvedValue(card);
 
     const result = await deleteCard({ id: card.id, boardId: "board_1" });
@@ -68,7 +64,7 @@ describe("deleteCard", () => {
   });
 
   test("returns Failed to delete when the card delete throws", async () => {
-    authMock.mockResolvedValue(orgAuth);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     cardDeleteMock.mockRejectedValue(new Error("db down"));
 
     const result = await deleteCard({ id: "card_1", boardId: "board_1" });
