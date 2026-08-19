@@ -9,6 +9,7 @@ import { StripeRedirectSchema } from "./schema";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe, toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
 import { PRO_PLAN } from "@/constants/pricing-plans";
+import Stripe from "stripe";
 
 /**
  * Start Stripe billing for the current organization. Overview: `docs/billing.md`.
@@ -33,7 +34,8 @@ const handler = async ({}: InputType): Promise<ReturnType> => {
   // Pro access is provisioned by app/api/webhook, not by landing on this URL.
   const settingsUrl = absoluteUrl(`/organization/${orgId}`);
 
-  let url = "";
+  let url:
+    Stripe.BillingPortal.Session["url"] | Stripe.Checkout.Session["url"] = null;
 
   try {
     const organizationSubscription =
