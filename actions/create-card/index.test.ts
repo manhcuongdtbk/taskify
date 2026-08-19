@@ -9,6 +9,7 @@ import {
   expectGlobalClientUnused,
   mockInteractiveTransaction,
 } from "@/lib/testing/prisma/mock-interactive-transaction";
+import { expectLockedRow } from "@/lib/testing/prisma/expect-locked-row";
 import { cardFactory } from "@/lib/testing/factories/card";
 import { listFactory } from "@/lib/testing/factories/list";
 
@@ -46,15 +47,6 @@ const orgAuth = {
   orgId: "org_1",
   userId: "user_1",
 } as Awaited<ReturnType<typeof auth>>;
-
-const expectLockedList = (listId: string) => {
-  expect(txClient.$queryRaw).toHaveBeenCalledOnce();
-  const [query, ...values] = txClient.$queryRaw.mock.calls[0] ?? [];
-  const sql = Array.isArray(query) ? query.join("?") : String(query ?? "");
-  expect(sql).toContain('FROM "List"');
-  expect(sql).toContain("FOR UPDATE");
-  expect(values).toStrictEqual([listId]);
-};
 
 describe("createCard", () => {
   beforeEach(() => {
@@ -130,7 +122,11 @@ describe("createCard", () => {
       listId: list.id,
     });
 
-    expectLockedList(list.id);
+    expectLockedRow({
+      queryRaw: txClient.$queryRaw,
+      table: "List",
+      id: list.id,
+    });
     expect(txClient.card.create).not.toHaveBeenCalled();
     expectGlobalClientUnused(
       globalQueryRawMock,
@@ -164,7 +160,11 @@ describe("createCard", () => {
         board: { orgId: "org_1" },
       },
     });
-    expectLockedList(list.id);
+    expectLockedRow({
+      queryRaw: txClient.$queryRaw,
+      table: "List",
+      id: list.id,
+    });
     expect(txClient.card.findFirst).toHaveBeenCalledExactlyOnceWith({
       where: { listId: list.id },
       orderBy: { order: "desc" },
