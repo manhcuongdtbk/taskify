@@ -60,6 +60,8 @@ const writeStoredBoardCount = (
     data: { count },
   });
 
+// Runs for both Free and Pro so the count stays accurate across plan changes
+// and heals drift from historical Pro creates that skipped the increment.
 const syncStoredBoardCount = async (
   orgId: string,
   db: OrganizationLimitWriter,
