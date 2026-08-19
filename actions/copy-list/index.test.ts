@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import {
+  expectGlobalClientUnused,
+  mockInteractiveTransaction,
+} from "@/lib/testing/prisma/mock-interactive-transaction";
 import { cardFactory } from "@/lib/testing/factories/card";
 import {
   listFactory,
@@ -55,34 +59,15 @@ const expectLockedBoard = (boardId: string) => {
   expect(values).toStrictEqual([boardId]);
 };
 
-const expectGlobalClientUnused = () => {
-  expect(globalQueryRawMock).not.toHaveBeenCalled();
-  expect(globalListFindUniqueMock).not.toHaveBeenCalled();
-  expect(globalListFindFirstMock).not.toHaveBeenCalled();
-  expect(globalListCreateMock).not.toHaveBeenCalled();
-};
-
-const mockInteractiveTransaction = () => {
-  lastTransactionOutcome = undefined;
-  transactionMock.mockImplementation(async (fn) => {
-    if (typeof fn !== "function") {
-      throw new Error("expected interactive $transaction");
-    }
-
-    try {
-      const value = await fn(txClient);
-      lastTransactionOutcome = "committed";
-      return value;
-    } catch (reason) {
-      lastTransactionOutcome = "rolledBack";
-      throw reason;
-    }
-  });
-};
-
 describe("copyList", () => {
   beforeEach(() => {
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({
+      transactionMock,
+      txClient,
+      setLastTransactionOutcome: (outcome) => {
+        lastTransactionOutcome = outcome;
+      },
+    });
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
@@ -94,7 +79,12 @@ describe("copyList", () => {
 
     expect(transactionMock).not.toHaveBeenCalled();
     expect(txClient.list.findUnique).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
@@ -114,7 +104,12 @@ describe("copyList", () => {
     });
     expect(txClient.$queryRaw).not.toHaveBeenCalled();
     expect(txClient.list.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found" });
   });
@@ -131,7 +126,12 @@ describe("copyList", () => {
 
     expectLockedBoard(source.boardId);
     expect(txClient.list.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found" });
   });
@@ -193,7 +193,12 @@ describe("copyList", () => {
       include: { cards: true },
     });
     expect(transactionMock).toHaveBeenCalledOnce();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(createAuditLogMock).toHaveBeenCalledExactlyOnceWith({
       entityId: copy.id,
@@ -232,7 +237,12 @@ describe("copyList", () => {
       },
       include: { cards: true },
     });
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("rolledBack");
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to copy." });

@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import {
+  expectGlobalClientUnused,
+  mockInteractiveTransaction,
+} from "@/lib/testing/prisma/mock-interactive-transaction";
 import { cardFactory } from "@/lib/testing/factories/card";
 
 import { copyCard } from "./index";
@@ -51,34 +55,15 @@ const expectLockedList = (listId: string) => {
   expect(values).toStrictEqual([listId]);
 };
 
-const expectGlobalClientUnused = () => {
-  expect(globalQueryRawMock).not.toHaveBeenCalled();
-  expect(globalCardFindUniqueMock).not.toHaveBeenCalled();
-  expect(globalCardFindFirstMock).not.toHaveBeenCalled();
-  expect(globalCardCreateMock).not.toHaveBeenCalled();
-};
-
-const mockInteractiveTransaction = () => {
-  lastTransactionOutcome = undefined;
-  transactionMock.mockImplementation(async (fn) => {
-    if (typeof fn !== "function") {
-      throw new Error("expected interactive $transaction");
-    }
-
-    try {
-      const value = await fn(txClient);
-      lastTransactionOutcome = "committed";
-      return value;
-    } catch (reason) {
-      lastTransactionOutcome = "rolledBack";
-      throw reason;
-    }
-  });
-};
-
 describe("copyCard", () => {
   beforeEach(() => {
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({
+      transactionMock,
+      txClient,
+      setLastTransactionOutcome: (outcome) => {
+        lastTransactionOutcome = outcome;
+      },
+    });
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
@@ -90,7 +75,12 @@ describe("copyCard", () => {
 
     expect(transactionMock).not.toHaveBeenCalled();
     expect(txClient.card.findUnique).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalCardFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
@@ -108,7 +98,12 @@ describe("copyCard", () => {
     });
     expect(txClient.$queryRaw).not.toHaveBeenCalled();
     expect(txClient.card.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalCardFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "Card not found" });
   });
@@ -123,7 +118,12 @@ describe("copyCard", () => {
 
     expectLockedList(source.listId);
     expect(txClient.card.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalCardFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "Card not found" });
   });
@@ -166,7 +166,12 @@ describe("copyCard", () => {
       },
     });
     expect(transactionMock).toHaveBeenCalledOnce();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalCardFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(createAuditLogMock).toHaveBeenCalledExactlyOnceWith({
       entityId: copy.id,
@@ -190,7 +195,12 @@ describe("copyCard", () => {
 
     const result = await copyCard({ id: source.id, boardId: "board_1" });
 
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalCardFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("rolledBack");
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to copy." });

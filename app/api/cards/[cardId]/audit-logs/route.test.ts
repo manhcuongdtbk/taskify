@@ -5,7 +5,8 @@ import { NextRequest } from "next/server";
 import { describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
 import { cardFactory } from "@/lib/testing/factories/card";
 import { jsonBody } from "@/lib/testing/json-body";
@@ -40,16 +41,6 @@ const contextFor = (cardId: string) => ({
   params: Promise.resolve({ cardId }),
 });
 
-const mockInteractiveTransaction = () => {
-  transactionMock.mockImplementation(async (fn) => {
-    if (typeof fn !== "function") {
-      throw new Error("expected interactive $transaction");
-    }
-
-    return fn(txClient);
-  });
-};
-
 describe("GET /api/cards/[cardId]/audit-logs", () => {
   test("returns 401 without querying when there is no session", async () => {
     authMock.mockResolvedValue({ orgId: null, userId: null } as Awaited<
@@ -69,7 +60,7 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
     authMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(card);
     txClient.auditLog.findMany.mockResolvedValue([cardAuditLog]);
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({ transactionMock, txClient });
 
     const response = await GET(request, contextFor(card.id));
 
@@ -96,7 +87,7 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
     authMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(card);
     txClient.auditLog.findMany.mockResolvedValue([]);
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({ transactionMock, txClient });
 
     const response = await GET(request, contextFor(card.id));
 
@@ -122,7 +113,7 @@ describe("GET /api/cards/[cardId]/audit-logs", () => {
     const card = cardFactory.build();
     authMock.mockResolvedValue(orgAuth);
     txClient.card.findUnique.mockResolvedValue(null);
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({ transactionMock, txClient });
 
     const error = await GET(request, contextFor(card.id)).then(
       () => {

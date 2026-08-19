@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
 
@@ -43,21 +44,11 @@ const orgAuth = {
   userId: "user_1",
 } as Awaited<ReturnType<typeof auth>>;
 
-const mockInteractiveTransaction = () => {
-  transactionMock.mockImplementation(async (fn) => {
-    if (typeof fn !== "function") {
-      throw new Error("expected interactive $transaction");
-    }
-
-    return fn(txClient);
-  });
-};
-
 const lockedOrgLimitRow = [{}];
 
 describe("deleteBoard", () => {
   beforeEach(() => {
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({ transactionMock, txClient });
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {

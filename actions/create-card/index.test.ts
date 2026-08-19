@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import {
+  expectGlobalClientUnused,
+  mockInteractiveTransaction,
+} from "@/lib/testing/prisma/mock-interactive-transaction";
 import { cardFactory } from "@/lib/testing/factories/card";
 import { listFactory } from "@/lib/testing/factories/list";
 
@@ -52,34 +56,15 @@ const expectLockedList = (listId: string) => {
   expect(values).toStrictEqual([listId]);
 };
 
-const expectGlobalClientUnused = () => {
-  expect(globalQueryRawMock).not.toHaveBeenCalled();
-  expect(globalListFindUniqueMock).not.toHaveBeenCalled();
-  expect(globalCardFindFirstMock).not.toHaveBeenCalled();
-  expect(globalCardCreateMock).not.toHaveBeenCalled();
-};
-
-const mockInteractiveTransaction = () => {
-  lastTransactionOutcome = undefined;
-  transactionMock.mockImplementation(async (fn) => {
-    if (typeof fn !== "function") {
-      throw new Error("expected interactive $transaction");
-    }
-
-    try {
-      const value = await fn(txClient);
-      lastTransactionOutcome = "committed";
-      return value;
-    } catch (reason) {
-      lastTransactionOutcome = "rolledBack";
-      throw reason;
-    }
-  });
-};
-
 describe("createCard", () => {
   beforeEach(() => {
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({
+      transactionMock,
+      txClient,
+      setLastTransactionOutcome: (outcome) => {
+        lastTransactionOutcome = outcome;
+      },
+    });
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
@@ -95,7 +80,12 @@ describe("createCard", () => {
 
     expect(transactionMock).not.toHaveBeenCalled();
     expect(txClient.list.findUnique).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
@@ -118,7 +108,12 @@ describe("createCard", () => {
     });
     expect(txClient.$queryRaw).not.toHaveBeenCalled();
     expect(txClient.card.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found." });
   });
@@ -137,7 +132,12 @@ describe("createCard", () => {
 
     expectLockedList(list.id);
     expect(txClient.card.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "List not found." });
   });
@@ -174,7 +174,12 @@ describe("createCard", () => {
       data: { title: card.title, listId: list.id, order: 1 },
     });
     expect(transactionMock).toHaveBeenCalledOnce();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(createAuditLogMock).toHaveBeenCalledExactlyOnceWith({
       entityId: card.id,
@@ -205,7 +210,12 @@ describe("createCard", () => {
     expect(txClient.card.create).toHaveBeenCalledExactlyOnceWith({
       data: { title: "Ship P2", listId: list.id, order: 4 },
     });
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalListFindUniqueMock,
+      globalCardFindFirstMock,
+      globalCardCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("rolledBack");
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to create." });

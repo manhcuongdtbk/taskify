@@ -3,7 +3,8 @@ import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { cardFactory } from "@/lib/testing/factories/card";
 
 import { updateCardOrder } from "./index";
@@ -29,18 +30,8 @@ const orgAuth = {
 } as Awaited<ReturnType<typeof auth>>;
 
 describe("updateCardOrder", () => {
-  const mockInteractiveTransaction = () => {
-    transactionMock.mockImplementation(async (fn) => {
-      if (typeof fn !== "function") {
-        throw new Error("expected interactive $transaction");
-      }
-
-      return fn(txClient);
-    });
-  };
-
   beforeEach(() => {
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({ transactionMock, txClient });
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {

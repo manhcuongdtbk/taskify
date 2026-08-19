@@ -3,7 +3,8 @@ import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 import prisma from "@/lib/prisma/client";
 import { FREE_PLAN } from "@/constants/pricing-plans";
@@ -55,27 +56,15 @@ const image = {
   userName: "Svitlana",
 };
 
-const mockInteractiveTransaction = () => {
-  lastTransactionOutcome = undefined;
-  transactionMock.mockImplementation(async (fn) => {
-    if (typeof fn !== "function") {
-      throw new Error("expected interactive $transaction");
-    }
-
-    try {
-      const value = await fn(txClient);
-      lastTransactionOutcome = "committed";
-      return value;
-    } catch (reason) {
-      lastTransactionOutcome = "rolledBack";
-      throw reason;
-    }
-  });
-};
-
 describe("createBoard", () => {
   beforeEach(() => {
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({
+      transactionMock,
+      txClient,
+      setLastTransactionOutcome: (outcome) => {
+        lastTransactionOutcome = outcome;
+      },
+    });
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {

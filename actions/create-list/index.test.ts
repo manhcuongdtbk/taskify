@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
-import { mockTxClient } from "@/lib/testing/prisma";
+import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
+import {
+  expectGlobalClientUnused,
+  mockInteractiveTransaction,
+} from "@/lib/testing/prisma/mock-interactive-transaction";
 import { boardFactory } from "@/lib/testing/factories/board";
 import { listFactory } from "@/lib/testing/factories/list";
 
@@ -52,34 +56,15 @@ const expectLockedBoard = (boardId: string) => {
   expect(values).toStrictEqual([boardId]);
 };
 
-const expectGlobalClientUnused = () => {
-  expect(globalQueryRawMock).not.toHaveBeenCalled();
-  expect(globalBoardFindUniqueMock).not.toHaveBeenCalled();
-  expect(globalListFindFirstMock).not.toHaveBeenCalled();
-  expect(globalListCreateMock).not.toHaveBeenCalled();
-};
-
-const mockInteractiveTransaction = () => {
-  lastTransactionOutcome = undefined;
-  transactionMock.mockImplementation(async (fn) => {
-    if (typeof fn !== "function") {
-      throw new Error("expected interactive $transaction");
-    }
-
-    try {
-      const value = await fn(txClient);
-      lastTransactionOutcome = "committed";
-      return value;
-    } catch (reason) {
-      lastTransactionOutcome = "rolledBack";
-      throw reason;
-    }
-  });
-};
-
 describe("createList", () => {
   beforeEach(() => {
-    mockInteractiveTransaction();
+    mockInteractiveTransaction({
+      transactionMock,
+      txClient,
+      setLastTransactionOutcome: (outcome) => {
+        lastTransactionOutcome = outcome;
+      },
+    });
   });
 
   test("returns Unauthorized without writing when there is no session", async () => {
@@ -91,7 +76,12 @@ describe("createList", () => {
 
     expect(transactionMock).not.toHaveBeenCalled();
     expect(txClient.board.findUnique).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalBoardFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(result).toStrictEqual({ serverError: "Unauthorized" });
   });
 
@@ -106,7 +96,12 @@ describe("createList", () => {
     });
     expect(txClient.$queryRaw).not.toHaveBeenCalled();
     expect(txClient.list.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalBoardFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "Board not found." });
   });
@@ -121,7 +116,12 @@ describe("createList", () => {
 
     expectLockedBoard(board.id);
     expect(txClient.list.create).not.toHaveBeenCalled();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalBoardFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(result).toStrictEqual({ serverError: "Board not found." });
   });
@@ -154,7 +154,12 @@ describe("createList", () => {
       data: { title: list.title, boardId: board.id, order: 1 },
     });
     expect(transactionMock).toHaveBeenCalledOnce();
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalBoardFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("committed");
     expect(createAuditLogMock).toHaveBeenCalledExactlyOnceWith({
       entityId: list.id,
@@ -181,7 +186,12 @@ describe("createList", () => {
     expect(txClient.list.create).toHaveBeenCalledExactlyOnceWith({
       data: { title: "Todo", boardId: board.id, order: 4 },
     });
-    expectGlobalClientUnused();
+    expectGlobalClientUnused(
+      globalQueryRawMock,
+      globalBoardFindUniqueMock,
+      globalListFindFirstMock,
+      globalListCreateMock,
+    );
     expect(lastTransactionOutcome).toBe("rolledBack");
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ serverError: "Failed to create." });
