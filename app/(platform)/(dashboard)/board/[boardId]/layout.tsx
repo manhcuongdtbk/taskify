@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma/client";
-import { auth } from "@clerk/nextjs/server";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { BoardNavbar } from "./_components/board-navbar";
@@ -9,7 +9,7 @@ import { cssUrl } from "@/lib/utils";
 export async function generateMetadata({
   params,
 }: LayoutProps<"/board/[boardId]">): Promise<Metadata> {
-  const { orgId } = await auth();
+  const orgId = (await getOrgAuth())?.orgId;
 
   if (!orgId) {
     return { title: "Board" };
@@ -20,6 +20,7 @@ export async function generateMetadata({
   const board = await prisma.board.findUnique({
     where: {
       id: boardId,
+      orgId,
     },
   });
 
@@ -32,7 +33,7 @@ export default async function BoardIdLayout({
   children,
   params,
 }: LayoutProps<"/board/[boardId]">) {
-  const { orgId } = await auth();
+  const orgId = (await getOrgAuth())?.orgId;
 
   if (!orgId) {
     redirect(paths.selectOrg);

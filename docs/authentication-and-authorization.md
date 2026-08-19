@@ -18,7 +18,7 @@ Prefer [Clerk docs](https://clerk.com/docs) for the SDK versions in `package.jso
 - **`ClerkProvider`** on the platform shell (`providers/clerk-provider.tsx`) with Clerk’s [shadcn appearance theme](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes#shadcn-theme)
 - **Hosted authentication UI** via App Router catch-alls: `sign-in`, `sign-up`, `select-org` under `app/(platform)/(clerk)/`
 - **Organizations** — `OrganizationList` / `OrganizationSwitcher` / `UserButton`; product data is tenanted by `orgId`
-- **`auth()` / `currentUser()`** from `@clerk/nextjs/server` inside Server Actions, layouts, and helpers (`lib/subscription.ts`, `lib/organization-limit.ts`)
+- **`auth()` / `currentUser()`** from `@clerk/nextjs/server` inside Server Actions, layouts, and helpers (`lib/subscription.ts`, `lib/board-limits/organization-limit.ts`)
 - **`clerkMiddleware` in `proxy.ts`** — public marketing + Stripe webhook; redirect unauthenticated users; require an active organization for protected app routes
 - **Organization id in billing** — Checkout `metadata.orgId` so webhooks can link subscriptions ([`billing.md`](./billing.md))
 
@@ -28,7 +28,7 @@ Not a full permissions product. Today we only:
 
 - **Require a session + active organization** before protected mutations (`userId` / `orgId` checks in Server Actions and card Route Handlers)
 - **Tenant isolation** — board/list/card queries scoped with `orgId` so one organization cannot mutate another’s data by id alone
-- **Pricing-plan entitlements** — Free board caps / Pro via `checkSubscription` + `organization-limit` (see [`features.md`](./features.md) / [`billing.md`](./billing.md))
+- **Pricing-plan entitlements** — display via `checkSubscription`; mutations re-read plan / slots in the Action ([`data.md`](./data.md), [`billing.md`](./billing.md))
 
 We do **not** yet enforce organization **roles** (admin vs member) or fine-grained action permissions.
 

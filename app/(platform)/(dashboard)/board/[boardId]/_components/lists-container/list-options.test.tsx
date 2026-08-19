@@ -32,7 +32,7 @@ describe("ListOptions", () => {
 
     render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "List actions" }));
     await user.click(
       await screen.findByRole("button", { name: "Copy list..." }),
     );
@@ -58,7 +58,7 @@ describe("ListOptions", () => {
 
     render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "List actions" }));
     await user.click(
       await screen.findByRole("button", { name: "Delete list..." }),
     );
@@ -75,6 +75,19 @@ describe("ListOptions", () => {
     });
   });
 
+  test("names the menu trigger and close control", async () => {
+    const list = listFactory.build();
+    const user = userEvent.setup();
+
+    render(<ListOptions list={list} onAddCard={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "List actions" }));
+
+    expect(
+      await screen.findByRole("button", { name: "Close list actions" }),
+    ).toBeInTheDocument();
+  });
+
   test("calls onAddCard when Add card is clicked", async () => {
     const list = listFactory.build();
     const onAddCard = vi.fn();
@@ -82,7 +95,7 @@ describe("ListOptions", () => {
 
     render(<ListOptions list={list} onAddCard={onAddCard} />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "List actions" }));
     await user.click(
       await screen.findByRole("button", { name: "Add card..." }),
     );
@@ -97,7 +110,7 @@ describe("ListOptions", () => {
 
     render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "List actions" }));
     await user.click(
       await screen.findByRole("button", { name: "Copy list..." }),
     );
@@ -117,7 +130,7 @@ describe("ListOptions", () => {
 
     render(<ListOptions list={list} onAddCard={vi.fn()} />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "List actions" }));
     await user.click(
       await screen.findByRole("button", { name: "Delete list..." }),
     );

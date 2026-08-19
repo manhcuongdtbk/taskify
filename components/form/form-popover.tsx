@@ -25,6 +25,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useProModalStore } from "@/stores/use-pro-modal-store";
 import { paths } from "@/lib/paths";
+import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
 
 type FormPopoverProps = {
   children: Extract<
@@ -62,8 +63,12 @@ export const FormPopover = ({
         type: "error",
         title: error,
       });
-      // Free board limit (or similar) → open Pro upgrade modal (Stripe Checkout).
+      if (error !== FREE_BOARD_LIMIT_SERVER_ERROR) {
+        return;
+      }
+      closeRef.current?.click();
       openProModal();
+      router.refresh();
     },
   });
 

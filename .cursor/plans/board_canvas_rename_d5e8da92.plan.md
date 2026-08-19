@@ -1,6 +1,6 @@
 ---
 name: Board canvas rename
-overview: Colocate widgets like card-modal; ListContainer → ListsContainer; domain names instead of generic data; ListWrapper forwards li props and wraps ListItem. No product behavior change.
+overview: "Shipped in PR #11. Execution history only — SoT is docs/conventions.md (and project-structure.md for nearest-route _components). Colocate widgets like card-modal; ListContainer → ListsContainer; domain names instead of generic data; ListWrapper forwards li props and wraps ListItem."
 todos:
   - id: domain-names
     content: "Rename UI data→lists/list/board/card/auditLog(s); Query aliases; action handlers destructure InputType (stripe-redirect: _input); createSafeAction + useAction Action param input. Keep ActionState.data, Prisma data, useAction return data, Zod .data."
@@ -27,6 +27,8 @@ isProject: false
 ---
 
 # ListsContainer, colocation, domain names
+
+**Shipped** in [PR #11](https://github.com/manhcuongdtbk/taskify/pull/11). This file is execution history. Living rules: [`docs/conventions.md`](../../docs/conventions.md), nearest-route `_components` in [`docs/project-structure.md`](../../docs/project-structure.md). Safe to delete; the Vitest backlog no longer depends on it.
 
 One PR. Freeze-allowed cleanup (layout + naming). **No product behavior change.** Not a coverage-ratchet P (`app/` still mostly outside All-files include).
 

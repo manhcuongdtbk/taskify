@@ -11,7 +11,7 @@ import { useParams } from "next/navigation";
 import { useAction } from "@/hooks/use-action";
 import { updateCard } from "@/actions/update-card";
 import { toast } from "@/components/ui/toast";
-import { cardQueries } from "@/lib/api/card";
+import { cardQueries } from "@/lib/tanstack-query/resources/card";
 import { formDataString } from "@/lib/form-data";
 
 interface CardModalHeaderProps {
@@ -39,6 +39,12 @@ export const CardModalHeader = ({ card }: CardModalHeaderProps) => {
   });
   const inputRef = useRef<ComponentRef<"input">>(null);
   const [title, setTitle] = useState(card.title);
+  const [cardId, setCardId] = useState(card.id);
+
+  if (card.id !== cardId) {
+    setCardId(card.id);
+    setTitle(card.title);
+  }
 
   const handleBlur = () => {
     inputRef.current?.form?.requestSubmit();
@@ -62,8 +68,9 @@ export const CardModalHeader = ({ card }: CardModalHeaderProps) => {
             ref={inputRef}
             onBlur={handleBlur}
             id="title"
+            key={card.id}
             defaultValue={title}
-            className="focus-visible::border-input relative -left-1.5 mb-0.5 w-[95%] truncate border-transparent bg-transparent px-1 text-xl font-semibold text-neutral-700 focus-visible:bg-white"
+            className="relative -left-1.5 mb-0.5 w-[95%] truncate border-transparent bg-transparent px-1 text-xl font-semibold text-neutral-700 focus-visible:border-input focus-visible:bg-white"
           />
         </form>
         <p className="text-sm text-muted-foreground">

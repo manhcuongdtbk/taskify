@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Floating major tags (@v7) already move with patches. Ignore patch/minor
+    # so Dependabot does not rewrite uses: to @v7.0.1 (pnpm lint:workflows).
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-patch"
+          - "version-update:semver-minor"

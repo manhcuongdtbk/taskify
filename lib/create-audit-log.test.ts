@@ -6,22 +6,24 @@ import {
   test,
   vi,
 } from "vitest";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
+import { auditLogFactory } from "@/lib/testing/factories/audit-log";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { createAuditLog } from "./create-audit-log";
 
-vi.mock("@/lib/prisma/client", () => ({
-  default: { auditLog: { create: vi.fn() } },
-}));
+vi.mock("@/lib/prisma/client");
 
 vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
   currentUser: vi.fn(),
 }));
 
-const authMock = vi.mocked(auth);
+vi.mock("@/lib/auth/get-org-auth");
+
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 const currentUserMock = vi.mocked(currentUser);
 const createMock = vi.mocked(prisma.auditLog.create);
 
@@ -33,26 +35,24 @@ const auditInput = {
 };
 
 describe("createAuditLog", () => {
-  let logSpy: MockInstance<typeof console.log>;
+  let logSpy: MockInstance<typeof console.error>;
 
-  // Every failure path is swallowed through console.log — silence it for the
+  // Every failure path is swallowed through console.error — silence it for the
   // whole suite so the failure cases don't dump stack traces into the output.
   // `restoreMocks` / `mockReset` clear spy + mock state between tests.
   beforeEach(() => {
-    logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    logSpy = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   test("writes an audit log row for the action", async () => {
-    authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue({
       id: "user_1",
       imageUrl: "https://img.example/u.png",
       firstName: "Ada",
       lastName: "Lovelace",
     } as Awaited<ReturnType<typeof currentUser>>);
-    createMock.mockResolvedValue({} as never);
+    createMock.mockResolvedValue(auditLogFactory.build());
 
     const result = await createAuditLog(auditInput);
 
@@ -69,6 +69,32 @@ describe("createAuditLog", () => {
       },
     });
     expect(result).toBeUndefined();
+  });
+
+  test("falls back to a safe audit name when Clerk omits both names", async () => {
+    getOrgAuthMock.mockResolvedValue(orgAuth);
+    currentUserMock.mockResolvedValue({
+      id: "user_1",
+      imageUrl: "https://img.example/u.png",
+      firstName: null,
+      lastName: null,
+    } as Awaited<ReturnType<typeof currentUser>>);
+    createMock.mockResolvedValue(auditLogFactory.build());
+
+    await createAuditLog(auditInput);
+
+    expect(createMock).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        orgId: "org_1",
+        entityId: "board_1",
+        entityType: ENTITY_TYPE.BOARD,
+        entityTitle: "Roadmap",
+        action: ACTION.CREATE,
+        userId: "user_1",
+        userImage: "https://img.example/u.png",
+        userName: "Unknown User",
+      },
+    });
   });
 
   test.for([
@@ -88,7 +114,7 @@ describe("createAuditLog", () => {
       user: null,
     },
   ])("returns a failure when $case", async ({ orgId, user }) => {
-    authMock.mockResolvedValue({ orgId } as Awaited<ReturnType<typeof auth>>);
+    getOrgAuthMock.mockResolvedValue(orgId ? orgAuth : null);
     currentUserMock.mockResolvedValue(
       user as Awaited<ReturnType<typeof currentUser>>,
     );
@@ -96,15 +122,12 @@ describe("createAuditLog", () => {
     const result = await createAuditLog(auditInput);
 
     expect(createMock).not.toHaveBeenCalled();
-    expect(result).toStrictEqual({
-      error: "Failed to create audit log",
-    });
+    expect(logSpy).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
+    expect(result).toBeUndefined();
   });
 
   test("returns a failure when auditLog.create rejects", async () => {
-    authMock.mockResolvedValue({ orgId: "org_1" } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    getOrgAuthMock.mockResolvedValue(orgAuth);
     currentUserMock.mockResolvedValue({
       id: "user_1",
       imageUrl: "https://img.example/u.png",
@@ -117,8 +140,6 @@ describe("createAuditLog", () => {
 
     expect(createMock).toHaveBeenCalledOnce();
     expect(logSpy).toHaveBeenCalledWith("[AUDIT_LOG_ERROR]", expect.any(Error));
-    expect(result).toStrictEqual({
-      error: "Failed to create audit log",
-    });
+    expect(result).toBeUndefined();
   });
 });

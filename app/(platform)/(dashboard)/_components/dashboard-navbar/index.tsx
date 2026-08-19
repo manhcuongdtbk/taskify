@@ -23,7 +23,11 @@ export const DashboardNavbar = () => {
           </Button>
         </FormPopover>
         <FormPopover>
-          <Button size="sm" className="block rounded-xs md:hidden">
+          <Button
+            size="sm"
+            className="block rounded-xs md:hidden"
+            aria-label="Create board"
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </FormPopover>

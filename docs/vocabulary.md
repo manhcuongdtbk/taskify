@@ -191,14 +191,14 @@ A **factory** is a function (or small module of functions) that **creates and re
 | **Do we implement GoF?** | —                                         | **No** — borrow the word and intent, not the class hierarchy    |
 
 ```ts
-// lib/api/card.ts — colloquial resource factory
+// lib/tanstack-query/resources/card/index.ts — colloquial resource factory
 export const cardQueries = {
   all: () => ["card"] as const,
   byId: (id: string | undefined) => [...cardQueries.all(), id] as const,
   detail: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "detail"] as const,
-      queryFn: () => fetcher<CardWithListTitle | null>(`/api/cards/${id}`), // | null until route returns 404 — docs/data.md
+      queryFn: () => fetcher(`/api/cards/${id}`, CardWithListTitleJsonSchema),
       enabled: !!id,
     }),
 };
@@ -208,12 +208,12 @@ useQuery(cardQueries.detail(id));
 
 **Rule of thumb:** UML with `Creator` / `ConcreteProduct` → GoF. `cardQueries.detail(id)` or `vi.mock("…", () => ({ … }))` → **colloquial** factory. Saying it “builds” a value in ordinary English is **not** the [Builder](#builder) pattern.
 
-| We say                       | What it is                                                                                                                    | Where                                                                            |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **Resource / Query factory** | `cardQueries`-style module: `queryKey` + `queryOptions`                                                                       | [`lib/api/card.ts`](../lib/api/card.ts) · why/layout: [`data.md`](./data.md)     |
-| **Store factory**            | [`createStore`](../lib/create-store.ts) — sole Zustand import                                                                 | [`client-ui-state.md`](./client-ui-state.md)                                     |
-| **`vi.mock` factory**        | Callback that supplies mocked exports                                                                                         | [`testing.md`](./testing.md) · [vi.mock](https://vitest.dev/api/vi.html#vi-mock) |
-| **`factories/` (folder)**    | Optional top-level for **test data factories** — prefer [`lib/testing/factories/`](../lib/testing/factories/) + Fishery first | [`project-structure.md`](./project-structure.md) · [`testing.md`](./testing.md)  |
+| We say                       | What it is                                                                                                                    | Where                                                                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Resource / Query factory** | `cardQueries`-style module: `queryKey` + `queryOptions`                                                                       | [`lib/tanstack-query/resources/card/`](../lib/tanstack-query/resources/card/) · why/layout: [`data.md`](./data.md) |
+| **Store factory**            | [`createStore`](../lib/create-store.ts) — sole Zustand import                                                                 | [`client-ui-state.md`](./client-ui-state.md)                                                                       |
+| **`vi.mock` factory**        | Callback that supplies mocked exports                                                                                         | [`testing.md`](./testing.md) · [vi.mock](https://vitest.dev/api/vi.html#vi-mock)                                   |
+| **`factories/` (folder)**    | Optional top-level for **test data factories** — prefer [`lib/testing/factories/`](../lib/testing/factories/) + Fishery first | [`project-structure.md`](./project-structure.md) · [`testing.md`](./testing.md)                                    |
 
 Official Query helper is [`queryOptions`](https://tanstack.com/query/v5/docs/framework/react/guides/query-options) (no glossary “factory”). Community “query key factory” usually means key helpers only; our resource factories add `queryFn` too — details: [`data.md`](./data.md).
 
@@ -245,7 +245,7 @@ Vendor fluent APIs (Prisma `findMany` chains, Zod `.trim().min(3)`) are **shaped
 | **Factory** | **Which** thing / one-shot correct config         | `cardQueries.detail(id)`, `createStore(…)` |
 | **Builder** | **How** to assemble many optional / ordered parts | Fluent chains, rich test fixtures          |
 
-In **this repo’s docs**, prefer **factory** for `lib/api/*`, `createStore`, `vi.mock` factories, and **Fishery** test data factories under `lib/testing/factories/`; **builder** for fluent/stepwise assembly and “path builder” prose. If someone says “builder” but means `cardQueries`, they mean [Factory](#factory). Don’t call Fishery factories “fixtures” — Vitest/Playwright fixtures mean `test.extend` lifecycle.
+In **this repo’s docs**, prefer **factory** for `lib/tanstack-query/resources/*`, `createStore`, `vi.mock` factories, and **Fishery** test data factories under `lib/testing/factories/`; **builder** for fluent/stepwise assembly and “path builder” prose. If someone says “builder” but means `cardQueries`, they mean [Factory](#factory). Don’t call Fishery factories “fixtures” — Vitest/Playwright fixtures mean `test.extend` lifecycle.
 
 | We say                                             | What it is                          | GoF Builder?                                        |
 | -------------------------------------------------- | ----------------------------------- | --------------------------------------------------- |

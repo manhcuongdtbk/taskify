@@ -1,6 +1,7 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
 
 interface Props {
   entityId: string;
@@ -9,6 +10,17 @@ interface Props {
   action: ACTION;
 }
 
+/**
+ * Writes an audit log row for a domain mutation.
+ *
+ * This function is intentionally non-fatal and safe to call outside the
+ * caller's main `prisma.$transaction` boundary: if audit logging fails, the
+ * domain mutation must still commit and the client must not retry.
+ *
+ * Failures are swallowed here (no throw) so Actions can `await` this without a
+ * try/catch — a failed log must not fail the mutation or trigger a client
+ * retry.
+ */
 export const createAuditLog = async ({
   entityId,
   entityType,
@@ -16,12 +28,16 @@ export const createAuditLog = async ({
   action,
 }: Props) => {
   try {
-    const { orgId } = await auth();
+    const orgId = (await getOrgAuth())?.orgId;
     const user = await currentUser();
 
     if (!orgId || !user) {
       throw new Error("User not found!");
     }
+
+    const userName =
+      [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+      "Unknown User";
 
     await prisma.auditLog.create({
       data: {
@@ -32,13 +48,10 @@ export const createAuditLog = async ({
         action,
         userId: user.id,
         userImage: user.imageUrl,
-        userName: user.firstName + " " + user.lastName,
+        userName,
       },
     });
   } catch (reason) {
-    console.log("[AUDIT_LOG_ERROR]", reason);
-    return {
-      error: "Failed to create audit log",
-    };
+    console.error("[AUDIT_LOG_ERROR]", reason);
   }
 };

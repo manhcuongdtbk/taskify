@@ -14,7 +14,7 @@ Choose a tool carefully for a given purpose. Once adopted, **do not add another 
 
 ### pnpm store (hard rule)
 
-Use pnpm’s **default global** store. Never create or commit a project-local `.pnpm-store/`. For `pnpm add` / `install` / `update` / `remove`, run the shell **outside** the Cursor sandbox so the global store is writable — details: [`docs/conventions.md`](docs/conventions.md) (pnpm store / agents) · `.cursor/rules/pnpm.mdc`.
+Use pnpm’s **default global** store. Never create or commit a project-local `.pnpm-store/`. For `pnpm add` / `install` / `update` / `remove`, run the shell **outside** the Cursor sandbox so the global store is writable — details: [`docs/conventions.md`](docs/conventions.md) (pnpm store / agents) · `.cursor/rules/pnpm.mdc`. GitHub Actions Node/pnpm must match mise ([`.github/actions/setup-mise`](.github/actions/setup-mise/action.yml)).
 <!-- END:project-docs -->
 
 <!-- BEGIN:prisma -->

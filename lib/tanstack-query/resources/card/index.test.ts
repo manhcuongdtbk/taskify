@@ -1,7 +1,12 @@
 import { partialMatchKey } from "@tanstack/react-query";
 import { describe, expect, test, vi } from "vitest";
+import * as z from "zod";
 
-import { cardQueries } from "./card";
+import { auditLogFactory } from "@/lib/testing/factories/audit-log";
+import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
+import { jsonBody } from "@/lib/testing/json-body";
+
+import { cardQueries } from "./index";
 
 describe("cardQueries", () => {
   test("all returns the card root key", () => {
@@ -23,37 +28,54 @@ describe("cardQueries", () => {
     expect(cardQueries.detail(undefined).enabled).toBe(false);
   });
 
-  test("detail queryFn fetches the card by id", async () => {
-    const card = { id: "card_1", title: "Ship it" };
+  test("detail queryFn maps JSON card dates to Date", async () => {
+    const card = cardWithListTitleFactory.build();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: vi.fn().mockResolvedValue(card),
+      json: vi.fn().mockResolvedValue(jsonBody(card)),
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const { queryFn } = cardQueries.detail("card_1");
+    const { queryFn } = cardQueries.detail(card.id);
     // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
     const body = await (queryFn as () => Promise<unknown>)();
 
-    expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(`/api/cards/${card.id}`);
     expect(body).toStrictEqual(card);
   });
 
-  // The route serves findUnique's result, so a deleted or cross-org card comes
-  // back as a 200 null body — fetcher does not throw, and null reaches the UI.
-  test("detail queryFn surfaces a null body for a missing card", async () => {
+  test("detail queryFn throws when the card is missing", async () => {
+    const json = vi.fn();
     const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue(null),
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      json,
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const { queryFn } = cardQueries.detail("card_1");
-    // Cast fixes arity for tsc; queryFn ignores QueryFunctionContext. See docs/testing.md.
-    const body = await (queryFn as () => Promise<unknown>)();
 
+    await expect((queryFn as () => Promise<unknown>)()).rejects.toThrow(
+      "Request failed: 404 Not Found",
+    );
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
-    expect(body).toBeNull();
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  test("detail queryFn rejects a partial JSON card", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ id: "card_1", title: "Ship it" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { queryFn } = cardQueries.detail("card_1");
+
+    await expect((queryFn as () => Promise<unknown>)()).rejects.toBeInstanceOf(
+      z.ZodError,
+    );
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/cards/card_1");
   });
 
   test("auditLogs builds key and enables when id is set", () => {
@@ -67,11 +89,11 @@ describe("cardQueries", () => {
     expect(cardQueries.auditLogs(undefined).enabled).toBe(false);
   });
 
-  test("auditLogs queryFn fetches card audit logs by card id", async () => {
-    const cardAuditLogs = [{ id: "auditLog_1", action: "CREATE" }];
+  test("auditLogs queryFn maps JSON audit-log dates to Date", async () => {
+    const cardAuditLog = auditLogFactory.build();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: vi.fn().mockResolvedValue(cardAuditLogs),
+      json: vi.fn().mockResolvedValue(jsonBody([cardAuditLog])),
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -82,7 +104,45 @@ describe("cardQueries", () => {
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
       "/api/cards/card_1/audit-logs",
     );
-    expect(body).toStrictEqual(cardAuditLogs);
+    expect(body).toStrictEqual([cardAuditLog]);
+  });
+
+  test("auditLogs queryFn throws when the card is missing", async () => {
+    const json = vi.fn();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      json,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { queryFn } = cardQueries.auditLogs("card_1");
+
+    await expect((queryFn as () => Promise<unknown>)()).rejects.toThrow(
+      "Request failed: 404 Not Found",
+    );
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      "/api/cards/card_1/audit-logs",
+    );
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  test("auditLogs queryFn rejects a partial JSON audit log", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue([{ id: "auditLog_1", action: "CREATE" }]),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { queryFn } = cardQueries.auditLogs("card_1");
+
+    await expect((queryFn as () => Promise<unknown>)()).rejects.toBeInstanceOf(
+      z.ZodError,
+    );
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      "/api/cards/card_1/audit-logs",
+    );
   });
 
   // partialMatchKey is what invalidateQueries uses — assert our key shapes

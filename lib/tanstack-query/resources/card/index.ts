@@ -1,11 +1,15 @@
 import { queryOptions } from "@tanstack/react-query";
-import { type AuditLog } from "@/app/generated/prisma/client";
-import { fetcher } from "@/lib/fetcher";
-import { type CardWithListTitle } from "@/lib/prisma/query-options/card";
+
+import { fetcher } from "@/lib/tanstack-query/fetcher";
+
+import {
+  CardAuditLogsJsonSchema,
+  CardWithListTitleJsonSchema,
+} from "./card.schema";
 
 /**
  * Card remote-data factory for TanStack Query (client).
- * See docs/data.md (TanStack Query) — why lib/api vs app/api and queryOptions.
+ * See docs/data.md (TanStack Query) — lib/tanstack-query vs app/api and queryOptions.
  */
 export const cardQueries = {
   all: () => ["card"] as const,
@@ -18,18 +22,14 @@ export const cardQueries = {
   detail: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "detail"] as const,
-      // TODO: root fix belongs in the Route Handler — `app/api/cards/[cardId]`
-      // serves findUnique's result, so a deleted or cross-org card arrives as a
-      // 200 `null` body instead of a 404. Widening the type here only stops the
-      // compiler from lying; drop the `| null` once the route returns 404.
-      // See docs/data.md (TODO — clarify / harden data paths).
-      queryFn: () => fetcher<CardWithListTitle | null>(`/api/cards/${id}`),
+      queryFn: () => fetcher(`/api/cards/${id}`, CardWithListTitleJsonSchema),
       enabled: !!id,
     }),
   auditLogs: (id: string | undefined) =>
     queryOptions({
       queryKey: [...cardQueries.byId(id), "auditLogs"] as const,
-      queryFn: () => fetcher<AuditLog[]>(`/api/cards/${id}/audit-logs`),
+      queryFn: () =>
+        fetcher(`/api/cards/${id}/audit-logs`, CardAuditLogsJsonSchema),
       enabled: !!id,
     }),
 };

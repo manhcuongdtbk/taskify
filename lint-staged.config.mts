@@ -33,10 +33,14 @@ const maybeFixRoutes = (filenames: string[]) =>
 /** Prisma owns `*.prisma` format (not Prettier). Function form avoids lint-staged appending paths. */
 const fixPrismaSchema = () => ["pnpm lint:prisma:fix"];
 
+/** Scans the whole `.github/` tree; function form avoids lint-staged appending paths. */
+const checkWorkflowTooling = () => ["pnpm lint:workflows"];
+
 const config = {
   "*": fixStaged,
   "app/**": maybeFixRoutes,
   "*.prisma": fixPrismaSchema,
+  ".github/**": checkWorkflowTooling,
 };
 
 export default config;

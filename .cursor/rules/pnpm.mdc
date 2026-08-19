@@ -7,7 +7,7 @@ alwaysApply: true
 
 SoT: [`docs/conventions.md`](docs/conventions.md) (Tooling / repo workflow — pnpm store).
 
-- **Package manager:** `pnpm` via `mise` (`mise.toml`). Prefer `pnpm add` / `pnpm install` / `pnpm update` — not npm/yarn.
+- **Package manager:** `pnpm` via `mise` (`mise.toml` / `mise.lock`). Prefer `pnpm add` / `pnpm install` / `pnpm update` — not npm/yarn. GitHub Actions: [`.github/actions/setup-mise`](.github/actions/setup-mise/action.yml) only — do not pin Node/pnpm in workflows.
 - **Store:** use pnpm’s **default global** store. Do **not** create or use a project-local `.pnpm-store/`, do **not** pass `--store-dir` into the repo, and do **not** commit a `store-dir` in `.npmrc`.
 - **Agent shells:** Cursor’s default sandbox cannot write the global store and may spawn a stray `.pnpm-store/` (with `index.db`). For any command that mutates dependencies (`pnpm add`, `pnpm install`, `pnpm update`, `pnpm remove`, …), request full permissions (`required_permissions: ["all"]`) so the real global store is used.
 - **Cleanup:** if `.pnpm-store/` appears, delete it (`rm -rf .pnpm-store`). It is gitignored; never commit it.

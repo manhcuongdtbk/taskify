@@ -2,31 +2,54 @@ import { describe, expect, test, vi } from "vitest";
 import * as z from "zod";
 
 import { createSafeAction } from "./create-safe-action";
+import { orgAuth } from "@/lib/testing/org-auth";
 import {
   tooSmallNumber,
   tooBigString,
 } from "@/lib/testing/zod/default-issue-messages";
+import { getOrgAuth } from "@/lib/auth/get-org-auth";
+
+vi.mock("@/lib/auth/get-org-auth");
+
+const getOrgAuthMock = vi.mocked(getOrgAuth);
 
 const Schema = z.object({
   title: z.string().trim().min(3),
 });
 
 const fieldErrorsFor = async (schema: z.ZodType, input: unknown) => {
-  const action = createSafeAction(schema, async (input) => ({ data: input }));
+  const action = createSafeAction(schema, async (input, _orgAuth) => ({
+    data: input,
+  }));
 
   return (await action(input)).fieldErrors;
 };
 
 describe("createSafeAction", () => {
-  test("valid: passes parsed data to the handler", async () => {
-    const handler = vi.fn(async (input: z.infer<typeof Schema>) => ({
+  test("returns Unauthorized without calling the handler when there is no session", async () => {
+    getOrgAuthMock.mockResolvedValue(null);
+    const handler = vi.fn();
+    const action = createSafeAction(Schema, handler);
+
+    const result = await action({ title: "Roadmap" });
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(result).toStrictEqual({ serverError: "Unauthorized" });
+  });
+
+  test("valid: passes parsed data and orgAuth to the handler", async () => {
+    getOrgAuthMock.mockResolvedValue(orgAuth);
+    const handler = vi.fn(async (input: z.infer<typeof Schema>, _orgAuth) => ({
       data: input.title,
     }));
     const action = createSafeAction(Schema, handler);
 
     const result = await action({ title: "Roadmap" });
 
-    expect(handler).toHaveBeenCalledExactlyOnceWith({ title: "Roadmap" });
+    expect(handler).toHaveBeenCalledExactlyOnceWith(
+      { title: "Roadmap" },
+      orgAuth,
+    );
     expect(result).toStrictEqual({ data: "Roadmap" });
   });
 
@@ -194,5 +217,13 @@ describe("createSafeAction", () => {
     await expect(action({} as z.input<typeof Schema>)).resolves.toStrictEqual({
       fieldErrors: { title: ["Missing Title"] },
     });
+  });
+
+  test("invalid: does not call getOrgAuth when validation fails", async () => {
+    const action = createSafeAction(Schema, vi.fn());
+
+    await action({} as z.input<typeof Schema>);
+
+    expect(getOrgAuthMock).not.toHaveBeenCalled();
   });
 });

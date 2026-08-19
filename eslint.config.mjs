@@ -1,3 +1,5 @@
+import { basename } from "node:path";
+import { pascalCase } from "es-toolkit/string";
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 // Registers `@typescript-eslint/*` (transitive via `typescript-eslint`) — not a direct package.json dep.
@@ -524,6 +526,69 @@ const zustandStoreExportNameRestrictions = [
 const zustandCreateStoreRequiredMessage =
   "Define store hooks with createStore from @/lib/create-store (do not call zustand create here). See docs/client-ui-state.md.";
 
+const devtoolsNameFromStoreFilename = (filename) => {
+  const base = basename(filename).replace(/\.(ts|tsx)$/u, "");
+  if (!/^use-[a-z0-9-]+-store$/u.test(base)) return undefined;
+  return pascalCase(base.slice("use-".length));
+};
+
+const zustandDevtoolsNamePlugin = {
+  meta: { name: "zustand-devtools-name" },
+  rules: {
+    "name-matches-file": {
+      meta: {
+        type: "problem",
+        docs: {
+          description:
+            "createStore's DevTools name must match the store filename. See docs/client-ui-state.md.",
+        },
+        schema: [],
+        messages: {
+          missing:
+            'Pass a DevTools name as createStore\'s second argument ("CardModalStore" from use-card-modal-store.ts). See docs/client-ui-state.md.',
+          mismatch:
+            "DevTools name {{actual}} must be {{expected}} (from this filename). See docs/client-ui-state.md.",
+        },
+      },
+      create(context) {
+        const expected = devtoolsNameFromStoreFilename(context.filename);
+        if (!expected) return {};
+
+        return {
+          CallExpression(node) {
+            if (
+              node.callee.type !== "Identifier" ||
+              node.callee.name !== "createStore"
+            ) {
+              return;
+            }
+
+            const nameArg = node.arguments[1];
+            if (
+              nameArg?.type !== "Literal" ||
+              typeof nameArg.value !== "string"
+            ) {
+              context.report({ node, messageId: "missing" });
+              return;
+            }
+
+            if (nameArg.value !== expected) {
+              context.report({
+                node: nameArg,
+                messageId: "mismatch",
+                data: {
+                  actual: JSON.stringify(nameArg.value),
+                  expected: JSON.stringify(expected),
+                },
+              });
+            }
+          },
+        };
+      },
+    },
+  },
+};
+
 const zustandCreateStoreRequiredRestrictions = [
   {
     selector:
@@ -574,6 +639,16 @@ const constructNowRestrictions = [
     selector: "NewExpression[callee.name='Date'][arguments.length=0]",
     message:
       "Use constructNow(undefined) from date-fns instead of new Date(). Pass a Date/TZDate when you need that constructor’s now. new Date(value) is fine for parse/fixed instants; Date.now() for epoch ms. See docs/conventions.md.",
+  },
+];
+
+/** Narrow FormData via formDataString — docs/data.md. */
+const formDataGetAsStringRestrictions = [
+  {
+    selector:
+      "TSAsExpression[typeAnnotation.typeAnnotation.type='TSStringKeyword'] > CallExpression[callee.property.name='get'][callee.object.name='formData']",
+    message:
+      "Narrow FormData with formDataString (lib/form-data.ts), not `as string`. See docs/data.md.",
   },
 ];
 
@@ -642,6 +717,10 @@ const skeletonStatusLabelRestrictions = [
     message:
       "Item compound `Foo.SkeletonItem` must stay a bare row placeholder — do not wrap <SkeletonStatus> (parent `Foo.Skeleton` owns the landmark). See docs/conventions.md.",
   },
+];
+
+/** App UI only — colocated SkeletonStatus suite must render the wrapper. */
+const skeletonStatusInlineUsageRestrictions = [
   {
     selector:
       "JSXOpeningElement[name.name='SkeletonStatus']:not(AssignmentExpression[left.property.name='Skeleton'] JSXOpeningElement)",
@@ -687,7 +766,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
       ],
     },
   },
@@ -705,7 +786,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
       ],
     },
@@ -724,7 +807,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nextSpecialExportRestrictions,
       ],
@@ -751,7 +836,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -786,9 +873,11 @@ const eslintConfig = defineConfig([
     files: ["stores/**/*-store.ts", "stores/**/*-store.tsx"],
     plugins: {
       "filename-match-export": filenameMatchExport,
+      "zustand-devtools-name": zustandDevtoolsNamePlugin,
     },
     rules: {
       "filename-match-export/match-named-export": "error",
+      "zustand-devtools-name/name-matches-file": "error",
       ...noForwardRefImport,
       "no-restricted-syntax": [
         "error",
@@ -798,7 +887,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         ...zustandStoreActionNamingRestrictions,
         ...zustandStoreExportNameRestrictions,
         ...zustandCreateStoreRequiredRestrictions,
@@ -845,7 +936,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         ...nonNextExportStyleRestrictions,
       ],
     },
@@ -863,7 +956,9 @@ const eslintConfig = defineConfig([
         ...catchReasonNamingRestrictions,
         ...zustandSelectorRequiredRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
       ],
@@ -908,7 +1003,9 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
+        ...skeletonStatusInlineUsageRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
         ...appUiNoExportedTypeRestrictions,
@@ -1022,6 +1119,7 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,
@@ -1047,6 +1145,7 @@ const eslintConfig = defineConfig([
         ...zustandSelectorRequiredRestrictions,
         ...nodeEnvViaLibEnvRestrictions,
         ...constructNowRestrictions,
+        ...formDataGetAsStringRestrictions,
         ...skeletonStatusLabelRestrictions,
         routeCastOnlyInPathsRestriction,
         ...nonNextExportStyleRestrictions,

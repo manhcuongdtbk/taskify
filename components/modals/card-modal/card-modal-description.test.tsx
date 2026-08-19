@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, test, vi } from "vitest";
 
-import { cardQueries } from "@/lib/api/card";
+import { cardQueries } from "@/lib/tanstack-query/resources/card";
 import { cardWithListTitleFactory } from "@/lib/testing/factories/card";
 import { renderWithQuery } from "@/lib/testing/tanstack-query/render-with-query";
 
@@ -130,6 +131,42 @@ describe("CardModalDescription", () => {
     renderWithQuery(<CardModalDescription card={card} />);
 
     expect(screen.getByText(description)).toBeInTheDocument();
+  });
+
+  test("leaves editing when the card id changes", async () => {
+    const first = cardWithListTitleFactory.build({
+      description: "First details",
+    });
+    const second = cardWithListTitleFactory.build({
+      description: "Second details",
+    });
+    const user = userEvent.setup();
+    const Probe = () => {
+      const [card, setCard] = useState(first);
+
+      return (
+        <>
+          <button type="button" onClick={() => setCard(second)}>
+            next card
+          </button>
+          <CardModalDescription key={card.id} card={card} />
+        </>
+      );
+    };
+
+    renderWithQuery(<Probe />);
+
+    await user.click(screen.getByRole("button", { name: first.description! }));
+    expect(
+      screen.getByPlaceholderText("Add a more detailed description"),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "next card" }));
+
+    expect(screen.getByText(second.description!)).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText("Add a more detailed description"),
+    ).not.toBeInTheDocument();
   });
 
   test("renders the description skeleton", () => {

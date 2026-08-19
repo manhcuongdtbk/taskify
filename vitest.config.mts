@@ -38,11 +38,28 @@ export default defineConfig({
         "hooks/**/*.{ts,tsx}",
         "stores/**/*.{ts,tsx}",
         "constants/**/*.{ts,tsx}",
+        "providers/query-provider.tsx",
       ],
       exclude: [
         "components/ui/**", // shadcn
         "**/*.{test,spec}.{ts,tsx}",
+        "**/*.types.ts", // lib/create-safe-action.types.ts
+        "**/types.ts", // actions/<name>/types.ts — docs/conventions.md
+        "lib/auth/**", // DAL wrappers — always mocked in tests
+        "lib/testing/**", // test infrastructure
+        "lib/prisma/client.ts",
+        "lib/prisma/query-options/**", // shapes only — docs/prisma.md
+        "lib/unsplash.ts",
+        "constants/images.ts",
       ],
+      // Floor under All-files on this include/exclude (not 100% of every file).
+      // CI: .github/workflows/ci.yml
+      thresholds: {
+        statements: 99,
+        branches: 99,
+        functions: 99,
+        lines: 99,
+      },
     },
   },
 });

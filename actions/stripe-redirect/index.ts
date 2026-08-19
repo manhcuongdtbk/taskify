@@ -1,14 +1,16 @@
 "use server";
 
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { type InputType, type ReturnType } from "./types";
 import prisma from "@/lib/prisma/client";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { type OrgAuth } from "@/lib/auth/get-org-auth.types";
 import { StripeRedirectSchema } from "./schema";
 import { absoluteUrl } from "@/lib/utils";
 import { stripe, toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
 import { PRO_PLAN } from "@/constants/pricing-plans";
+import type Stripe from "stripe";
 
 /**
  * Start Stripe billing for the current organization. Overview: `docs/billing.md`.
@@ -16,14 +18,16 @@ import { PRO_PLAN } from "@/constants/pricing-plans";
  * - No stripeCustomerId yet → Checkout Session (mode: subscription) to start Pro.
  *   Puts orgId in session metadata so app/api/webhook can link the subscription.
  * - Already a Stripe customer → Customer Portal (SDK: billingPortal.sessions) to
- *   manage/cancel/update card. “Billing Portal” in the API name = Customer Portal in docs.
+ *   manage/cancel/update card. "Billing Portal" in the API name = Customer Portal in docs.
  */
-const handler = async ({}: InputType): Promise<ReturnType> => {
+const handler = async (
+  {}: InputType,
+  { orgId }: OrgAuth,
+): Promise<ReturnType> => {
   // TODO: schema is empty today; destructure fields once Checkout needs input.
-  const { userId, orgId } = await auth();
   const user = await currentUser();
 
-  if (!userId || !orgId || !user) {
+  if (!user) {
     return {
       serverError: "Unauthorized",
     };
@@ -33,7 +37,8 @@ const handler = async ({}: InputType): Promise<ReturnType> => {
   // Pro access is provisioned by app/api/webhook, not by landing on this URL.
   const settingsUrl = absoluteUrl(`/organization/${orgId}`);
 
-  let url = "";
+  let url:
+    Stripe.BillingPortal.Session["url"] | Stripe.Checkout.Session["url"] = null;
 
   try {
     const organizationSubscription =
@@ -44,7 +49,7 @@ const handler = async ({}: InputType): Promise<ReturnType> => {
       });
 
     // Existing subscriber → Customer Portal (docs name). SDK: billingPortal.sessions.
-    // Same product as “Billing Portal” — not a second kind of portal. Not Checkout.
+    // Same product as "Billing Portal" — not a second kind of portal. Not Checkout.
     if (organizationSubscription && organizationSubscription.stripeCustomerId) {
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: organizationSubscription.stripeCustomerId,
@@ -94,11 +99,15 @@ const handler = async ({}: InputType): Promise<ReturnType> => {
         },
       });
 
-      url = stripeSession.url || "";
+      url = stripeSession.url;
     }
   } catch {
     // TODO (P0 — docs/billing.md): log the failure reason
     // (e.g. `catch (reason)` + console/reporter) so checkout failures are debuggable.
+    return { serverError: "Something went wrong." };
+  }
+
+  if (!url) {
     return { serverError: "Something went wrong." };
   }
 
