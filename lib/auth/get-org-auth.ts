@@ -1,3 +1,6 @@
+// DAL — Data Access Layer for org-scoped authentication.
+// docs/authentication-and-authorization.md
+
 import { auth } from "@clerk/nextjs/server";
 
 import { type OrgAuth } from "./get-org-auth.types";
