@@ -7,6 +7,7 @@ import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
 
@@ -38,11 +39,6 @@ const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
 const redirectMock = vi.mocked(redirect);
 const createAuditLogMock = vi.mocked(createAuditLog);
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 const lockedOrgLimitRow = [{}];
 

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import {
   expectGlobalClientUnused,
@@ -42,11 +43,6 @@ const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
 
 let lastTransactionOutcome: "committed" | "rolledBack" | undefined;
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 describe("createList", () => {
   beforeEach(() => {

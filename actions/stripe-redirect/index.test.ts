@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { PRO_PLAN } from "@/constants/pricing-plans";
 import prisma from "@/lib/prisma/client";
 import { toStripeCurrency, toStripeUnitAmount } from "@/lib/stripe";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { organizationSubscriptionFactory } from "@/lib/testing/factories/organization-subscription";
 
 import { stripeRedirect } from "./index";
@@ -39,11 +40,6 @@ const subscriptionFindUniqueMock = vi.mocked(
   prisma.organizationSubscription.findUnique,
 );
 const revalidatePathMock = vi.mocked(revalidatePath);
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 const clerkUser = {
   emailAddresses: [{ emailAddress: "ada@example.com" }],

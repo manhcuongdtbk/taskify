@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma/client";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { cardFactory } from "@/lib/testing/factories/card";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { deferPromise } from "@/lib/testing/defer-promise";
 
 import { updateCardOrder } from "./index";
@@ -24,11 +25,6 @@ const authMock = vi.mocked(auth);
 const txClient = mockTxClient();
 const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 describe("updateCardOrder", () => {
   beforeEach(() => {

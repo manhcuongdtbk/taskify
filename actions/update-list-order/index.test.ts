@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
 
 import prisma from "@/lib/prisma/client";
+import { orgAuth } from "@/lib/testing/org-auth";
 import { listFactory } from "@/lib/testing/factories/list";
 
 import { updateListOrder } from "./index";
@@ -21,11 +22,6 @@ const authMock = vi.mocked(auth);
 const listUpdateMock = vi.mocked(prisma.list.update);
 const transactionMock = vi.mocked(prisma.$transaction);
 const revalidatePathMock = vi.mocked(revalidatePath);
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 describe("updateListOrder", () => {
   test("returns Unauthorized without writing when there is no session", async () => {

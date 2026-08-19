@@ -5,6 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
 import { boardFactory } from "@/lib/testing/factories/board";
+import { orgAuth } from "@/lib/testing/org-auth";
 
 import { updateBoard } from "./index";
 
@@ -28,11 +29,6 @@ const authMock = vi.mocked(auth);
 const boardUpdateMock = vi.mocked(prisma.board.update);
 const revalidatePathMock = vi.mocked(revalidatePath);
 const createAuditLogMock = vi.mocked(createAuditLog);
-
-const orgAuth = {
-  orgId: "org_1",
-  userId: "user_1",
-} as Awaited<ReturnType<typeof auth>>;
 
 describe("updateBoard", () => {
   test("returns Unauthorized without writing when there is no session", async () => {
