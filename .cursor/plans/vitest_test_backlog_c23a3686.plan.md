@@ -1,6 +1,6 @@
 ---
 name: Vitest test backlog
-overview: "P0 (PR #5) + P1 (PR #7) + P2 (PR #8) + P3 (PR #9) + P4 done. Freeze dropped. New *.test.* still 100% on colocated peers; All-files floors in vitest.config.mts. ListsContainer rename shipped (PR #11)."
+overview: "P0 (PR #5) + P1 (PR #7) + P2 (PR #8) + P3 (PR #9) + P4 done. Freeze dropped. Post-P4: card 404, Query hardening (lib/tanstack-query/), board-limits colocation + atomic cap, action handler org-scoping + transactions, card modal remount, stripe-redirect. New *.test.* still 100% on colocated peers; All-files floors in vitest.config.mts."
 todos:
   - id: branch-from-main
     content: Create a new branch from up-to-date main for P0 Vitest suites
@@ -61,7 +61,7 @@ isProject: false
 
 # Vitest test backlog
 
-Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`](../../docs/testing.md). Vitest owns unit/component; Playwright later owns E2E.
+Harness: [`vitest.config.mts`](../../vitest.config.mts), SoT [`docs/testing.md`](../../docs/testing.md). Vitest owns unit/component; Playwright later owns E2E. CI: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (was `vitest.yml`).
 
 **Conventions:** colocated `*.test.ts(x)` next to source; `import { describe, expect, test, vi } from "vitest"`; `vi.*` only; `test.for` for table-driven cases; no real network/DB.
 
@@ -114,20 +114,20 @@ Also in this PR (not separate Vitest phases): shared `ActionState` / `FieldError
 
 Shipped on `test/vitest-p1-mocked-unit` → [PR #7](https://github.com/manhcuongdtbk/taskify/pull/7). Execution plan (look-back): [`vitest_p1_mocked_unit_c7e24825.plan.md`](vitest_p1_mocked_unit_c7e24825.plan.md). Colocated suites:
 
-| Target                                                                           | Assert / change                                                                                             |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [`lib/fetcher.ts`](../../lib/fetcher.ts)                                         | Stub `fetch`: ok → JSON body; `!ok` throws with status + statusText                                         |
-| [`lib/env.ts`](../../lib/env.ts)                                                 | `stubEnv` + `resetModules`: development / production / test NODE_ENV flags                                  |
-| [`stores/use-pro-modal-store.ts`](../../stores/use-pro-modal-store.ts)           | `getState()` open / close                                                                                   |
-| [`stores/use-mobile-sidebar-store.ts`](../../stores/use-mobile-sidebar-store.ts) | same                                                                                                        |
-| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)         | open sets id; `selectCardModalIsOpen` = `!!id` (empty string closed); close clears; second open replaces id |
-| [`hooks/use-action.ts`](../../hooks/use-action.ts)                               | `renderHook` suite as `.test.ts` (same extension as source for `coverage:paths`); success / errors / falsy  |
-| [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts)                       | Clerk + prisma `vi.mock` factories; suite-wide `console.log` spy; write / missing auth / create reject      |
-| [`lib/api/card.ts`](../../lib/api/card.ts)                                       | `byId` + leaf keys; `queryFn` URLs; detail `CardWithList \| null`; `findAll` scope tests                    |
+| Target                                                                                                                   | Assert / change                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| [`lib/tanstack-query/fetcher.ts`](../../lib/tanstack-query/fetcher.ts) (was `lib/fetcher.ts`)                            | Stub `fetch`: ok → JSON body; `!ok` throws with status + statusText                                         |
+| [`lib/env.ts`](../../lib/env.ts)                                                                                         | `stubEnv` + `resetModules`: development / production / test NODE_ENV flags                                  |
+| [`stores/use-pro-modal-store.ts`](../../stores/use-pro-modal-store.ts)                                                   | `getState()` open / close                                                                                   |
+| [`stores/use-mobile-sidebar-store.ts`](../../stores/use-mobile-sidebar-store.ts)                                         | same                                                                                                        |
+| [`stores/use-card-modal-store.ts`](../../stores/use-card-modal-store.ts)                                                 | open sets id; `selectCardModalIsOpen` = `!!id` (empty string closed); close clears; second open replaces id |
+| [`hooks/use-action.ts`](../../hooks/use-action.ts)                                                                       | `renderHook` suite as `.test.ts` (same extension as source for `coverage:paths`); success / errors / falsy  |
+| [`lib/create-audit-log.ts`](../../lib/create-audit-log.ts)                                                               | Clerk + prisma `vi.mock` factories; suite-wide `console.log` spy; write / missing auth / create reject      |
+| [`lib/tanstack-query/resources/card/index.ts`](../../lib/tanstack-query/resources/card/index.ts) (was `lib/api/card.ts`) | `byId` + leaf keys; `queryFn` URLs; detail `CardWithList \| null`; `findAll` scope tests                    |
 
-Also in this PR (store/Query hygiene under freeze — [`docs/testing.md`](../../docs/testing.md)): move card Query factories to `lib/api` with `queryOptions`; `byId` invalidation (one call scopes detail + logs); derive open from **truthy** `id` via `selectCardModalIsOpen` (+ ESLint `select*`); card-modal consumers rewired; expect-order polish on `create-safe-action` tests. Root fix for 200-null card detail tracked in [`docs/data.md`](../../docs/data.md) (return 404, then drop `| null`).
+Also in this PR (store/Query hygiene under freeze — [`docs/testing.md`](../../docs/testing.md)): move card Query factories to `lib/api` with `queryOptions`; `byId` invalidation (one call scopes detail + logs); derive open from **truthy** `id` via `selectCardModalIsOpen` (+ ESLint `select*`); card-modal consumers rewired; expect-order polish on `create-safe-action` tests. Root fix for 200-null card detail: shipped post-P4 (card 404 + route handler → `lib/tanstack-query/`).
 
-Still deferred: `unsplash` / `prisma` singleton; no `vitest-mock-extended`. (`subscription` / `organization-limit` now have mocked Clerk+Prisma suites.)
+Still deferred: `unsplash` / `prisma` singleton; no `vitest-mock-extended`. (`subscription` / `organization-limit` now have mocked Clerk+Prisma suites; `organization-limit` moved to `lib/board-limits/` post-P4.)
 
 ---
 
@@ -171,9 +171,22 @@ Shipped on `test/vitest-p4-polish`. Execution plan: [`vitest_p4_polish.plan.md`]
 - Named roles + TDD `aria-label` on icon-only List/Board/Mobile menu and close controls
 - CardItem keyboard Enter/Space (same class as FormPicker); click still opens the card modal
 - ESLint `formData.get(…) as string` gate; no remaining casts in app UI
-- Pre-exclude All-files stmts **73.66%** (beat P3 69.91%); then exclude ungated files; `coverage.thresholds` 99%; [`.github/workflows/vitest.yml`](../../.github/workflows/vitest.yml)
+- Pre-exclude All-files stmts **73.66%** (beat P3 69.91%); then exclude ungated files; `coverage.thresholds` 99%; CI (now [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml))
 - Feature freeze dropped in [`docs/testing.md`](../../docs/testing.md)
+
+## Post-backlog work (same branch, after P4)
+
+After the backlog freeze dropped, product fixes and hardening continued on `test/vitest-p4-polish`:
+
+- **Card 404:** route handler returns 404; card modal shows errors; audit-log reads skipped when card missing
+- **Query:** retry 408/429; `lib/fetcher.ts` → `lib/tanstack-query/fetcher.ts`; `lib/api/card/` → `lib/tanstack-query/resources/card/`; `QueryProvider` test + React Query Devtools
+- **Board-limits:** `lib/organization-limit.ts` → `lib/board-limits/organization-limit.ts`; atomic `SELECT FOR UPDATE` cap; `withOrganizationLimitLock`; Free slot reserve/release in create/delete transactions; `create-board-limit-copy` helper
+- **Action handlers:** org-scoped board/list/card writes; interactive transactions for create/copy list+card and card order; `stripe-redirect` typed URL + org-pinned tests
+- **Card modal:** remount description, actions, activity, title on card switch; refetch failure test
+- **`actions/**/index.ts` coverage exclude dropped** — handlers now in the bucket
+- **CI renamed** `vitest.yml` → `ci.yml`
 
 ## Out of this backlog
 
-- E2E / visual → Playwright; Browser Mode only on decision-record triggers; Storybook = catalog later
+- E2E / visual → Playwright (not installed); Browser Mode only on decision-record triggers; Storybook = catalog later
+- `unsplash` / `prisma` singleton; Unsplash Query factory

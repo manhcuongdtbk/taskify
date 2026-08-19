@@ -30,7 +30,7 @@ isProject: false
 
 **Cadence:** `test/vitest-p4-polish` from `main`. Parent: [`vitest_test_backlog_c23a3686.plan.md`](vitest_test_backlog_c23a3686.plan.md).
 
-**Ratchet (same include as P3, before exclude polish):** All-files **73.66 / 62.89 / 91.09 / 72.64** (P3 was 69.91 / 57.92 / 88.69 / 69.2). Then exclude ungated files; `coverage.thresholds` 99%; CI [`.github/workflows/vitest.yml`](../../.github/workflows/vitest.yml).
+**Ratchet (same include as P3, before exclude polish):** All-files **73.66 / 62.89 / 91.09 / 72.64** (P3 was 69.91 / 57.92 / 88.69 / 69.2). Then exclude ungated files; `coverage.thresholds` 99%; CI [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
 
 ## Shipped
 
@@ -39,6 +39,16 @@ isProject: false
 - ESLint `formData.get as string` gate
 - Freeze dropped in [`docs/testing.md`](../../docs/testing.md)
 
-## Still later (not this backlog)
+## Shipped after P4 (same branch, post-backlog)
 
-Prisma/Unsplash singletons, `actions/*/index.ts`, card 404, Unsplash Query factory, Playwright / Browser Mode / Storybook. (`lib/subscription.ts` / `lib/organization-limit.ts` are in the coverage bucket with mocked Clerk+Prisma suites — not exclude-list leftovers.)
+- **Card 404:** route handler returns 404 for missing cards; card modal shows errors instead of skeletons; audit-log reads skipped when card is missing (`80d14c5`..`ae6ccfd`)
+- **Query hardening:** retry 408/429, `lib/tanstack-query/` (moved from `lib/api/` and `lib/fetcher.ts`), `QueryProvider` test, React Query Devtools
+- **Board-limits:** collocated under `lib/board-limits/` (was `lib/organization-limit.ts`); atomic `SELECT FOR UPDATE` cap; `withOrganizationLimitLock`; Free slot reserve/release in same transaction as create/delete; new `create-board-limit-copy` helper + tests
+- **Action handler hardening:** org-scoped board/list/card writes; interactive transactions for create/copy list+card and card order; `stripe-redirect` typed URL + pinned org tests
+- **Card modal remount:** description, actions, activity, and title reset when a different card is opened
+- **`actions/**/index.ts` exclude dropped** from `vitest.config.mts` — action handlers are now in the coverage bucket (most have Vitest suites or are org-scoped wrappers)
+- **CI renamed** `vitest.yml` → `ci.yml`
+
+## Still later
+
+Prisma/Unsplash singletons, Unsplash Query factory, Playwright / Browser Mode / Storybook. (`lib/subscription.ts` / `lib/board-limits/organization-limit.ts` are in the coverage bucket with mocked Clerk+Prisma suites — not exclude-list leftovers.)
