@@ -618,7 +618,7 @@ Parts **1–2** are the least you need for current/near-term Client unit tests. 
 
 1. **Types / enums only** — function uses generated `AuditLog` / `ACTION` / … but never calls Prisma Client → **Vitest unit** with static inputs. Do **not** mock Client. Example: [`lib/generate-audit-log-message.ts`](../lib/generate-audit-log-message.ts) + [`lib/generate-audit-log-message.test.ts`](../lib/generate-audit-log-message.test.ts).
 2. **Calls Prisma Client** (custom logic around `create` / `findMany` / …) → **Vitest unit** with a **mocked** [`lib/prisma/client.ts`](../lib/prisma/client.ts) when that suite lands. First candidate: [`lib/create-audit-log.ts`](../lib/create-audit-log.ts). Skip unit tests that only forward to Client with no branching (blog part 2).
-3. **Need real SQL / relations** → integration against a test DB (later; blog part 3 / Prisma integration docs) — not default for app helpers. First candidate when that suite exists: [`incrementAvailableCount`](../lib/board-limits/organization-limit.ts) `SELECT … FOR UPDATE` + `COUNT(Board)` inside `$transaction` ([`prisma.md`](./prisma.md)).
+3. **Need real SQL / relations** → integration against a test DB (later; blog part 3 / Prisma integration docs) — not default for app helpers. First candidate when that suite exists: [`withOrganizationLimitLock`](../lib/board-limits/organization-limit.ts) `SELECT … FOR UPDATE` + `COUNT(Board)` inside `$transaction` ([`prisma.md`](./prisma.md)).
 4. **Full product journey** → **Playwright when we add it** (blog part 4). Not automated today.
 
 ```text

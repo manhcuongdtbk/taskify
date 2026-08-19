@@ -61,6 +61,8 @@ const orgAuth = {
   userId: "user_1",
 } as Awaited<ReturnType<typeof auth>>;
 
+const lockedOrgLimitRow = [{}];
+
 const image = {
   id: "cXHsWI3gBws",
   thumbUrl:
@@ -120,8 +122,9 @@ describe("createBoard", () => {
     authMock.mockResolvedValue(orgAuth);
     txSubscriptionFindUniqueMock.mockResolvedValue(null);
     createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue([]);
-    boardCountMock.mockResolvedValue(2);
+    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
+    // Cap-check COUNT, then sync COUNT after the insert.
+    boardCountMock.mockResolvedValueOnce(2).mockResolvedValueOnce(3);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockResolvedValue(board);
 
@@ -137,7 +140,11 @@ describe("createBoard", () => {
         stripeCustomerId: true,
       },
     });
-    expect(boardCountMock).toHaveBeenCalledExactlyOnceWith({
+    expect(boardCountMock).toHaveBeenCalledTimes(2);
+    expect(boardCountMock).toHaveBeenNthCalledWith(1, {
+      where: { orgId: "org_1" },
+    });
+    expect(boardCountMock).toHaveBeenNthCalledWith(2, {
       where: { orgId: "org_1" },
     });
     expect(updateManyMock).toHaveBeenCalledExactlyOnceWith({
@@ -174,8 +181,9 @@ describe("createBoard", () => {
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
     createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue([]);
-    boardCountMock.mockResolvedValue(10);
+    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
+    // Sync COUNT after the insert.
+    boardCountMock.mockResolvedValue(11);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockResolvedValue(board);
 
@@ -198,8 +206,11 @@ describe("createBoard", () => {
     authMock.mockResolvedValue(orgAuth);
     txSubscriptionFindUniqueMock.mockResolvedValue(null);
     createManyMock.mockResolvedValue({ count: 0 });
-    queryRawMock.mockResolvedValue([]);
-    boardCountMock.mockResolvedValue(FREE_PLAN.maxBoards);
+    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
+    // Cap-check COUNT, then sync COUNT (unchanged because we don't insert).
+    boardCountMock
+      .mockResolvedValueOnce(FREE_PLAN.maxBoards)
+      .mockResolvedValueOnce(FREE_PLAN.maxBoards);
     updateManyMock.mockResolvedValue({ count: 1 });
 
     const result = await createBoard({ title: "Roadmap", image });
@@ -222,7 +233,7 @@ describe("createBoard", () => {
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
     createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue([]);
+    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
     boardCountMock.mockResolvedValue(0);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockRejectedValue(new Error("db down"));
@@ -245,7 +256,7 @@ describe("createBoard", () => {
       organizationSubscriptionFactory.build({ orgId: "org_1" }),
     );
     createManyMock.mockResolvedValue({ count: 1 });
-    queryRawMock.mockResolvedValue([]);
+    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
     boardCountMock.mockResolvedValueOnce(4);
     updateManyMock.mockResolvedValue({ count: 1 });
     boardCreateMock.mockResolvedValue(firstBoard);
@@ -254,7 +265,10 @@ describe("createBoard", () => {
     expect(proResult).toStrictEqual({ data: firstBoard });
 
     txSubscriptionFindUniqueMock.mockResolvedValueOnce(null);
-    boardCountMock.mockResolvedValueOnce(FREE_PLAN.maxBoards);
+    // Cap-check COUNT, then sync COUNT.
+    boardCountMock
+      .mockResolvedValueOnce(FREE_PLAN.maxBoards)
+      .mockResolvedValueOnce(FREE_PLAN.maxBoards);
     boardCreateMock.mockClear();
 
     const freeResult = await createBoard({ title: secondBoardTitle, image });

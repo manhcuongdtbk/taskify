@@ -80,6 +80,8 @@ const mockInteractiveTransaction = () => {
   });
 };
 
+const lockedOrgLimitRow = [{}];
+
 describe("deleteBoard", () => {
   beforeEach(() => {
     mockInteractiveTransaction();
@@ -98,17 +100,40 @@ describe("deleteBoard", () => {
 
   test("deletes a Free-plan board and frees a slot in the same transaction", async () => {
     const board = boardFactory.build({ orgId: "org_1" });
+    const callOrder: string[] = [];
     authMock.mockResolvedValue(orgAuth);
-    boardDeleteMock.mockResolvedValue(board);
-    createManyMock.mockResolvedValue({ count: 0 });
-    queryRawMock.mockResolvedValue([]);
-    boardCountMock.mockResolvedValue(4);
-    updateManyMock.mockResolvedValue({ count: 1 });
+    createManyMock.mockImplementation(async () => {
+      callOrder.push("lock");
+      return { count: 0 };
+    });
+    queryRawMock.mockImplementation(async () => {
+      callOrder.push("lock-for-update");
+      return lockedOrgLimitRow;
+    });
+    boardDeleteMock.mockImplementation(async () => {
+      callOrder.push("delete");
+      return board;
+    });
+    boardCountMock.mockImplementation(async () => {
+      callOrder.push("count");
+      return 4;
+    });
+    updateManyMock.mockImplementation(async () => {
+      callOrder.push("sync");
+      return { count: 1 };
+    });
 
     await deleteBoard({ id: board.id });
 
     expect(authMock).toHaveBeenCalledOnce();
     expect(transactionMock).toHaveBeenCalledOnce();
+    expect(callOrder).toStrictEqual([
+      "lock",
+      "lock-for-update",
+      "delete",
+      "count",
+      "sync",
+    ]);
     expect(boardDeleteMock).toHaveBeenCalledExactlyOnceWith({
       where: { id: board.id, orgId: "org_1" },
     });
@@ -139,7 +164,7 @@ describe("deleteBoard", () => {
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
     createManyMock.mockResolvedValue({ count: 0 });
-    queryRawMock.mockResolvedValue([]);
+    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
     boardCountMock.mockResolvedValue(9);
     updateManyMock.mockResolvedValue({ count: 1 });
 
@@ -159,11 +184,13 @@ describe("deleteBoard", () => {
     authMock.mockResolvedValue(orgAuth);
     boardDeleteMock.mockResolvedValue(board);
     createManyMock.mockResolvedValue({ count: 0 });
-    queryRawMock.mockResolvedValue([]);
+    queryRawMock.mockResolvedValue(lockedOrgLimitRow);
     boardCountMock.mockResolvedValue(4);
     updateManyMock.mockRejectedValue(new Error("db down"));
 
     const result = await deleteBoard({ id: board.id });
+
+    expect(boardDeleteMock).toHaveBeenCalledOnce();
 
     expect(createAuditLogMock).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();

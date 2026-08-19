@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { type Prisma } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
-import { FREE_PLAN } from "@/constants/pricing-plans";
 
 /**
  * Methods used under `prisma.$transaction(async (tx) => …)`. `$connect?: never`
@@ -39,9 +38,13 @@ const lockOrganizationLimitRow = async (
     skipDuplicates: true,
   });
 
-  await db.$queryRaw`
+  const rows = await db.$queryRaw<Array<unknown>>`
     SELECT 1 FROM "OrganizationLimit" WHERE "orgId" = ${orgId} FOR UPDATE
   `;
+
+  if (rows.length === 0) {
+    throw new Error("Organization limit row not found");
+  }
 };
 
 const countOrgBoards = (orgId: string, db: OrganizationLimitWriter) =>
@@ -57,81 +60,32 @@ const writeStoredBoardCount = (
     data: { count },
   });
 
-/**
- * Atomically take one Free-plan board slot. Locks the org row, counts live
- * boards, and writes `actual + 1` when under the cap. Callers pass `orgId`
- * (already from `auth()`) and the interactive-transaction client (`tx`) so
- * Clerk is not awaited while the row is locked. `FOR UPDATE` is released at
- * statement end outside a transaction. A failed board **create** rolls the
- * slot write back. At the cap this writes `actual` and returns `false` —
- * callers must return that from `$transaction` (not throw) so the heal
- * commits. docs/prisma.md
- */
-export const incrementAvailableCount = async (
-  orgId: string,
-  db: OrganizationLimitWriter,
-): Promise<boolean> => {
-  if (!orgId) {
-    throw new Error("Unauthorized");
-  }
-
-  await lockOrganizationLimitRow(orgId, db);
-  const actual = await countOrgBoards(orgId, db);
-
-  if (actual >= FREE_PLAN.maxBoards) {
-    await writeStoredBoardCount(orgId, actual, db);
-    return false;
-  }
-
-  await writeStoredBoardCount(orgId, actual + 1, db);
-  return true;
-};
-
-/**
- * Atomically increment the stored open-board counter for Pro creates.
- *
- * Why we keep this separate from `incrementAvailableCount`:
- * - `incrementAvailableCount` enforces the Free-plan cap (`COUNT(boards) >= maxBoards`)
- *   and returns `false` at the cap.
- * - `incrementBoardCount` always writes `COUNT(boards) + 1` so the stored
- *   counter stays aligned with reality across plan upgrades/downgrades.
- *
- * Callers pass `orgId` (already from `auth()`) and the interactive-transaction
- * client (`tx`) so Clerk is not awaited while the row is locked. `FOR UPDATE`
- * is released at statement end outside a transaction. A failed board create
- * rolls the write back. docs/prisma.md
- */
-export const incrementBoardCount = async (
+const syncStoredBoardCount = async (
   orgId: string,
   db: OrganizationLimitWriter,
 ) => {
-  if (!orgId) {
-    throw new Error("Unauthorized");
-  }
-
-  await lockOrganizationLimitRow(orgId, db);
-  const actual = await countOrgBoards(orgId, db);
-  await writeStoredBoardCount(orgId, actual + 1, db);
-};
-
-/**
- * Align the stored count with remaining boards after a delete. Callers pass
- * `orgId` (already from `auth()`) and the interactive-transaction client (`tx`)
- * so Clerk is not awaited while the row is locked. `FOR UPDATE` is released at
- * statement end outside a transaction. A failed board delete rolls the write
- * back. docs/prisma.md
- */
-export const decrementAvailableCount = async (
-  orgId: string,
-  db: OrganizationLimitWriter,
-) => {
-  if (!orgId) {
-    throw new Error("Unauthorized");
-  }
-
-  await lockOrganizationLimitRow(orgId, db);
   const actual = await countOrgBoards(orgId, db);
   await writeStoredBoardCount(orgId, actual, db);
+};
+
+/**
+ * Lock the org limit row, run a Board mutation, then sync the stored counter
+ * from live COUNT. Used by delete-board so the limit lock is taken before any
+ * Board row lock — same order as create-board. docs/prisma.md
+ */
+export const withOrganizationLimitLock = async <T>(
+  orgId: string,
+  db: OrganizationLimitWriter,
+  mutate: () => Promise<T>,
+): Promise<T> => {
+  if (!orgId) {
+    throw new Error("Unauthorized");
+  }
+
+  await lockOrganizationLimitRow(orgId, db);
+  const result = await mutate();
+  await syncStoredBoardCount(orgId, db);
+  return result;
 };
 
 /** Stored open-board count used for Free remaining copy. Session org only — same as `checkSubscription`. */

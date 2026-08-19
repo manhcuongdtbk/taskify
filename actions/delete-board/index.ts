@@ -9,7 +9,7 @@ import { DeleteBoardSchema } from "./schema";
 import { redirect } from "next/navigation";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
-import { decrementAvailableCount } from "@/lib/board-limits/organization-limit";
+import { withOrganizationLimitLock } from "@/lib/board-limits/organization-limit";
 import { paths } from "@/lib/paths";
 
 const handler = async ({ id }: InputType): Promise<ReturnType> => {
@@ -25,14 +25,9 @@ const handler = async ({ id }: InputType): Promise<ReturnType> => {
 
   try {
     board = await prisma.$transaction(async (tx) => {
-      const deleted = await tx.board.delete({
-        where: { id, orgId },
-      });
+      const deleteBoardInOrg = () => tx.board.delete({ where: { id, orgId } });
 
-      // Keep stored counter aligned with reality across plan changes.
-      await decrementAvailableCount(orgId, tx);
-
-      return deleted;
+      return withOrganizationLimitLock(orgId, tx, deleteBoardInOrg);
     });
   } catch {
     return { serverError: "Failed to delete." };

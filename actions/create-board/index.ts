@@ -9,11 +9,9 @@ import { CreateBoardSchema } from "./schema";
 import { createAuditLog } from "@/lib/create-audit-log";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import { FREE_BOARD_LIMIT_SERVER_ERROR } from "@/lib/board-limits/free-board-limit";
-import {
-  incrementAvailableCount,
-  incrementBoardCount,
-} from "@/lib/board-limits/organization-limit";
+import { withOrganizationLimitLock } from "@/lib/board-limits/organization-limit";
 import { isProOrganization } from "@/lib/subscription";
+import { FREE_PLAN } from "@/constants/pricing-plans";
 
 const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
   const { userId, orgId } = await auth();
@@ -29,31 +27,33 @@ const handler = async ({ title, image }: InputType): Promise<ReturnType> => {
   try {
     const outcome = await prisma.$transaction(async (tx) => {
       const isPro = await isProOrganization(orgId, tx);
-      if (isPro) {
-        // Keep the stored counter aligned with reality across plan changes.
-        await incrementBoardCount(orgId, tx);
-      } else {
-        const reserved = await incrementAvailableCount(orgId, tx);
-        // Return — do not throw — so the at-cap stored-count heal commits.
-        if (!reserved) {
-          return { created: false as const };
-        }
-      }
 
-      return {
-        created: true as const,
-        board: await tx.board.create({
-          data: {
-            title,
-            orgId,
-            imageId: image.id,
-            imageThumbUrl: image.thumbUrl,
-            imageFullUrl: image.fullUrl,
-            imageLinkHTML: image.linkHTML,
-            imageUserName: image.userName,
-          },
-        }),
+      const createBoardUnderFreeCap = async () => {
+        if (!isPro) {
+          const actual = await tx.board.count({ where: { orgId } });
+          if (actual >= FREE_PLAN.maxBoards) {
+            // Return — do not throw — so the at-cap stored-count heal commits.
+            return { created: false as const };
+          }
+        }
+
+        return {
+          created: true as const,
+          board: await tx.board.create({
+            data: {
+              title,
+              orgId,
+              imageId: image.id,
+              imageThumbUrl: image.thumbUrl,
+              imageFullUrl: image.fullUrl,
+              imageLinkHTML: image.linkHTML,
+              imageUserName: image.userName,
+            },
+          }),
+        };
       };
+
+      return withOrganizationLimitLock(orgId, tx, createBoardUnderFreeCap);
     });
 
     if (!outcome.created) {
