@@ -724,11 +724,6 @@ pnpm lint:file-support -- --all # also dump Prettier’s full getSupportInfo() m
 
 **Neither:** leave unformatted (or a tool-specific formatter only when we adopt one on purpose). Editor: Tombi for TOML (`mise.toml`, …); Prisma for `.prisma`.
 
-###### TODO — CI
-
-- [x] GitHub Actions runs **`pnpm lint`** on pull requests / main — same check gate as local CLI (ESLint, routes, Prettier, Prisma schema, types, workflow tooling). [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). Optional later: cache Next builds per [CI Build Caching](https://nextjs.org/docs/app/guides/ci-build-caching).
-- [x] Keep CI as check-only (`pnpm lint`); do not run `pnpm lint:fix` in CI.
-
 ### How to extend this catalog
 
 When the team settles a new habit:
