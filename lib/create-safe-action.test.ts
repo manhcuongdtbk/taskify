@@ -18,7 +18,7 @@ const Schema = z.object({
 });
 
 const fieldErrorsFor = async (schema: z.ZodType, input: unknown) => {
-  const action = createSafeAction(schema, async (input, _orgAuth) => ({
+  const action = createSafeAction(schema, async (input) => ({
     data: input,
   }));
 
@@ -39,7 +39,7 @@ describe("createSafeAction", () => {
 
   test("valid: passes parsed data and orgAuth to the handler", async () => {
     getOrgAuthMock.mockResolvedValue(orgAuth);
-    const handler = vi.fn(async (input: z.infer<typeof Schema>, _orgAuth) => ({
+    const handler = vi.fn(async (input: z.infer<typeof Schema>) => ({
       data: input.title,
     }));
     const action = createSafeAction(Schema, handler);
