@@ -11,8 +11,9 @@ import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/client";
 
 import prisma from "@/lib/prisma/client";
 import { getOrgAuth } from "@/lib/auth/get-org-auth";
+import { authUserFactory } from "@/lib/testing/auth/user";
 import { auditLogFactory } from "@/lib/testing/factories/audit-log";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { createAuditLog } from "./create-audit-log";
 
 vi.mock("@/lib/prisma/client");
@@ -46,12 +47,11 @@ describe("createAuditLog", () => {
 
   test("writes an audit log row for the action", async () => {
     getOrgAuthMock.mockResolvedValue(orgAuth);
-    currentUserMock.mockResolvedValue({
-      id: "user_1",
-      imageUrl: "https://img.example/u.png",
-      firstName: "Ada",
-      lastName: "Lovelace",
-    } as Awaited<ReturnType<typeof currentUser>>);
+    currentUserMock.mockResolvedValue(
+      authUserFactory.build({
+        id: "user_1",
+      }) as Awaited<ReturnType<typeof currentUser>>,
+    );
     createMock.mockResolvedValue(auditLogFactory.build());
 
     const result = await createAuditLog(auditInput);
@@ -73,12 +73,13 @@ describe("createAuditLog", () => {
 
   test("falls back to a safe audit name when Clerk omits both names", async () => {
     getOrgAuthMock.mockResolvedValue(orgAuth);
-    currentUserMock.mockResolvedValue({
-      id: "user_1",
-      imageUrl: "https://img.example/u.png",
-      firstName: null,
-      lastName: null,
-    } as Awaited<ReturnType<typeof currentUser>>);
+    currentUserMock.mockResolvedValue(
+      authUserFactory.build({
+        id: "user_1",
+        firstName: null,
+        lastName: null,
+      }) as Awaited<ReturnType<typeof currentUser>>,
+    );
     createMock.mockResolvedValue(auditLogFactory.build());
 
     await createAuditLog(auditInput);
@@ -101,12 +102,9 @@ describe("createAuditLog", () => {
     {
       case: "missing orgId",
       orgId: null,
-      user: {
+      user: authUserFactory.build({
         id: "user_1",
-        imageUrl: "https://img.example/u.png",
-        firstName: "Ada",
-        lastName: "Lovelace",
-      },
+      }),
     },
     {
       case: "missing user",
@@ -128,12 +126,11 @@ describe("createAuditLog", () => {
 
   test("returns a failure when auditLog.create rejects", async () => {
     getOrgAuthMock.mockResolvedValue(orgAuth);
-    currentUserMock.mockResolvedValue({
-      id: "user_1",
-      imageUrl: "https://img.example/u.png",
-      firstName: "Ada",
-      lastName: "Lovelace",
-    } as Awaited<ReturnType<typeof currentUser>>);
+    currentUserMock.mockResolvedValue(
+      authUserFactory.build({
+        id: "user_1",
+      }) as Awaited<ReturnType<typeof currentUser>>,
+    );
     createMock.mockRejectedValue(new Error("db down"));
 
     const result = await createAuditLog(auditInput);

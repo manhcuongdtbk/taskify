@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma/client";
 import { getOrgAuth } from "@/lib/auth/get-org-auth";
 import { paths } from "@/lib/paths";
 import { boardFactory } from "@/lib/testing/factories/board";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 
 vi.mock("@/lib/prisma/client");
 

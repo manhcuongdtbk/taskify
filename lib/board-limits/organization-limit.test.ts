@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import { type Prisma, type PrismaClient } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma/client";
 import { getOrgAuth } from "@/lib/auth/get-org-auth";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { organizationLimitFactory } from "@/lib/testing/factories/organization-limit";
 
 import {

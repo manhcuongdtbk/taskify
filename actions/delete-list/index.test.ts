@@ -5,7 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
 import { listFactory } from "@/lib/testing/factories/list";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 
 import { deleteList } from "./index";
 

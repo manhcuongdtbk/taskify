@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma/client";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import { mockInteractiveTransaction } from "@/lib/testing/prisma/mock-interactive-transaction";
 import { listFactory } from "@/lib/testing/factories/list";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { deferPromise } from "@/lib/testing/defer-promise";
 
 import { updateListOrder } from "./index";

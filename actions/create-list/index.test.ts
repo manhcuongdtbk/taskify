@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ACTION, ENTITY_TYPE } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma/client";
-import { orgAuth } from "@/lib/testing/org-auth";
+import { orgAuth } from "@/lib/testing/auth/org-auth";
 import { mockTxClient } from "@/lib/testing/prisma/mock-tx-client";
 import {
   expectGlobalClientUnused,
