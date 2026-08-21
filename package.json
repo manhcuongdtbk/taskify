@@ -21,6 +21,7 @@
     "lint:file-support": "node --import tsx scripts/print-lint-file-support.ts",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:coverage:paths": "node --import tsx scripts/test-coverage-paths.ts",
     "test:inspect": "vitest --inspect-brk --no-file-parallelism --test-timeout=0",
@@ -75,8 +76,9 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "@vitest/eslint-plugin": "^1.6.26",
+    "@vitest/ui": "^4.1.11",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "eslint-config-prettier": "^10.1.8",
@@ -96,7 +98,7 @@
     "tsx": "^4.23.11",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "vitest-mock-extended": "^5.1.1"
   }
 }

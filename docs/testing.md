@@ -141,7 +141,7 @@ test("submits on click", async () => {
 
 - Config: [`vitest.config.mts`](../vitest.config.mts) — `environment: "jsdom"`, `setupFiles: ["./vitest.setup.ts"]` (jest-dom + RTL `cleanup` + MSW `setupServer` lifecycle — we don’t use Vitest `globals`, so RTL’s auto-cleanup hook doesn’t run), `restoreMocks: true`, `mockReset: true`, `unstubGlobals: true`, `unstubEnvs: true`, `expect.requireAssertions: true`, `coverage.provider: "v8"`, `coverage.thresholds` (99% All-files floor on the polished include), `vite-tsconfig-paths` for `@/*`
 - **MSW** for Query/`fetcher` HTTP in component suites — [MSW in this repo](#msw-in-this-repo)
-- Scripts: `pnpm test` (watch), `pnpm test:run` (CI/agents), `pnpm test:coverage` (`vitest run --coverage`), `pnpm test:inspect` (Chrome DevTools / Node inspector)
+- Scripts: `pnpm test` (watch), `pnpm test:ui` (watch + UI), `pnpm test:run` (CI/agents), `pnpm test:coverage` (`vitest run --coverage`), `pnpm test:inspect` (Chrome DevTools / Node inspector)
 - Coverage: `@vitest/coverage-v8` — [Coverage](https://vitest.dev/guide/coverage.html); reports under `coverage/` (gitignored)
 - **New/expanded `*.test.*` → 100% colocated peer** (`pnpm test:coverage:paths`) unless a concern doc says otherwise — [below](#colocated-100--coverage-thresholds)
 - VS Code: recommend `vitest.explorer`; launch configs in [`.vscode/launch.json`](../.vscode/launch.json)
@@ -436,7 +436,7 @@ When Playwright lands: set `testDir: "e2e"` (and prefer `testMatch` for `*.spec.
 - [ ] Playwright for critical flows (auth, board, billing) — `e2e/*.spec.ts` only (never `*.test.*`; only E2E tool; no Cypress). Include **async RSC**: create-board tile remaining copy. Next’s [Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest) — do not emulate that in jsdom.
 - [ ] Storybook when [catalog triggers](#storybook-when-needed) pass — catalog/workshop only; colocated `*.stories.tsx` (not CI component-test owner unless [decision record](#decision-record-vitest--jsdom--browser-mode--playwright--storybook) rewritten)
 - [ ] Revisit Vitest Browser Mode only if [triggers](#trigger-checklist-for-switching-the-component-default) fire — pilot jsdom vs Browser Mode before blanket switch; update decision record + config together
-- [ ] `@vitest/ui` (`vitest --ui` / optional `html` reporter) when browser suite exploration or CI HTML reports beat the VS Code Testing view — [Vitest UI](https://vitest.dev/guide/ui.html)
+- [ ] Optional Vitest `html` reporter / CI HTML artifacts when static reports beat interactive UI — [Vitest UI](https://vitest.dev/guide/ui.html) (interactive UI: `pnpm test:ui`)
 
 ## Colocated 100% + coverage thresholds
 
@@ -702,6 +702,7 @@ Fabbrica’s `.build` / `.buildList` skip insert, but that does **not** make it 
 | Script                     | When                                                                                                                                              |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm test`                | Local watch (humans)                                                                                                                              |
+| `pnpm test:ui`             | Watch + [Vitest UI](https://vitest.dev/guide/ui.html) at `http://localhost:51204/__vitest__/` (jsdom suite — not Browser Mode)                    |
 | `pnpm test:run`            | One-shot — agents, CI, pre-commit checks                                                                                                          |
 | `pnpm test:coverage`       | One-shot with V8 coverage for the whole suite (`coverage/`) — [Coverage](https://vitest.dev/guide/coverage.html)                                  |
 | `pnpm test:coverage:paths` | Coverage for colocated source ↔ `*.test.*` pair(s) (files and/or folders) — [`scripts/test-coverage-paths.ts`](../scripts/test-coverage-paths.ts) |
